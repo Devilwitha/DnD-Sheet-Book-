@@ -21,6 +21,27 @@ from functools import partial
 # Importiert die Daten aus der separaten Datei
 from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA
 
+SKILL_LIST = {
+    "Akrobatik": "Geschicklichkeit",
+    "Tierbehandlung": "Weisheit",
+    "Arkane Kunde": "Intelligenz",
+    "Athletik": "Stärke",
+    "Täuschung": "Charisma",
+    "Geschichte": "Intelligenz",
+    "Menschenkenntnis": "Weisheit",
+    "Einschüchtern": "Charisma",
+    "Nachforschungen": "Intelligenz",
+    "Medizin": "Weisheit",
+    "Naturkunde": "Intelligenz",
+    "Wahrnehmung": "Weisheit",
+    "Auftreten": "Charisma",
+    "Überzeugen": "Charisma",
+    "Religion": "Intelligenz",
+    "Fingerfertigkeit": "Geschicklichkeit",
+    "Heimlichkeit": "Geschicklichkeit",
+    "Überlebenskunst": "Weisheit"
+}
+
 class Character:
     """Finale Version der Charakter-Klasse mit allen neuen Attributen."""
     def __init__(self, name, race, char_class):
@@ -36,7 +57,10 @@ class Character:
         self.hit_points = 0
         self.max_hit_points = 0
         self.speed = 0
+        self.initiative = 0
+        self.armor_class = 10
         self.inventory = {}  # Geändert zu Dictionary für die Anzahl
+        self.equipment = {} # Ausrüstung mit AC-Bonus
         self.currency = {"KP": 0, "SP": 0, "EP": 0, "GM": 0, "PP": 0}
         self.equipped_weapon = "Unbewaffneter Schlag"
         self.background = ""
@@ -57,6 +81,8 @@ class Character:
         self.calculate_initial_hp()
         self.update_features()
         self.prepare_spellbook()
+        self.calculate_initiative()
+        self.calculate_armor_class()
 
     def update_race_bonuses_and_speed(self):
         self.abilities = self.base_abilities.copy()
@@ -111,6 +137,26 @@ class Character:
 
         self.update_race_bonuses_and_speed()
         self.update_features()
+        self.calculate_initiative()
+        self.calculate_armor_class()
+
+    def calculate_initiative(self):
+        self.initiative = (self.abilities["Geschicklichkeit"] - 10) // 2
+
+    def get_proficiency_bonus(self):
+        return (self.level - 1) // 4 + 2
+
+    def calculate_armor_class(self):
+        dex_modifier = (self.abilities["Geschicklichkeit"] - 10) // 2
+
+        # Basis-AC ist 10 + Geschicklichkeitsmodifikator
+        ac = 10 + dex_modifier
+
+        # Addiere AC von der Ausrüstung
+        for item, bonus in self.equipment.items():
+            ac += bonus
+
+        self.armor_class = ac
 
 class MainMenu(Screen):
     """Hauptmenü-Bildschirm zum Erstellen oder Laden eines Charakters."""
@@ -312,14 +358,18 @@ class CharacterSheet(Screen):
         left_column = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
         left_column.bind(minimum_height=left_column.setter('height'))
         
-        stats_box = GridLayout(cols=2, size_hint_y=None, height=220)
+        stats_box = GridLayout(cols=2, size_hint_y=None, height=280)
         for ability, score in self.character.abilities.items():
             modifier = (score - 10) // 2
             sign = "+" if modifier >= 0 else ""
             stats_box.add_widget(Label(text=f"{ability}:"))
             stats_box.add_widget(Label(text=f"{score} ({sign}{modifier})"))
+        stats_box.add_widget(Label(text="Rüstungsklasse:"))
+        stats_box.add_widget(Label(text=f"{self.character.armor_class}"))
+        stats_box.add_widget(Label(text="Initiative:"))
+        stats_box.add_widget(Label(text=f"{self.character.initiative:+}"))
         stats_box.add_widget(Label(text="Bewegungsrate:"))
-        stats_box.add_widget(Label(text=f"{self.character.speed}m"))
+        stats_box.add_widget(Label(text=f"{self.character.speed}m ({int(self.character.speed / 1.5)} Felder)"))
         left_column.add_widget(stats_box)
         
         hp_box = BoxLayout(size_hint_y=None, height=50)
@@ -374,6 +424,14 @@ class CharacterSheet(Screen):
         self.update_inventory_display()
         right_column.add_widget(self.inventory_layout)
         right_column.add_widget(Button(text="Item hinzufügen", on_press=self.show_add_item_popup, size_hint_y=None, height=44))
+
+        right_column.add_widget(Label(text="Ausrüstung", font_size='20sp', size_hint_y=None, height=40))
+        self.equipment_layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
+        self.equipment_layout.bind(minimum_height=self.equipment_layout.setter('height'))
+        self.update_equipment_display()
+        right_column.add_widget(self.equipment_layout)
+        right_column.add_widget(Button(text="Ausrüstung hinzufügen", on_press=self.show_add_equipment_popup, size_hint_y=None, height=44))
+
         content_layout.add_widget(right_column)
         
         scroll_view.add_widget(content_layout)
@@ -425,6 +483,47 @@ class CharacterSheet(Screen):
             del self.character.inventory[item_name]
         self.update_inventory_display()
 
+    def update_equipment_display(self):
+        self.equipment_layout.clear_widgets()
+        for item_name, ac_bonus in self.character.equipment.items():
+            item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
+            item_row.add_widget(Label(text=f"{item_name} (AC: +{ac_bonus})", halign='left', valign='middle'))
+            remove_btn = Button(text="-", size_hint_x=0.2)
+            remove_btn.bind(on_press=partial(self.remove_equipment, item_name))
+            item_row.add_widget(remove_btn)
+            self.equipment_layout.add_widget(item_row)
+
+    def remove_equipment(self, item_name, instance):
+        if item_name in self.character.equipment:
+            del self.character.equipment[item_name]
+            self.character.calculate_armor_class()
+            self.update_sheet()
+
+    def show_add_equipment_popup(self, instance):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        name_input = TextInput(hint_text="Ausrüstungsname", multiline=False)
+        ac_input = TextInput(hint_text="AC Bonus", multiline=False)
+        content.add_widget(name_input)
+        content.add_widget(ac_input)
+        add_btn = Button(text="Hinzufügen")
+        content.add_widget(add_btn)
+        popup = Popup(title="Ausrüstung hinzufügen", content=content, size_hint=(0.8, 0.5))
+        def add_action(instance):
+            name = name_input.text.strip()
+            try:
+                ac_bonus = int(ac_input.text.strip())
+                if name:
+                    self.character.equipment[name] = ac_bonus
+                    self.character.calculate_armor_class()
+                    self.update_sheet()
+                    popup.dismiss()
+                else:
+                    self.show_popup("Fehler", "Bitte einen Namen eingeben.")
+            except ValueError:
+                self.show_popup("Fehler", "AC Bonus muss eine Zahl sein.")
+        add_btn.bind(on_press=add_action)
+        popup.open()
+
     def show_add_item_popup(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         item_input = TextInput(hint_text="Gegenstand eingeben", multiline=False)
@@ -465,15 +564,24 @@ class CharacterSheet(Screen):
 
         features_text = ""
         if self.character.features:
-            features_text = "\n\n[b]Fähigkeiten:[/b]\n"
+            features_text = "\n\n[b]Klassenmerkmale:[/b]\n"
             for feature in self.character.features:
                 features_text += f"- {feature['name']}\n"
+
+        skills_text = "\n\n[b]Fähigkeiten:[/b]\n"
+        for skill, ability in SKILL_LIST.items():
+            modifier = (self.character.abilities[ability] - 10) // 2
+            if skill in self.character.proficiencies:
+                modifier += self.character.get_proficiency_bonus()
+            sign = "+" if modifier >= 0 else ""
+            skills_text += f"- {skill}: {sign}{modifier}\n"
 
         text = (
             f"[b]Gesinnung:[/b] {self.character.alignment}\n\n"
             f"[b]Hintergrund:[/b] {self.character.background}\n\n"
             f"[b]Kompetenzen:[/b]\n{prof_text}\n\n"
             f"[b]Sprachen:[/b]\n{lang_text}\n\n"
+            f"{skills_text}"
             f"[b]Persönliche Merkmale:[/b]\n{self.character.personality_traits}\n\n"
             f"[b]Ideale:[/b]\n{self.character.ideals}\n\n"
             f"[b]Bindungen:[/b]\n{self.character.bonds}\n\n"
