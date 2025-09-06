@@ -10,6 +10,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
+from kivy.uix.checkbox import CheckBox
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.window import Window
 import random
@@ -96,13 +97,19 @@ class Character:
         """Stellt das Zauberbuch für den Charakter zusammen."""
         self.spells = CLASS_DATA.get(self.char_class, {}).get("spells", {})
 
-    def level_up(self):
+    def level_up(self, choices):
         self.level += 1
         hit_die = CLASS_DATA.get(self.char_class, {}).get("hit_die", 8)
         con_modifier = (self.abilities["Konstitution"] - 10) // 2
         hp_increase = random.randint(1, hit_die) + con_modifier
         self.max_hit_points += max(1, hp_increase)
         self.hit_points = self.max_hit_points
+
+        if "ability_increase" in choices:
+            for ability in choices["ability_increase"]:
+                self.base_abilities[ability] += 1
+
+        self.update_race_bonuses_and_speed()
         self.update_features()
 
 class MainMenu(Screen):
@@ -124,14 +131,41 @@ class MainMenu(Screen):
         popup_layout.bind(minimum_height=popup_layout.setter('height'))
         files = [f for f in os.listdir('.') if f.endswith('.char')]
         for filename in files:
-            btn = Button(text=filename, size_hint_y=None, height=40)
-            btn.bind(on_release=lambda btn_instance, fn=filename: self.load_character(fn))
-            popup_layout.add_widget(btn)
+            char_layout = BoxLayout(size_hint_y=None, height=40)
+            load_btn = Button(text=filename)
+            load_btn.bind(on_release=lambda btn_instance, fn=filename: self.load_character(fn))
+            delete_btn = Button(text="Löschen", size_hint_x=0.3)
+            delete_btn.bind(on_release=lambda btn_instance, fn=filename: self.delete_character_popup(fn))
+            char_layout.add_widget(load_btn)
+            char_layout.add_widget(delete_btn)
+            popup_layout.add_widget(char_layout)
         scroll_view = ScrollView(size_hint=(1, 1))
         scroll_view.add_widget(popup_layout)
         content.add_widget(scroll_view)
         self.popup = Popup(title="Charakter laden", content=content, size_hint=(0.8, 0.8))
         self.popup.open()
+
+    def delete_character_popup(self, filename):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text=f"Möchtest du {filename} wirklich löschen?"))
+        btn_layout = BoxLayout(spacing=10)
+        yes_btn = Button(text="Ja", on_press=lambda x: self.delete_character(filename))
+        no_btn = Button(text="Nein", on_press=lambda x: self.confirmation_popup.dismiss())
+        btn_layout.add_widget(yes_btn)
+        btn_layout.add_widget(no_btn)
+        content.add_widget(btn_layout)
+        self.confirmation_popup = Popup(title="Löschen bestätigen", content=content, size_hint=(0.6, 0.4))
+        self.confirmation_popup.open()
+
+    def delete_character(self, filename):
+        try:
+            os.remove(filename)
+            self.confirmation_popup.dismiss()
+            self.popup.dismiss()
+            self.show_load_popup(None) # Refresh the list
+        except Exception as e:
+            self.show_popup("Fehler", f"Fehler beim Löschen des Charakters: {e}")
+
     def load_character(self, filename):
         try:
             with open(filename, 'rb') as f:
@@ -348,7 +382,7 @@ class CharacterSheet(Screen):
         footer = BoxLayout(size_hint_y=None, height=50, spacing=5)
         footer.add_widget(Button(text="Info", on_press=self.show_info_popup))
         footer.add_widget(Button(text="Zauber", on_press=self.show_spells_popup))
-        footer.add_widget(Button(text="Level Up", on_press=self.level_up_popup))
+        footer.add_widget(Button(text="Level Up", on_press=self.open_level_up_screen))
         footer.add_widget(Button(text="Speichern", on_press=self.save_character))
         footer.add_widget(Button(text="Hauptmenü", on_press=lambda x: setattr(self.manager, 'current', 'main')))
         self.main_layout.add_widget(footer)
@@ -428,7 +462,15 @@ class CharacterSheet(Screen):
     def show_info_popup(self, instance):
         prof_text = ", ".join(self.character.proficiencies)
         lang_text = ", ".join(self.character.languages)
+
+        features_text = ""
+        if self.character.features:
+            features_text = "\n\n[b]Fähigkeiten:[/b]\n"
+            for feature in self.character.features:
+                features_text += f"- {feature['name']}\n"
+
         text = (
+            f"[b]Gesinnung:[/b] {self.character.alignment}\n\n"
             f"[b]Hintergrund:[/b] {self.character.background}\n\n"
             f"[b]Kompetenzen:[/b]\n{prof_text}\n\n"
             f"[b]Sprachen:[/b]\n{lang_text}\n\n"
@@ -436,6 +478,7 @@ class CharacterSheet(Screen):
             f"[b]Ideale:[/b]\n{self.character.ideals}\n\n"
             f"[b]Bindungen:[/b]\n{self.character.bonds}\n\n"
             f"[b]Makel:[/b]\n{self.character.flaws}"
+            f"{features_text}"
         )
         self.show_popup("Charakter-Informationen", text)
 
@@ -466,22 +509,9 @@ class CharacterSheet(Screen):
         )
         self.show_popup(spell_name, text)
 
-    def level_up_popup(self, instance):
-        new_level = self.character.level + 1
-        features = CLASS_DATA.get(self.character.char_class, {}).get("features", {}).get(new_level, [{"name": "-", "desc": "-"}])
-        feature_names = ", ".join([f['name'] for f in features])
-        content = BoxLayout(orientation='vertical')
-        content.add_widget(Label(text=f"Aufstieg auf Level {new_level}"))
-        content.add_widget(Label(text="Neue Features: " + feature_names))
-        btn = Button(text="Bestätigen")
-        content.add_widget(btn)
-        popup = Popup(title="Level Up", content=content, size_hint=(0.6, 0.5))
-        def perform_levelup(instance):
-            self.character.level_up()
-            self.update_sheet()
-            popup.dismiss()
-        btn.bind(on_press=perform_levelup)
-        popup.open()
+    def open_level_up_screen(self, instance):
+        self.manager.get_screen('level_up').set_character(self.character)
+        self.manager.current = 'level_up'
         
     def save_character(self, instance):
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
@@ -492,6 +522,90 @@ class CharacterSheet(Screen):
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Speichern: {e}")
 
+class LevelUpScreen(Screen):
+    """Bildschirm für den Stufenaufstieg."""
+    def __init__(self, **kwargs):
+        super(LevelUpScreen, self).__init__(**kwargs)
+        self.character = None
+        self.main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        self.add_widget(self.main_layout)
+
+    def set_character(self, character):
+        self.character = character
+        self.update_view()
+
+    def update_view(self):
+        self.main_layout.clear_widgets()
+        if not self.character:
+            return
+
+        new_level = self.character.level + 1
+        self.main_layout.add_widget(Label(text=f"Stufenaufstieg zu Level {new_level}", font_size='24sp', size_hint_y=None, height=50))
+
+        scroll_view = ScrollView()
+        level_up_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        level_up_layout.bind(minimum_height=level_up_layout.setter('height'))
+
+        # HP Increase
+        hit_die = CLASS_DATA.get(self.character.char_class, {}).get("hit_die", 8)
+        con_modifier = (self.character.abilities["Konstitution"] - 10) // 2
+        hp_increase = random.randint(1, hit_die) + con_modifier
+        level_up_layout.add_widget(Label(text=f"HP-Erhöhung: +{max(1, hp_increase)}", size_hint_y=None, height=40))
+
+        # New Features
+        features = CLASS_DATA.get(self.character.char_class, {}).get("features", {}).get(new_level, [])
+        if features:
+            level_up_layout.add_widget(Label(text="Neue Fähigkeiten:", font_size='20sp', size_hint_y=None, height=40))
+            for feature in features:
+                feature_label = Label(text=f"[b]{feature['name']}[/b]\n{feature['desc']}", markup=True, size_hint_y=None)
+                feature_label.bind(width=lambda *x: feature_label.setter('text_size')(feature_label, (feature_label.width, None)),
+                                   texture_size=lambda *x: feature_label.setter('height')(feature_label, feature_label.texture_size[1]))
+                level_up_layout.add_widget(feature_label)
+
+        # Ability Score Improvement
+        self.ability_choices = {}
+        if any("Ability Score Improvement" in f['name'] for f in features):
+            level_up_layout.add_widget(Label(text="Attributsverbesserung (wähle 2):", font_size='20sp', size_hint_y=None, height=40))
+            abilities = ["Stärke", "Geschicklichkeit", "Konstitution", "Intelligenz", "Weisheit", "Charisma"]
+            for ability in abilities:
+                box = BoxLayout(size_hint_y=None, height=40)
+                box.add_widget(Label(text=ability))
+                checkbox = CheckBox()
+                self.ability_choices[ability] = checkbox
+                box.add_widget(checkbox)
+                level_up_layout.add_widget(box)
+
+        scroll_view.add_widget(level_up_layout)
+        self.main_layout.add_widget(scroll_view)
+
+        # Confirm/Cancel Buttons
+        btn_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
+        confirm_btn = Button(text="Bestätigen", on_press=self.confirm_level_up)
+        cancel_btn = Button(text="Abbrechen", on_press=self.cancel_level_up)
+        btn_layout.add_widget(confirm_btn)
+        btn_layout.add_widget(cancel_btn)
+        self.main_layout.add_widget(btn_layout)
+
+    def confirm_level_up(self, instance):
+        choices = {}
+
+        # Collect ability score increases
+        selected_abilities = [ability for ability, checkbox in self.ability_choices.items() if checkbox.active]
+        if self.ability_choices and len(selected_abilities) != 2:
+             self.show_popup("Fehler", "Bitte wähle genau 2 Attribute zur Verbesserung aus.")
+             return
+
+        if selected_abilities:
+            choices["ability_increase"] = selected_abilities
+
+        self.character.level_up(choices)
+        self.manager.get_screen('sheet').load_character(self.character)
+        self.manager.current = 'sheet'
+
+    def cancel_level_up(self, instance):
+        self.manager.current = 'sheet'
+
+
 class DnDApp(App):
     """Haupt-App-Klasse."""
     def build(self):
@@ -500,6 +614,7 @@ class DnDApp(App):
         sm.add_widget(MainMenu(name='main'))
         sm.add_widget(CharacterCreator(name='creator'))
         sm.add_widget(CharacterSheet(name='sheet'))
+        sm.add_widget(LevelUpScreen(name='level_up'))
         return sm
 
 if __name__ == '__main__':
