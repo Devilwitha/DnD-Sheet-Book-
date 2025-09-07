@@ -30,7 +30,13 @@ A digital character sheet and spellbook for Dungeons & Dragons 5e.
        gstreamer1.0-libav python3-dev
     ```
 
-3.  **Clone the Application:**
+3.  **Virtual Keyboard Setup (for Touchscreens):**
+    If you are using a touchscreen, you will need a virtual keyboard for text input. Install it with:
+    ```bash
+    sudo apt-get update && sudo apt-get install -y matchbox-keyboard
+    ```
+
+4.  **Clone the Application:**
     Download the application from GitHub:
     ```bash
     cd ~
@@ -38,7 +44,7 @@ A digital character sheet and spellbook for Dungeons & Dragons 5e.
     cd ~/DnD-Sheet-Book
     ```
 
-4.  **Install Python Packages:**
+5.  **Install Python Packages:**
     Recent versions of Raspberry Pi OS protect system packages. The recommended way to install Python packages is within a virtual environment.
 
     **Method 1: Virtual Environment (Recommended)**

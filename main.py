@@ -17,9 +17,26 @@ from kivy.config import Config
 import random
 import pickle
 import os
+import subprocess
 from functools import partial
 
 Config.set('kivy', 'keyboard_mode', 'systemanddock')
+Config.set('graphics', 'rotation', 0)
+
+def launch_keyboard():
+    """Checks if a virtual keyboard is running and launches it if not."""
+    try:
+        # Use pgrep to check if wvkbd is running.
+        # The -x flag ensures an exact match on the process name.
+        subprocess.check_output(["pgrep", "-x", "wvkbd-mobintl"])
+    except subprocess.CalledProcessError:
+        # If pgrep returns a non-zero exit code, it means the process was not found.
+        try:
+            # Start the virtual keyboard
+            subprocess.Popen(["wvkbd-mobintl"])
+        except FileNotFoundError:
+            # This handles the case where wvkbd is not installed.
+            print("Virtual keyboard 'wvkbd-mobintl' not found. Please install 'wvkbd'.")
 
 # Importiert die Daten aus der separaten Datei
 from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA, SKILL_LIST
@@ -238,6 +255,7 @@ class CharacterCreator(Screen):
 
             if widget_type == "TextInput":
                 widget = TextInput(size_hint_y=None, height=height, multiline=(height > default_height))
+                widget.bind(on_touch_down=self.trigger_keyboard)
             else:
                 widget = Spinner(text=values[0], values=values, size_hint_y=None, height=height)
             
@@ -307,6 +325,10 @@ class CharacterCreator(Screen):
         self.manager.get_screen('sheet').load_character(character)
         self.manager.current = 'sheet'
     
+    def trigger_keyboard(self, instance, touch):
+        if instance.collide_point(*touch.pos):
+            launch_keyboard()
+
     def show_popup(self, title, message):
         Popup(title=title, content=Label(text=message), size_hint=(0.5, 0.5)).open()
 
@@ -427,6 +449,10 @@ class CharacterSheet(Screen):
         footer.add_widget(Button(text="Hauptmenü", on_press=lambda x: setattr(self.manager, 'current', 'main')))
         self.main_layout.add_widget(footer)
 
+    def trigger_keyboard(self, instance, touch):
+        if instance.collide_point(*touch.pos):
+            launch_keyboard()
+
     def show_popup(self, title, message):
         content = ScrollView()
         label = Label(text=message, markup=True, size_hint_y=None, padding=(10, 10))
@@ -484,7 +510,9 @@ class CharacterSheet(Screen):
     def show_add_equipment_popup(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         name_input = TextInput(hint_text="Ausrüstungsname", multiline=False)
+        name_input.bind(on_touch_down=self.trigger_keyboard)
         ac_input = TextInput(hint_text="AC Bonus", multiline=False)
+        ac_input.bind(on_touch_down=self.trigger_keyboard)
         content.add_widget(name_input)
         content.add_widget(ac_input)
         add_btn = Button(text="Hinzufügen")
@@ -509,6 +537,7 @@ class CharacterSheet(Screen):
     def show_add_item_popup(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         item_input = TextInput(hint_text="Gegenstand eingeben", multiline=False)
+        item_input.bind(on_touch_down=self.trigger_keyboard)
         content.add_widget(item_input)
         add_btn = Button(text="Hinzufügen")
         content.add_widget(add_btn)
