@@ -22,10 +22,10 @@ Ein digitales Charakter- und Zauberbuch für Dungeons & Dragons 5e.
 2.  **Abhängigkeiten installieren:**
     Kivy benötigt einige Systembibliotheken, um zu funktionieren. Installieren Sie diese mit dem folgenden Befehl:
     ```bash
-    sudo apt-get install -y git python3-pip
+    sudo apt-get install -y python3-pip wget unzip
     sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
        pkg-config libgl1-mesa-dev libgles2-mesa-dev \
-       python3-setuptools libgstreamer1.0-dev git-core gstreamer1.0-plugins-base \
+       python3-setuptools libgstreamer1.0-dev gstreamer1.0-plugins-base \
        gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
        gstreamer1.0-libav python3-dev
     ```
@@ -37,10 +37,12 @@ Ein digitales Charakter- und Zauberbuch für Dungeons & Dragons 5e.
     ```
 
 4.  **Anwendung herunterladen:**
-    Klonen Sie dieses Repository in Ihr Home-Verzeichnis (ersetzen Sie `IHRE_REPOSITORY_URL` mit der korrekten URL):
+    Laden Sie die Anwendung mit `wget` herunter und entpacken Sie sie.
     ```bash
     cd ~
-    git clone https://github.com/Devilwitha/DnD-Sheet-Book-.git DnD-Sheet-Book
+    wget https://github.com/Devilwitha/DnD-Sheet-Book-/archive/refs/heads/main.zip
+    unzip main.zip
+    mv DnD-Sheet-Book--main DnD-Sheet-Book
     ```
 
 ### Manueller Start
