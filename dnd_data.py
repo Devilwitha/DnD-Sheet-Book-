@@ -2853,3 +2853,24 @@ BACKGROUND_DATA = {
     "Soldat": "Der Krieg hat dein Leben geprägt. Du wurdest als Jugendlicher ausgebildet, hast in einer Armee gedient und kennst die Schrecken des Kampfes.",
     "Straßenkind": "Du bist auf der Straße aufgewachsen. Du hattest keine Eltern, die sich um dich gekümmert haben, und musstest für dich selbst sorgen."
 }
+
+SKILL_LIST = {
+    "Akrobatik": "Geschicklichkeit",
+    "Tierbehandlung": "Weisheit",
+    "Arkane Kunde": "Intelligenz",
+    "Athletik": "Stärke",
+    "Täuschung": "Charisma",
+    "Geschichte": "Intelligenz",
+    "Menschenkenntnis": "Weisheit",
+    "Einschüchtern": "Charisma",
+    "Nachforschungen": "Intelligenz",
+    "Medizin": "Weisheit",
+    "Naturkunde": "Intelligenz",
+    "Wahrnehmung": "Weisheit",
+    "Auftreten": "Charisma",
+    "Überzeugen": "Charisma",
+    "Religion": "Intelligenz",
+    "Fingerfertigkeit": "Geschicklichkeit",
+    "Heimlichkeit": "Geschicklichkeit",
+    "Überlebenskunst": "Weisheit"
+}

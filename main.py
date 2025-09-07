@@ -19,31 +19,10 @@ import pickle
 import os
 from functools import partial
 
-Config.set('kivy', 'keyboard_mode', 'dock')
+Config.set('kivy', 'keyboard_mode', 'systemanddock')
 
 # Importiert die Daten aus der separaten Datei
-from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA
-
-SKILL_LIST = {
-    "Akrobatik": "Geschicklichkeit",
-    "Tierbehandlung": "Weisheit",
-    "Arkane Kunde": "Intelligenz",
-    "Athletik": "Stärke",
-    "Täuschung": "Charisma",
-    "Geschichte": "Intelligenz",
-    "Menschenkenntnis": "Weisheit",
-    "Einschüchtern": "Charisma",
-    "Nachforschungen": "Intelligenz",
-    "Medizin": "Weisheit",
-    "Naturkunde": "Intelligenz",
-    "Wahrnehmung": "Weisheit",
-    "Auftreten": "Charisma",
-    "Überzeugen": "Charisma",
-    "Religion": "Intelligenz",
-    "Fingerfertigkeit": "Geschicklichkeit",
-    "Heimlichkeit": "Geschicklichkeit",
-    "Überlebenskunst": "Weisheit"
-}
+from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA, SKILL_LIST
 
 class Character:
     """Finale Version der Charakter-Klasse mit allen neuen Attributen."""
