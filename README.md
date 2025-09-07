@@ -40,7 +40,7 @@ Ein digitales Charakter- und Zauberbuch für Dungeons & Dragons 5e.
     Klonen Sie dieses Repository in Ihr Home-Verzeichnis (ersetzen Sie `IHRE_REPOSITORY_URL` mit der korrekten URL):
     ```bash
     cd ~
-    git clone IHRE_REPOSITORY_URL DnD-Sheet-Book
+    git clone https://github.com/Devilwitha/DnD-Sheet-Book-.git DnD-Sheet-Book
     ```
 
 ### Manueller Start
