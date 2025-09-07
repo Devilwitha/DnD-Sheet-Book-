@@ -717,6 +717,7 @@ class LevelUpScreen(Screen):
 class DnDApp(App):
     """Haupt-App-Klasse."""
     def build(self):
+        Window.fullscreen = 'auto'
         Window.clearcolor = (0.1, 0.1, 0.1, 1)
         sm = ScreenManager()
         sm.add_widget(MainMenu(name='main'))
