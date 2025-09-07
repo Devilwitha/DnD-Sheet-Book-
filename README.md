@@ -91,7 +91,6 @@ To make the application start automatically with the graphical user interface:
     ```bash
     #!/bin/bash
     cd /home/pi/DnD-Sheet-Book
-    source .venv/bin/activate  # Remove this line if you did not use a virtual environment
     python3 main.py
     ```
     Save and close the file (Ctrl+X, then Y, then Enter).
