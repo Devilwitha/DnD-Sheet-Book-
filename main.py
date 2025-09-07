@@ -13,13 +13,16 @@ from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.window import Window
+from kivy.config import Config
 import random
 import pickle
 import os
 from functools import partial
 
+Config.set('kivy', 'keyboard_mode', 'dock')
+
 # Importiert die Daten aus der separaten Datei
-from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA
+from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA
 
 SKILL_LIST = {
     "Akrobatik": "Geschicklichkeit",
@@ -241,8 +244,8 @@ class CharacterCreator(Screen):
             ("Name", "TextInput", default_height, []),
             ("Rasse", "Spinner", default_height, sorted(RACE_DATA.keys())),
             ("Klasse", "Spinner", default_height, sorted(CLASS_DATA.keys())),
-            ("Gesinnung", "TextInput", default_height, []),
-            ("Hintergrund", "TextInput", default_height, []),
+            ("Gesinnung", "Spinner", default_height, sorted(ALIGNMENT_DATA.keys())),
+            ("Hintergrund", "Spinner", default_height, sorted(BACKGROUND_DATA.keys())),
             ("Persönliche Merkmale", "TextInput", multiline_height, []),
             ("Ideale", "TextInput", multiline_height, []),
             ("Bindungen", "TextInput", multiline_height, []),

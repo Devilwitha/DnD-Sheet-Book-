@@ -2825,3 +2825,31 @@ WEAPON_DATA = {
         "ability": "Geschicklichkeit"
     }
 }
+
+ALIGNMENT_DATA = {
+    "Rechtschaffen Gut": "Ein rechtschaffen guter Charakter handelt, wie es von einer guten Person erwartet wird.",
+    "Neutral Gut": "Ein neutral guter Charakter tut das Beste, was eine gute Person tun kann.",
+    "Chaotisch Gut": "Ein chaotisch guter Charakter handelt nach seinem eigenen Gewissen, ohne Rücksicht auf die Erwartungen anderer.",
+    "Rechtschaffen Neutral": "Ein rechtschaffen neutraler Charakter handelt, wie es die Gesetze und Traditionen vorschreiben.",
+    "Neutral": "Ein neutraler Charakter handelt auf eine Weise, die ihm am natürlichsten erscheint, ohne starke Vorliebe für Gut oder Böse, Ordnung oder Chaos.",
+    "Chaotisch Neutral": "Ein chaotisch neutraler Charakter folgt seinen Launen und ist im Grunde ein Individualist.",
+    "Rechtschaffen Böse": "Ein rechtschaffen böser Charakter nimmt methodisch alles, was er will, innerhalb der Grenzen eines Kodex von Tradition, Loyalität oder Ordnung.",
+    "Neutral Böse": "Ein neutral böser Charakter ist jemand, der alles tut, um davonzukommen, und ist nur auf sich selbst aus.",
+    "Chaotisch Böse": "Ein chaotisch böser Charakter tut alles, was seine Gier, sein Hass und seine Zerstörungswut ihn antreiben."
+}
+
+BACKGROUND_DATA = {
+    "Akolyth": "Du hast dein Leben im Dienst eines Tempels für einen bestimmten Gott oder ein Pantheon von Göttern verbracht.",
+    "Scharlatan": "Du warst schon immer jemand mit einem Weg mit Menschen. Du weißt, was sie hören wollen, und du weißt, wie man sie dazu bringt, es zu glauben.",
+    "Krimineller": "Du bist ein erfahrener Krimineller mit einer Geschichte von Verbrechen. Du hast Zeit in einem Gefängnis verbracht und hast Kontakte in der kriminellen Unterwelt.",
+    "Unterhaltungskünstler": "Du lebst, um das Publikum zu begeistern. Du kennst die Lieder, die die Herzen zum Schmelzen bringen, und die Witze, die die Bäuche zum Wackeln bringen.",
+    "Volksheld": "Du kommst aus bescheidenen Verhältnissen, aber du bist für etwas Außergewöhnliches bestimmt.",
+    "Gildenkünstler": "Du bist Mitglied einer Handwerkergilde und besitzt eine Fähigkeit, mit der du deinen Lebensunterhalt verdienen kannst.",
+    "Einsiedler": "Du hast dein Leben in Abgeschiedenheit gelebt, entweder allein oder mit einer kleinen Gemeinschaft.",
+    "Adliger": "Du verstehst Reichtum, Macht und Privilegien. Du trägst einen edlen Titel und deine Familie besitzt Land, sammelt Steuern und übt erheblichen Einfluss aus.",
+    "Fremder": "Du bist in der Wildnis aufgewachsen, weit weg von der Zivilisation und den Annehmlichkeiten von Stadt und Technologie.",
+    "Weiser": "Du hast Jahre damit verbracht, die Überlieferungen der Welt zu lernen. Du hast Bücher durchwühlt, Schriftrollen studiert und den größten Experten zugehört.",
+    "Seemann": "Du bist auf See gefahren und hast dein Leben auf den Wellen verbracht. Du warst auf Handelsschiffen, Kriegsschiffen oder Erkundungsschiffen.",
+    "Soldat": "Der Krieg hat dein Leben geprägt. Du wurdest als Jugendlicher ausgebildet, hast in einer Armee gedient und kennst die Schrecken des Kampfes.",
+    "Straßenkind": "Du bist auf der Straße aufgewachsen. Du hattest keine Eltern, die sich um dich gekümmert haben, und musstest für dich selbst sorgen."
+}
