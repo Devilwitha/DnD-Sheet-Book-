@@ -146,6 +146,10 @@ class MainMenu(Screen):
     """Hauptmenü-Bildschirm zum Erstellen oder Laden eines Charakters."""
     def __init__(self, **kwargs):
         super(MainMenu, self).__init__(**kwargs)
+        
+        # Hintergrundbild hinzufügen
+        self.add_widget(Image(source='osbackground/hmbg.png', allow_stretch=True, keep_ratio=False))
+        
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         layout.add_widget(Image(source='logo/logo.png'))
         
@@ -671,6 +675,10 @@ class OptionsScreen(Screen):
     """Bildschirm für Optionen, Updates und Versionsanzeige."""
     def __init__(self, **kwargs):
         super(OptionsScreen, self).__init__(**kwargs)
+        
+        # Hintergrundbild hinzufügen
+        self.add_widget(Image(source='osbackground/hmbg.png', allow_stretch=True, keep_ratio=False))
+        
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
 
         title = Label(text="Optionen", font_size='30sp', size_hint_y=None, height=80)
