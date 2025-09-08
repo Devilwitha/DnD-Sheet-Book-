@@ -153,7 +153,7 @@ Kopiere dein eigenes Bild in das Verzeichnis. Angenommen, dein Bild befindet sic
 
 Bash
 ```
-sudo cp /home/pi/DnD-Sheet-Book/osbackground/splash.png /usr/share/plymouth/themes/pix/splash.png
+sudo cp ~/DnD-Sheet-Book/osbackground/splash.png /usr/share/plymouth/themes/pix/splash.png
 ```
 Ersetze /home/pi/dein-bild.png mit dem tatsächlichen Pfad zu deiner Datei.
 
