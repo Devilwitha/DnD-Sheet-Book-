@@ -19,6 +19,7 @@ from kivy.uix.checkbox import CheckBox
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.image import Image
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.slider import Slider
 from kivy.core.window import Window
 from kivy.clock import Clock
 import random
@@ -27,6 +28,50 @@ import os
 import subprocess
 import sys
 from functools import partial
+import json
+
+SETTINGS_FILE = 'settings.json'
+
+def load_settings():
+    """Lädt die Einstellungen aus der JSON-Datei."""
+    if not os.path.exists(SETTINGS_FILE):
+        return {'button_transparency': 1.0}
+    try:
+        with open(SETTINGS_FILE, 'r') as f:
+            settings = json.load(f)
+            # Stellen Sie sicher, dass der Schlüssel für die Transparenz vorhanden ist
+            if 'button_transparency' not in settings:
+                settings['button_transparency'] = 1.0
+            return settings
+    except (IOError, json.JSONDecodeError):
+        return {'button_transparency': 1.0}
+
+def save_settings(settings):
+    """Speichert die Einstellungen in der JSON-Datei."""
+    with open(SETTINGS_FILE, 'w') as f:
+        json.dump(settings, f, indent=4)
+
+def apply_transparency_to_widget(widget):
+    """Durchläuft ein Widget und seine Kinder und wendet die Transparenzeinstellung auf alle Buttons an."""
+    settings = load_settings()
+    transparency = settings.get('button_transparency', 1.0)
+    color = (1, 1, 1, transparency)
+
+    # Diese innere Funktion wird rekursiv aufgerufen
+    def apply_to_children(w):
+        if isinstance(w, Button):
+            w.background_color = color
+            if transparency < 1.0:
+                w.background_normal = ''
+            else:
+                w.background_normal = 'atlas://data/images/defaulttheme/button'
+        
+        # Rekursiv auf alle Kinder anwenden
+        for child in w.children:
+            apply_to_children(child)
+
+    apply_to_children(widget)
+
 
 # Importiert die Daten aus der separaten Datei
 from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA, SKILL_LIST
@@ -153,16 +198,20 @@ class MainMenu(Screen):
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         layout.add_widget(Image(source='logo/logo.png'))
         
-        new_char_button = Button(text="Neuen Charakter erstellen", on_press=self.switch_to_creator)
-        layout.add_widget(new_char_button)
+        self.new_char_button = Button(text="Neuen Charakter erstellen", on_press=self.switch_to_creator)
+        layout.add_widget(self.new_char_button)
         
-        load_char_button = Button(text="Charakter laden", on_press=self.show_load_popup)
-        layout.add_widget(load_char_button)
+        self.load_char_button = Button(text="Charakter laden", on_press=self.show_load_popup)
+        layout.add_widget(self.load_char_button)
 
-        options_button = Button(text="Optionen", on_press=self.switch_to_options)
-        layout.add_widget(options_button)
+        self.options_button = Button(text="Optionen", on_press=self.switch_to_options)
+        layout.add_widget(self.options_button)
 
         self.add_widget(layout)
+
+    def on_pre_enter(self, *args):
+        """Wird ausgeführt, bevor der Bildschirm angezeigt wird. Lädt die Button-Transparenz."""
+        apply_transparency_to_widget(self)
 
     def switch_to_options(self, instance):
         self.manager.current = 'options'
@@ -196,6 +245,7 @@ class MainMenu(Screen):
         scroll_view.add_widget(popup_layout)
         content.add_widget(scroll_view)
         
+        apply_transparency_to_widget(content)
         self.popup = Popup(title="Charakter laden", content=content, size_hint=(0.8, 0.8))
         self.popup.open()
 
@@ -211,6 +261,7 @@ class MainMenu(Screen):
         
         content.add_widget(btn_layout)
         
+        apply_transparency_to_widget(content)
         self.confirmation_popup = Popup(title="Löschen bestätigen", content=content, size_hint=(0.6, 0.4))
         self.confirmation_popup.open()
 
@@ -311,6 +362,9 @@ class CharacterCreator(Screen):
         scroll_view.add_widget(layout)
         self.add_widget(scroll_view)
 
+    def on_pre_enter(self, *args):
+        apply_transparency_to_widget(self)
+
     def adjust_ability(self, ability, amount, instance):
         current_score = int(self.ability_scores_labels[ability].text)
         new_score = max(1, min(20, current_score + amount))
@@ -355,6 +409,9 @@ class CharacterSheet(Screen):
         self.character = None
         self.main_layout = BoxLayout(orientation='vertical')
         self.add_widget(self.main_layout)
+
+    def on_pre_enter(self, *args):
+        apply_transparency_to_widget(self)
 
     def load_character(self, character):
         self.character = character
@@ -552,6 +609,7 @@ class CharacterSheet(Screen):
                 self.show_popup("Fehler", "AC Bonus muss eine Zahl sein.")
                 
         add_btn.bind(on_press=add_action)
+        apply_transparency_to_widget(content)
         popup.open()
 
     def show_add_item_popup(self, instance):
@@ -575,6 +633,7 @@ class CharacterSheet(Screen):
                 popup.dismiss()
                 
         add_btn.bind(on_press=add_action)
+        apply_transparency_to_widget(content)
         popup.open()
 
     def roll_damage(self, instance):
@@ -647,6 +706,7 @@ class CharacterSheet(Screen):
                     grid.add_widget(btn)
         
         content.add_widget(grid)
+        apply_transparency_to_widget(content)
         Popup(title="Zauberbuch", content=content, size_hint=(0.8, 0.9)).open()
 
     def show_spell_details_popup(self, spell_name, instance):
@@ -683,6 +743,17 @@ class OptionsScreen(Screen):
 
         title = Label(text="Optionen", font_size='30sp', size_hint_y=None, height=80)
         layout.add_widget(title)
+        
+        # Transparenz-Slider hinzufügen (vereinfachtes Layout)
+        settings = load_settings()
+        initial_transparency = settings.get('button_transparency', 1.0)
+        
+        self.transparency_label = Label(text=f"Button Transparenz: {int(initial_transparency * 100)}%", size_hint_y=None, height=40)
+        layout.add_widget(self.transparency_label)
+        
+        self.transparency_slider = Slider(min=0.1, max=1.0, value=initial_transparency, size_hint_y=None, height=40)
+        self.transparency_slider.bind(value=self.on_transparency_change)
+        layout.add_widget(self.transparency_slider)
 
         layout.add_widget(BoxLayout(size_hint_y=0.2)) # Spacer
 
@@ -708,6 +779,16 @@ class OptionsScreen(Screen):
 
         self.add_widget(layout)
 
+    def on_pre_enter(self, *args):
+        apply_transparency_to_widget(self)
+
+    def on_transparency_change(self, instance, value):
+        """Wird aufgerufen, wenn der Transparenz-Slider geändert wird."""
+        settings = load_settings()
+        settings['button_transparency'] = value
+        save_settings(settings)
+        self.transparency_label.text = f"Button Transparenz: {int(value * 100)}%"
+
     def shutdown_system(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         content.add_widget(Label(text='Möchten Sie das System wirklich herunterfahren?'))
@@ -720,6 +801,7 @@ class OptionsScreen(Screen):
         
         content.add_widget(btn_layout)
         
+        apply_transparency_to_widget(content)
         self.confirmation_popup = Popup(title="Herunterfahren bestätigen", content=content, size_hint=(0.6, 0.5))
         self.confirmation_popup.open()
 
@@ -785,6 +867,9 @@ class LevelUpScreen(Screen):
         self.character = None
         self.main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         self.add_widget(self.main_layout)
+
+    def on_pre_enter(self, *args):
+        apply_transparency_to_widget(self)
 
     def set_character(self, character):
         self.character = character
