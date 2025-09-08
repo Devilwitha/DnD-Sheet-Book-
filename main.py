@@ -673,26 +673,65 @@ class OptionsScreen(Screen):
         super(OptionsScreen, self).__init__(**kwargs)
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
 
-        title = Label(text="Optionen", font_size='24sp', size_hint_y=None, height=60)
+        title = Label(text="Optionen", font_size='30sp', size_hint_y=None, height=80)
         layout.add_widget(title)
 
         layout.add_widget(BoxLayout(size_hint_y=0.2)) # Spacer
 
-        update_button = Button(text="Nach Updates suchen", on_press=self.update_app, size_hint_y=None, height=44)
+        button_height = 80
+        font_size = '20sp'
+
+        update_button = Button(text="Nach Updates suchen", on_press=self.update_app, size_hint_y=None, height=button_height, font_size=font_size)
         layout.add_widget(update_button)
 
-        version_button = Button(text="Version", on_press=self.show_version_popup, size_hint_y=None, height=44)
+        version_button = Button(text="Version", on_press=self.show_version_popup, size_hint_y=None, height=button_height, font_size=font_size)
         layout.add_widget(version_button)
+        
+        shutdown_button = Button(text="System herunterfahren", on_press=self.shutdown_system, size_hint_y=None, height=button_height, font_size=font_size)
+        layout.add_widget(shutdown_button)
 
         layout.add_widget(BoxLayout(size_hint_y=1.0)) # Spacer
 
         back_button = Button(text="Zurück zum Hauptmenü",
                              on_press=lambda x: setattr(self.manager, 'current', 'main'),
                              size_hint_y=None,
-                             height=44)
+                             height=button_height, font_size=font_size)
         layout.add_widget(back_button)
 
         self.add_widget(layout)
+
+    def shutdown_system(self, instance):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text='Möchten Sie das System wirklich herunterfahren?'))
+        
+        btn_layout = BoxLayout(spacing=10)
+        yes_btn = Button(text="Ja", on_press=self.do_shutdown, height=80, font_size='20sp')
+        no_btn = Button(text="Nein", on_press=lambda x: self.confirmation_popup.dismiss(), height=80, font_size='20sp')
+        btn_layout.add_widget(yes_btn)
+        btn_layout.add_widget(no_btn)
+        
+        content.add_widget(btn_layout)
+        
+        self.confirmation_popup = Popup(title="Herunterfahren bestätigen", content=content, size_hint=(0.6, 0.5))
+        self.confirmation_popup.open()
+
+    def do_shutdown(self, instance):
+        self.confirmation_popup.dismiss()
+        try:
+            if sys.platform == "win32":
+                os.system("shutdown /s /t 1")
+            elif sys.platform.startswith('linux'):
+                os.system("shutdown now")
+            else:
+                self.show_popup("Nicht unterstützt", f"Herunterfahren wird auf '{sys.platform}' nicht unterstützt.")
+        except Exception as e:
+            self.show_popup("Fehler", f"Fehler beim Herunterfahren:\n{e}")
+
+    def show_popup(self, title, message):
+        popup = Popup(title=title,
+                      content=Label(text=message),
+                      size_hint=(0.7, 0.5))
+        popup.open()
 
     def update_app(self, instance):
         self.popup = Popup(title='Update',
