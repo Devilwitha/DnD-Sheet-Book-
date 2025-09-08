@@ -2,6 +2,7 @@
 
 import os
 os.environ['KIVY_KEYBOARD_MODE'] = 'dock'
+os.environ['USE_X11'] = '1'
 
 import kivy
 from kivy.app import App
