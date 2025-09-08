@@ -1,5 +1,8 @@
 # main.py
 
+import os
+os.environ['KIVY_KEYBOARD_MODE'] = 'dock'
+
 import kivy
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -12,7 +15,6 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.vkeyboard import VKeyboard
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window
 from kivy.clock import Clock
@@ -26,18 +28,6 @@ Config.set('graphics', 'rotation', 0)
 
 # Importiert die Daten aus der separaten Datei
 from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA, SKILL_LIST
-
-class CustomVKeyboard(FloatLayout):
-    def __init__(self, **kwargs):
-        super(CustomVKeyboard, self).__init__(**kwargs)
-        self.vkeyboard = VKeyboard(size_hint=(1, 1))
-        self.vkeyboard.layout = 'qwerty'
-        self.add_widget(self.vkeyboard)
-        self.size_hint = (1, 0.4)
-        self.pos_hint = {'x': 0, 'y': 0}
-
-    def set_target(self, target):
-        self.vkeyboard.target = target
 
 class Character:
     """Finale Version der Charakter-Klasse mit allen neuen Attributen."""
@@ -253,7 +243,6 @@ class CharacterCreator(Screen):
 
             if widget_type == "TextInput":
                 widget = TextInput(size_hint_y=None, height=height, multiline=(height > default_height))
-                widget.bind(focus=self.on_text_focus)
             else:
                 widget = Spinner(text=values[0], values=values, size_hint_y=None, height=height)
             
@@ -323,12 +312,6 @@ class CharacterCreator(Screen):
         self.manager.get_screen('sheet').load_character(character)
         self.manager.current = 'sheet'
     
-    def on_text_focus(self, instance, value):
-        if value:
-            App.get_running_app().show_keyboard(instance)
-        else:
-            App.get_running_app().hide_keyboard()
-
     def show_popup(self, title, message):
         Popup(title=title, content=Label(text=message), size_hint=(0.5, 0.5)).open()
 
@@ -449,12 +432,6 @@ class CharacterSheet(Screen):
         footer.add_widget(Button(text="Hauptmenü", on_press=lambda x: setattr(self.manager, 'current', 'main')))
         self.main_layout.add_widget(footer)
 
-    def on_text_focus(self, instance, value):
-        if value:
-            App.get_running_app().show_keyboard(instance)
-        else:
-            App.get_running_app().hide_keyboard()
-
     def show_popup(self, title, message):
         content = ScrollView()
         label = Label(text=message, markup=True, size_hint_y=None, padding=(10, 10))
@@ -512,9 +489,7 @@ class CharacterSheet(Screen):
     def show_add_equipment_popup(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         name_input = TextInput(hint_text="Ausrüstungsname", multiline=False)
-        name_input.bind(focus=self.on_text_focus)
         ac_input = TextInput(hint_text="AC Bonus", multiline=False)
-        ac_input.bind(focus=self.on_text_focus)
         content.add_widget(name_input)
         content.add_widget(ac_input)
         add_btn = Button(text="Hinzufügen")
@@ -539,7 +514,6 @@ class CharacterSheet(Screen):
     def show_add_item_popup(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         item_input = TextInput(hint_text="Gegenstand eingeben", multiline=False)
-        item_input.bind(focus=self.on_text_focus)
         content.add_widget(item_input)
         add_btn = Button(text="Hinzufügen")
         content.add_widget(add_btn)
@@ -729,23 +703,6 @@ class LevelUpScreen(Screen):
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
-    def __init__(self, **kwargs):
-        super(DnDApp, self).__init__(**kwargs)
-        self.keyboard = None
-
-    def show_keyboard(self, target):
-        if not self.keyboard:
-            self.keyboard = CustomVKeyboard()
-        if not self.keyboard.parent:
-            self.root.add_widget(self.keyboard)
-        self.keyboard.set_target(target)
-
-    def hide_keyboard(self):
-        if self.keyboard and self.keyboard.parent:
-            self.root.remove_widget(self.keyboard)
-        if self.keyboard:
-            self.keyboard.set_target(None)
-
     def build(self):
         Window.fullscreen = 'auto'
         Window.clearcolor = (0.1, 0.1, 0.1, 1)
