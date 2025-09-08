@@ -1,4 +1,4 @@
-Build Version:                1
+Build Version:                2
 Gui Version:                  0.1 Alpha
 DnD E-Sheet & Book Version:   1.0
 Updater Version:              1.0
