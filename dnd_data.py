@@ -801,7 +801,7 @@ SPELL_DATA = {
     "Hold Monster": {
         "level": 5,
         "school": "Verzauberung",
-        "desc": "Wähle eine Kreatur, die du sehen und erreichen kannst. Das Ziel muss einen Rettungswurf der Weisheit machen oder wird für die Dauer des Zaubers gelähmt. Dieser Zauber hat keine Wirkung gegen Untote. Am Ende jeder Runde kann das Ziel einen neuen Rettungswurf der Weisheit machen. Bei Erfolg endet der Zauber für die Kreatur.\n\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Platz der Stufe 6 oder höher wirkst, kannst du für jede Stufe des Platzes über der fünften eine zusätzliche Kreatur als Ziel wählen. Die Kreaturen müssen sich innerhalb von 30 Fuß voneinander befinden, wenn du sie als Ziel wählst."
+        "desc": "Wähle eine Kreatur, die du in Reichweite sehen kannst. Das Ziel muss einen Weisheitsrettungswurf machen oder wird für die Dauer des Zaubers gelähmt. Dieser Zauber hat keine Wirkung auf Untote. Am Ende jeder seiner Runden kann das Ziel einen neuen Weisheitsrettungswurf machen. Bei einem Erfolg endet der Zauber für die Kreatur.\n\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Zauberplatz des 6. Grades oder höher wirkst, kannst du für jeden Zauberplatzgrad über dem 5. eine zusätzliche Kreatur als Ziel wählen. Die Kreaturen müssen sich innerhalb von 30 Fuß voneinander befinden, wenn du sie als Ziel wählst."
     },
     "Hold Person": {
         "level": 2,
@@ -1301,7 +1301,7 @@ SPELL_DATA = {
     "Shatter": {
         "level": 2,
         "school": "Hervorrufung",
-        "desc": "Ein plötzliches lautes Klingeln, schmerzhaft intensiv, bricht von einem von dir gewählten Punkt in Reichweite aus. Jede Kreatur in einer 10-Fuß-Radius-Kugel, die auf diesen Punkt zentriert ist, muss einen Konstitutionsrettungswurf machen. Eine Kreatur erleidet bei einem misslungenen Rettungswurf 3W8 Donnerschaden oder bei einem erfolgreichen halb so viel Schaden. Eine Kreatur aus anorganischem Material wie Stein, Kristall oder Metall hat Nachteil bei diesem Rettungswurf.\nEin nichtmagischer Gegenstand, der nicht getragen oder mitgeführt wird, erleidet ebenfalls Schaden, wenn er sich im Wirkungsbereich des Zaubers befindet.\n\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Zauberplatz der Stufe 3 oder höher wirkst, erhöht sich der Schaden des Zaubers um 1W8 für jede Stufe des höheren Zauberplatzes 2."
+        "desc": "Ein plötzliches lautes Klingeln, schmerzhaft intensiv, bricht von einem von dir gewählten Punkt in Reichweite aus. Jede Kreatur in einer 10-Fuß-Radius-Kugel, die auf diesen Punkt zentriert ist, muss einen Konstitutionsrettungswurf machen. Eine Kreatur erleidet bei einem misslungenen Rettungswurf 3W8 Donnerschaden oder bei einem erfolgreichen halb so viel Schaden. Eine Kreatur aus anorganischem Material wie Stein, Kristall oder Metall hat Nachteil bei diesem Rettungswurf.\\nEin nichtmagischer Gegenstand, der nicht getragen oder mitgeführt wird, erleidet ebenfalls Schaden, wenn er sich im Wirkungsbereich des Zaubers befindet.\\n\\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Zauberplatz des 3. Grades oder höher wirkst, erhöht sich der Schaden um 1W8 für jeden Zauberplatzgrad über dem 2."
     },
     "Shield": {
         "level": 1,
@@ -1556,7 +1556,7 @@ SPELL_DATA = {
     "Water Breathing": {
         "level": 3,
         "school": "Verwandlung",
-        "desc": "Dieser Zauber verleiht maximal zehn willigen Kreaturen in Reichweite, die du sehen kannst, die Fähigkeit, bis zum Ende seiner Laufzeit unter Wasser zu atmen. Betroffene Kreaturen behalten auch ihr normales Atemmuster bei.\n\nAuf höheren Stufen: "
+        "desc": "Dieser Zauber verleiht bis zu zehn willigen Kreaturen in Reichweite, die du sehen kannst, die Fähigkeit, für die Dauer des Zaubers unter Wasser zu atmen. Betroffene Kreaturen behalten auch ihre normale Atmungsweise bei.\n\nAuf höheren Stufen: "
     },
     "Water Walk": {
         "level": 3,
@@ -1608,8 +1608,8 @@ CLASS_DATA = {
         "Kriegswaffen",
         "Leichte Rüstung",
         "Mittelschwere Rüstung",
-        "Saving Throw: Konstitution",
-        "Saving Throw: Stärke",
+        "Rettungswurf: Konstitution",
+        "Rettungswurf: Stärke",
         "Schilde"
 ],
         "spells": {},
@@ -1941,7 +1941,7 @@ CLASS_DATA = {
     "Kämpfer": {
         "hit_die": 10,
         "proficiencies": [
-        "All armor",
+    "Alle Rüstungen",
         "Einfache Waffen",
         "Kriegswaffen",
         "Saving Throw: Konstitution",
@@ -2099,11 +2099,11 @@ CLASS_DATA = {
     "Paladin": {
         "hit_die": 10,
         "proficiencies": [
-        "All armor",
+        "Alle Rüstungen",
         "Einfache Waffen",
         "Kriegswaffen",
-        "Saving Throw: Charisma",
-        "Saving Throw: Weisheit",
+        "Rettungswurf: Charisma",
+        "Rettungswurf: Weisheit",
         "Schilde"
 ],
         "spells": {
