@@ -17,12 +17,15 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.image import Image
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window
 from kivy.clock import Clock
 import random
 import pickle
 import os
+import subprocess
+import sys
 from functools import partial
 
 # Importiert die Daten aus der separaten Datei
@@ -144,15 +147,44 @@ class MainMenu(Screen):
     def __init__(self, **kwargs):
         super(MainMenu, self).__init__(**kwargs)
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        layout.add_widget(Label(text="D&D Charakterblatt", font_size='32sp'))
+        layout.add_widget(Image(source='logo/logo.png'))
         
         new_char_button = Button(text="Neuen Charakter erstellen", on_press=self.switch_to_creator)
         layout.add_widget(new_char_button)
         
         load_char_button = Button(text="Charakter laden", on_press=self.show_load_popup)
         layout.add_widget(load_char_button)
+
+        update_button = Button(text="Nach Updates suchen", on_press=self.update_app)
+        layout.add_widget(update_button)
         
         self.add_widget(layout)
+
+    def update_app(self, instance):
+        self.popup = Popup(title='Update',
+                           content=Label(text='Suche nach Updates...'),
+                           size_hint=(0.6, 0.4),
+                           auto_dismiss=False)
+        self.popup.open()
+        Clock.schedule_once(self._update_task, 0.1)
+
+    def _update_task(self, dt):
+        try:
+            self.popup.content.text = "Updater wird gestartet...\nDie Anwendung wird sich nun schließen."
+            
+            # Launch the updater script in a new process.
+            # This allows the main app to exit cleanly, releasing file locks.
+            subprocess.Popen([sys.executable, "updater.py"])
+            
+            # Schedule the app to close.
+            Clock.schedule_once(lambda x: App.get_running_app().stop(), 0.5)
+
+        except Exception as e:
+            self.popup.content.text = f"Fehler beim Starten des Updaters:\n{e}"
+            Clock.schedule_once(lambda x: self.popup.dismiss(), 5)
+
+    def restart_app(self, dt):
+        os.execv(sys.executable, ['python'] + sys.argv)
         
     def switch_to_creator(self, instance):
         self.manager.current = 'creator'
@@ -228,6 +260,14 @@ class CharacterCreator(Screen):
         scroll_view = ScrollView(size_hint=(1, 1))
         layout = GridLayout(cols=2, padding=10, spacing=10, size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
+
+        # Add a back button to the top left
+        back_button = Button(text="Zurück zum Hauptmenü",
+                             on_press=lambda x: setattr(self.manager, 'current', 'main'),
+                             size_hint_y=None,
+                             height=44)
+        layout.add_widget(back_button)
+        layout.add_widget(Label(text="", size_hint_y=None, height=44)) # Placeholder
 
         self.inputs = {}
         default_height = 44
