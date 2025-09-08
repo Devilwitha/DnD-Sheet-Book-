@@ -1,26 +1,26 @@
 # DnD(Sheet&Book)
 
-A digital character sheet and spellbook for Dungeons & Dragons 5e.
+Ein digitaler Charakterbogen und ein Zauberbuch für Dungeons & Dragons 5e.
 
-## Running on a Raspberry Pi
+## Ausführen auf einem Raspberry Pi
 
-### Prerequisites
+### Voraussetzungen
 
-- A Raspberry Pi (Model 3B+ or newer recommended).
-- Raspberry Pi OS with Desktop. **Note:** A graphical desktop environment is required to run this application. It will not work in a headless or SSH-only environment without X11 forwarding.
-- A stable internet connection.
+- Ein Raspberry Pi (Modell 4 oder neuer empfohlen).
+- Raspberry Pi OS mit Desktop. **Hinweis:** Eine grafische Desktop-Umgebung ist erforderlich, um diese Anwendung auszuführen. Sie funktioniert nicht in einer monitorlosen oder reinen SSH-Umgebung ohne X11-Weiterleitung.
+- Eine stabile Internetverbindung.
 
 ### Installation
 
-1.  **Update Your System:**
-    Open a terminal on your Raspberry Pi and run the following commands to ensure your system is up-to-date:
+1.  **System aktualisieren:**
+    Öffnen Sie ein Terminal auf Ihrem Raspberry Pi und führen Sie die folgenden Befehle aus, um sicherzustellen, dass Ihr System auf dem neuesten Stand ist:
     ```bash
     sudo apt-get update
     sudo apt-get upgrade -y
     ```
 
-2.  **Install System Dependencies:**
-    Kivy requires several system libraries to function correctly. Install them with the following command:
+2.  **Systemabhängigkeiten installieren:**
+    Kivy benötigt mehrere Systembibliotheken, um korrekt zu funktionieren. Installieren Sie diese mit dem folgenden Befehl:
     ```bash
     sudo apt-get install -y git python3-pip
     sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
@@ -30,89 +30,89 @@ A digital character sheet and spellbook for Dungeons & Dragons 5e.
        gstreamer1.0-libav python3-dev
     ```
 
-3.  **Virtual Keyboard Setup (for Touchscreens):**
-    If you are using a touchscreen, you will need a virtual keyboard for text input. Install it with:
+3.  **Einrichtung der virtuellen Tastatur (für Touchscreens):**
+    Wenn Sie einen Touchscreen verwenden, benötigen Sie eine virtuelle Tastatur für die Texteingabe. Installieren Sie sie mit:
     ```bash
     sudo apt-get update && sudo apt-get install -y matchbox-keyboard
     ```
 
-4.  **Clone the Application:**
-    Download the application from GitHub:
+4.  **Anwendung klonen:**
+    Laden Sie die Anwendung von GitHub herunter:
     ```bash
     cd ~
     git clone https://github.com/Devilwitha/DnD-Sheet-Book-.git DnD-Sheet-Book
     cd ~/DnD-Sheet-Book
     ```
 
-5.  **Install Python Packages:**
-    Recent versions of Raspberry Pi OS protect system packages. The recommended way to install Python packages is within a virtual environment.
+5.  **Python-Pakete installieren:**
+    Neuere Versionen von Raspberry Pi OS schützen Systempakete. Die empfohlene Methode zur Installation von Python-Paketen ist die Verwendung einer virtuellen Umgebung.
 
-    **Method 1: Virtual Environment (Recommended)**
+    **Methode 1: Virtuelle Umgebung (Empfohlen)**
     
-    Create and activate a virtual environment:
+    Erstellen und aktivieren Sie eine virtuelle Umgebung:
     ```bash
     python3 -m venv .venv
     source .venv/bin/activate
     ```
-    Now, install Kivy and other dependencies. Your terminal prompt should show `(.venv)`.
+    Installieren Sie nun Kivy und andere Abhängigkeiten. Ihre Terminal-Eingabeaufforderung sollte `(.venv)` anzeigen.
     ```bash
     pip install kivy
     ```
-    To run the app later, you will need to activate the virtual environment again with `source .venv/bin/activate`.
+    Um die App später auszuführen, müssen Sie die virtuelle Umgebung erneut mit `source .venv/bin/activate` aktivieren.
 
-    **Method 2: System-wide Install (Fallback)**
+    **Methode 2: Systemweite Installation (Fallback)**
 
-    If you have issues with creating a virtual environment, you can install the packages system-wide. This is not recommended as it can interfere with other applications.
+    Wenn Sie Probleme beim Erstellen einer virtuellen Umgebung haben, können Sie die Pakete systemweit installieren. Dies wird nicht empfohlen, da es andere Anwendungen stören kann.
     ```bash
     pip3 install --break-system-packages kivy
     ```
 
-### Manual Start
+### Manueller Start
 
-After installation, you can start the application manually.
+Nach der Installation können Sie die Anwendung manuell starten.
 
-**If you used a virtual environment:**
+**Wenn Sie eine virtuelle Umgebung verwendet haben:**
 ```bash
 cd ~/DnD-Sheet-Book
 source .venv/bin/activate
 python3 main.py
 ```
 
-**If you installed system-wide:**
+**Wenn Sie systemweit installiert haben:**
 ```bash
 cd ~/DnD-Sheet-Book
 python3 main.py
 ```
 
-### Automatic Start on Boot
+### Automatischer Start beim Hochfahren
 
-To make the application start automatically with the graphical user interface:
+So stellen Sie sicher, dass die Anwendung automatisch mit der grafischen Benutzeroberfläche startet:
 
-1.  **Create a Start Script:**
-    This script will activate the virtual environment (if used) and start the application.
+1.  **Start-Skript erstellen:**
+    Dieses Skript aktiviert die virtuelle Umgebung (falls verwendet) und startet die Anwendung.
     ```bash
     nano start_dnd.sh
     ```
-    Add the following content. **Important:** If you did not use a virtual environment, omit the `source` line.
+    Fügen Sie den folgenden Inhalt hinzu. **Wichtig:** Wenn Sie keine virtuelle Umgebung verwendet haben, lassen Sie die `source`-Zeile weg.
     ```bash
     #!/bin/bash
     cd /home/pi/DnD-Sheet-Book
     python3 main.py
     ```
-    Save and close the file (Ctrl+X, then Y, then Enter).
+    Speichern und schließen Sie die Datei (Strg+X, dann Y, dann Enter).
 
-    Make the script executable:
+    Machen Sie das Skript ausführbar:
     ```bash
     chmod +x start_dnd.sh
     ```
 
-2.  **Create Autostart Entry:**
-    Create a `.desktop` file in the autostart directory.
+2.  **Autostart-Eintrag erstellen:**
+    Erstellen Sie eine `.desktop`-Datei im Autostart-Verzeichnis.
     ```bash
     mkdir -p ~/.config/autostart
     nano ~/.config/autostart/dnd_app.desktop
     ```
-    Add the following content. **Important:** Make sure the `Exec` path matches the location of your script (e.g., `/home/devil/DnD-Sheet-Book/start_dnd.sh` if your user is `devil`).
+    Fügen Sie den folgenden Inhalt hinzu. **Wichtig:** Stellen Sie sicher, dass der `Exec`-Pfad mit dem Speicherort Ihres Skripts übereinstimmt (z. B. `/home/devil/DnD-Sheet-Book/start_dnd.sh`, wenn Ihr Benutzer `devil` ist).
     ```ini
     [Desktop Entry]
     Type=Application
@@ -121,11 +121,9 @@ To make the application start automatically with the graphical user interface:
     StartupNotify=false
     Terminal=false
     ```
-    Save and close the file.
+    Speichern und schließen Sie die Datei.
 
-The application should now start automatically after a reboot.
-
-
+Die Anwendung sollte jetzt nach einem Neustart automatisch starten.
 
 ## Splashscreen Installation
 Schritt-für-Schritt-Anleitung
