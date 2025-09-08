@@ -1,0 +1,4 @@
+gui:0.1
+pogramm:1.0
+updater:1.0
+fw:1.0 M33
