@@ -2,3 +2,5 @@ Gui Version:                  0.1 Alpha
 DnD E-Sheet & Book Version:   1.0
 Updater Version:              1.0
 Firmware Version:             1.0 M33
+
+Code by BolliSoft (Nico Bollhalder)
