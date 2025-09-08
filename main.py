@@ -155,37 +155,17 @@ class MainMenu(Screen):
         load_char_button = Button(text="Charakter laden", on_press=self.show_load_popup)
         layout.add_widget(load_char_button)
 
-        update_button = Button(text="Nach Updates suchen", on_press=self.update_app)
-        layout.add_widget(update_button)
-        
+        options_button = Button(text="Optionen", on_press=self.switch_to_options)
+        layout.add_widget(options_button)
+
         self.add_widget(layout)
 
-    def update_app(self, instance):
-        self.popup = Popup(title='Update',
-                           content=Label(text='Suche nach Updates...'),
-                           size_hint=(0.6, 0.4),
-                           auto_dismiss=False)
-        self.popup.open()
-        Clock.schedule_once(self._update_task, 0.1)
-
-    def _update_task(self, dt):
-        try:
-            self.popup.content.text = "Updater wird gestartet...\nDie Anwendung wird sich nun schließen."
-            
-            # Launch the updater script in a new process.
-            # This allows the main app to exit cleanly, releasing file locks.
-            subprocess.Popen([sys.executable, "updater.py"])
-            
-            # Schedule the app to close.
-            Clock.schedule_once(lambda x: App.get_running_app().stop(), 0.5)
-
-        except Exception as e:
-            self.popup.content.text = f"Fehler beim Starten des Updaters:\n{e}"
-            Clock.schedule_once(lambda x: self.popup.dismiss(), 5)
+    def switch_to_options(self, instance):
+        self.manager.current = 'options'
 
     def restart_app(self, dt):
         os.execv(sys.executable, ['python'] + sys.argv)
-        
+
     def switch_to_creator(self, instance):
         self.manager.current = 'creator'
         
@@ -687,6 +667,70 @@ class CharacterSheet(Screen):
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Speichern: {e}")
 
+class OptionsScreen(Screen):
+    """Bildschirm für Optionen, Updates und Versionsanzeige."""
+    def __init__(self, **kwargs):
+        super(OptionsScreen, self).__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        title = Label(text="Optionen", font_size='24sp', size_hint_y=None, height=60)
+        layout.add_widget(title)
+
+        layout.add_widget(BoxLayout(size_hint_y=0.2)) # Spacer
+
+        update_button = Button(text="Nach Updates suchen", on_press=self.update_app, size_hint_y=None, height=44)
+        layout.add_widget(update_button)
+
+        version_button = Button(text="Version", on_press=self.show_version_popup, size_hint_y=None, height=44)
+        layout.add_widget(version_button)
+
+        layout.add_widget(BoxLayout(size_hint_y=1.0)) # Spacer
+
+        back_button = Button(text="Zurück zum Hauptmenü",
+                             on_press=lambda x: setattr(self.manager, 'current', 'main'),
+                             size_hint_y=None,
+                             height=44)
+        layout.add_widget(back_button)
+
+        self.add_widget(layout)
+
+    def update_app(self, instance):
+        self.popup = Popup(title='Update',
+                           content=Label(text='Suche nach Updates...'),
+                           size_hint=(0.6, 0.4),
+                           auto_dismiss=False)
+        self.popup.open()
+        Clock.schedule_once(self._update_task, 0.1)
+
+    def _update_task(self, dt):
+        try:
+            self.popup.content.text = "Updater wird gestartet...\nDie Anwendung wird sich nun schließen."
+            
+            # Launch the updater script in a new process.
+            subprocess.Popen([sys.executable, "updater.py"])
+            
+            # Schedule the app to close.
+            Clock.schedule_once(lambda x: App.get_running_app().stop(), 0.5)
+
+        except Exception as e:
+            self.popup.content.text = f"Fehler beim Starten des Updaters:\n{e}"
+            Clock.schedule_once(lambda x: self.popup.dismiss(), 5)
+
+    def show_version_popup(self, instance):
+        """Liest die version.txt und zeigt sie in einem Popup an."""
+        try:
+            with open("version.txt", "r", encoding="utf-8") as f:
+                version_info = f.read()
+        except FileNotFoundError:
+            version_info = "version.txt nicht gefunden."
+        except Exception as e:
+            version_info = f"Fehler beim Lesen der Version:\n{e}"
+        
+        popup = Popup(title="Version",
+                      content=Label(text=version_info),
+                      size_hint=(0.7, 0.5))
+        popup.open()
+
 class LevelUpScreen(Screen):
     """Bildschirm für den Stufenaufstieg."""
     def __init__(self, **kwargs):
@@ -787,6 +831,7 @@ class DnDApp(App):
         sm.add_widget(MainMenu(name='main'))
         sm.add_widget(CharacterCreator(name='creator'))
         sm.add_widget(CharacterSheet(name='sheet'))
+        sm.add_widget(OptionsScreen(name='options'))
         sm.add_widget(LevelUpScreen(name='level_up'))
 
         root.add_widget(sm)
