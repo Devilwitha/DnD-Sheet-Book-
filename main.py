@@ -1,8 +1,9 @@
-# main.py
-
 from kivy.config import Config
+# Konfiguration für Kivy, bevor andere Module importiert werden
 Config.set('kivy', 'keyboard_mode', 'dock')
 Config.set('graphics', 'rotation', 0)
+# Setzt die Höhe der Bildschirmtastatur auf 600 Pixel
+Config.set('kivy', 'keyboard_height', '600')
 
 import kivy
 from kivy.app import App
@@ -45,7 +46,7 @@ class Character:
         self.initiative = 0
         self.armor_class = 10
         self.inventory = {}  # Geändert zu Dictionary für die Anzahl
-        self.equipment = {} # Ausrüstung mit AC-Bonus
+        self.equipment = {}  # Ausrüstung mit AC-Bonus
         self.currency = {"KP": 0, "SP": 0, "EP": 0, "GM": 0, "PP": 0}
         self.equipped_weapon = "Unbewaffneter Schlag"
         self.background = ""
@@ -77,7 +78,7 @@ class Character:
             if ability in self.abilities:
                 self.abilities[ability] += bonus
         self.speed = race_info.get("speed", 9)
-    
+
     def collect_proficiencies_and_languages(self):
         """Sammelt Kompetenzen und Sprachen von Rasse und Klasse."""
         race_info = RACE_DATA.get(self.race, {})
@@ -103,7 +104,7 @@ class Character:
         for lvl in range(1, self.level + 1):
             if lvl in class_features:
                 self.features.extend(class_features[lvl])
-    
+
     def prepare_spellbook(self):
         """Stellt das Zauberbuch für den Charakter zusammen."""
         self.spells = CLASS_DATA.get(self.char_class, {}).get("spells", {})
@@ -133,14 +134,9 @@ class Character:
 
     def calculate_armor_class(self):
         dex_modifier = (self.abilities["Geschicklichkeit"] - 10) // 2
-
-        # Basis-AC ist 10 + Geschicklichkeitsmodifikator
         ac = 10 + dex_modifier
-
-        # Addiere AC von der Ausrüstung
         for item, bonus in self.equipment.items():
             ac += bonus
-
         self.armor_class = ac
 
 class MainMenu(Screen):
@@ -149,42 +145,56 @@ class MainMenu(Screen):
         super(MainMenu, self).__init__(**kwargs)
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         layout.add_widget(Label(text="D&D Charakterblatt", font_size='32sp'))
+        
         new_char_button = Button(text="Neuen Charakter erstellen", on_press=self.switch_to_creator)
         layout.add_widget(new_char_button)
+        
         load_char_button = Button(text="Charakter laden", on_press=self.show_load_popup)
         layout.add_widget(load_char_button)
+        
         self.add_widget(layout)
+        
     def switch_to_creator(self, instance):
         self.manager.current = 'creator'
+        
     def show_load_popup(self, instance):
         content = BoxLayout(orientation='vertical', spacing=10)
         popup_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         popup_layout.bind(minimum_height=popup_layout.setter('height'))
+        
         files = [f for f in os.listdir('.') if f.endswith('.char')]
         for filename in files:
             char_layout = BoxLayout(size_hint_y=None, height=40)
+            
             load_btn = Button(text=filename)
-            load_btn.bind(on_release=lambda btn_instance, fn=filename: self.load_character(fn))
+            load_btn.bind(on_release=lambda btn, fn=filename: self.load_character(fn))
+            
             delete_btn = Button(text="Löschen", size_hint_x=0.3)
-            delete_btn.bind(on_release=lambda btn_instance, fn=filename: self.delete_character_popup(fn))
+            delete_btn.bind(on_release=lambda btn, fn=filename: self.delete_character_popup(fn))
+            
             char_layout.add_widget(load_btn)
             char_layout.add_widget(delete_btn)
             popup_layout.add_widget(char_layout)
+            
         scroll_view = ScrollView(size_hint=(1, 1))
         scroll_view.add_widget(popup_layout)
         content.add_widget(scroll_view)
+        
         self.popup = Popup(title="Charakter laden", content=content, size_hint=(0.8, 0.8))
         self.popup.open()
 
     def delete_character_popup(self, filename):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         content.add_widget(Label(text=f"Möchtest du {filename} wirklich löschen?"))
+        
         btn_layout = BoxLayout(spacing=10)
         yes_btn = Button(text="Ja", on_press=lambda x: self.delete_character(filename))
         no_btn = Button(text="Nein", on_press=lambda x: self.confirmation_popup.dismiss())
         btn_layout.add_widget(yes_btn)
         btn_layout.add_widget(no_btn)
+        
         content.add_widget(btn_layout)
+        
         self.confirmation_popup = Popup(title="Löschen bestätigen", content=content, size_hint=(0.6, 0.4))
         self.confirmation_popup.open()
 
@@ -206,6 +216,7 @@ class MainMenu(Screen):
             self.popup.dismiss()
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
+            
     def show_popup(self, title, message):
         Popup(title=title, content=Label(text=message), size_hint=(0.6, 0.4)).open()
 
@@ -327,7 +338,8 @@ class CharacterSheet(Screen):
 
     def update_sheet(self):
         self.main_layout.clear_widgets()
-        if not self.character: return
+        if not self.character:
+            return
 
         header = GridLayout(cols=3, size_hint_y=None, height=60)
         header.add_widget(Label(text=f"{self.character.name}", font_size='20sp'))
@@ -396,7 +408,6 @@ class CharacterSheet(Screen):
         features_layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
         features_layout.bind(minimum_height=features_layout.setter('height'))
         for feature in self.character.features:
-            # ===== KORRIGIERTE ZEILE HIER =====
             btn = Button(text=feature['name'], size_hint_y=None, height=40, halign='left', valign='middle', padding=(10, 0))
             btn.bind(on_press=partial(self.show_feature_popup, feature))
             features_layout.add_widget(btn)
@@ -433,8 +444,10 @@ class CharacterSheet(Screen):
     def show_popup(self, title, message):
         content = ScrollView()
         label = Label(text=message, markup=True, size_hint_y=None, padding=(10, 10))
-        label.bind(width=lambda *x: label.setter('text_size')(label, (label.width, None)),
-                   texture_size=lambda *x: label.setter('height')(label, label.texture_size[1]))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
         content.add_widget(label)
         Popup(title=title, content=content, size_hint=(0.8, 0.8)).open()
 
@@ -456,9 +469,11 @@ class CharacterSheet(Screen):
         for item_name, quantity in self.character.inventory.items():
             item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
             item_row.add_widget(Label(text=f"{item_name} ({quantity})", halign='left', valign='middle'))
+            
             btn_box = BoxLayout(size_hint_x=0.4)
             btn_box.add_widget(Button(text="-", on_press=partial(self.adjust_item_quantity, item_name, -1)))
             btn_box.add_widget(Button(text="+", on_press=partial(self.adjust_item_quantity, item_name, 1)))
+            
             item_row.add_widget(btn_box)
             self.inventory_layout.add_widget(item_row)
 
@@ -473,8 +488,10 @@ class CharacterSheet(Screen):
         for item_name, ac_bonus in self.character.equipment.items():
             item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
             item_row.add_widget(Label(text=f"{item_name} (AC: +{ac_bonus})", halign='left', valign='middle'))
+            
             remove_btn = Button(text="-", size_hint_x=0.2)
             remove_btn.bind(on_press=partial(self.remove_equipment, item_name))
+            
             item_row.add_widget(remove_btn)
             self.equipment_layout.add_widget(item_row)
 
@@ -490,9 +507,12 @@ class CharacterSheet(Screen):
         ac_input = TextInput(hint_text="AC Bonus", multiline=False)
         content.add_widget(name_input)
         content.add_widget(ac_input)
+        
         add_btn = Button(text="Hinzufügen")
         content.add_widget(add_btn)
+        
         popup = Popup(title="Ausrüstung hinzufügen", content=content, size_hint=(0.8, 0.5))
+        
         def add_action(instance):
             name = name_input.text.strip()
             try:
@@ -506,6 +526,7 @@ class CharacterSheet(Screen):
                     self.show_popup("Fehler", "Bitte einen Namen eingeben.")
             except ValueError:
                 self.show_popup("Fehler", "AC Bonus muss eine Zahl sein.")
+                
         add_btn.bind(on_press=add_action)
         popup.open()
 
@@ -513,9 +534,12 @@ class CharacterSheet(Screen):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         item_input = TextInput(hint_text="Gegenstand eingeben", multiline=False)
         content.add_widget(item_input)
+        
         add_btn = Button(text="Hinzufügen")
         content.add_widget(add_btn)
+        
         popup = Popup(title="Item hinzufügen", content=content, size_hint=(0.8, 0.4))
+        
         def add_action(instance):
             item_name = item_input.text.strip()
             if item_name:
@@ -525,6 +549,7 @@ class CharacterSheet(Screen):
                     self.character.inventory[item_name] = 1
                 self.update_inventory_display()
                 popup.dismiss()
+                
         add_btn.bind(on_press=add_action)
         popup.open()
 
@@ -533,12 +558,18 @@ class CharacterSheet(Screen):
         weapon_info = WEAPON_DATA.get(weapon_name, WEAPON_DATA["Unbewaffneter Schlag"])
         ability_name = weapon_info["ability"]
         modifier = (self.character.abilities[ability_name] - 10) // 2
+        
         parts = weapon_info["damage"].split('d')
         num_dice = int(parts[0])
         dice_type = int(parts[1])
+        
         roll_total = sum(random.randint(1, dice_type) for _ in range(num_dice))
         total_damage = roll_total + modifier
-        self.show_popup("Schadenswurf", f"{weapon_info['damage']} ({roll_total}) + {ability_name[:3]}-Mod ({modifier}) = {max(1, total_damage)} Schaden")
+        
+        self.show_popup(
+            "Schadenswurf",
+            f"{weapon_info['damage']} ({roll_total}) + {ability_name[:3]}-Mod ({modifier}) = {max(1, total_damage)} Schaden"
+        )
 
     def show_feature_popup(self, feature, instance):
         self.show_popup(feature['name'], feature['desc'])
@@ -590,6 +621,7 @@ class CharacterSheet(Screen):
                     btn = Button(text=spell_name, size_hint_y=None, height=40)
                     btn.bind(on_press=partial(self.show_spell_details_popup, spell_name))
                     grid.add_widget(btn)
+        
         content.add_widget(grid)
         Popup(title="Zauberbuch", content=content, size_hint=(0.8, 0.9)).open()
 
@@ -651,8 +683,10 @@ class LevelUpScreen(Screen):
             level_up_layout.add_widget(Label(text="Neue Fähigkeiten:", font_size='20sp', size_hint_y=None, height=40))
             for feature in features:
                 feature_label = Label(text=f"[b]{feature['name']}[/b]\n{feature['desc']}", markup=True, size_hint_y=None)
-                feature_label.bind(width=lambda *x: feature_label.setter('text_size')(feature_label, (feature_label.width, None)),
-                                   texture_size=lambda *x: feature_label.setter('height')(feature_label, feature_label.texture_size[1]))
+                feature_label.bind(
+                    width=lambda *x: feature_label.setter('text_size')(feature_label, (feature_label.width, None)),
+                    texture_size=lambda *x: feature_label.setter('height')(feature_label, feature_label.texture_size[1])
+                )
                 level_up_layout.add_widget(feature_label)
 
         # Ability Score Improvement
@@ -685,8 +719,8 @@ class LevelUpScreen(Screen):
         # Collect ability score increases
         selected_abilities = [ability for ability, checkbox in self.ability_choices.items() if checkbox.active]
         if self.ability_choices and len(selected_abilities) != 2:
-             self.show_popup("Fehler", "Bitte wähle genau 2 Attribute zur Verbesserung aus.")
-             return
+            self.show_popup("Fehler", "Bitte wähle genau 2 Attribute zur Verbesserung aus.")
+            return
 
         if selected_abilities:
             choices["ability_increase"] = selected_abilities
@@ -697,7 +731,9 @@ class LevelUpScreen(Screen):
 
     def cancel_level_up(self, instance):
         self.manager.current = 'sheet'
-
+    
+    def show_popup(self, title, message):
+        Popup(title=title, content=Label(text=message), size_hint=(0.5, 0.5)).open()
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
