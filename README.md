@@ -127,7 +127,7 @@ The application should now start automatically after a reboot.
 
 
 
-
+## Splashscreen Installation
 Schritt-für-Schritt-Anleitung
 Hier ist die Vorgehensweise, um deinen eigenen Splash-Screen einzurichten:
 
