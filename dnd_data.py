@@ -6,52 +6,52 @@ SPELL_DATA = {
     "Acid Arrow": {
         "level": 2,
         "school": "Hervorrufung",
-        "desc": "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 acid damage immediately and 2d4 acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage and no damage at the end of its next turn.\n\nAuf höheren Stufen: When you cast this spell using a spell slot of 3rd level or higher, the damage (both initial and later) increases by 1d4 for each slot level above 2nd."
+        "desc": "Ein schimmernder grüner Pfeil schießt auf ein Ziel in Reichweite zu und zerbirst in einem Schwall aus Säure. Führe einen Fernkampf-Zauberangriff gegen das Ziel aus. Bei einem Treffer erleidet das Ziel sofort 4W4 Säureschaden und am Ende seiner nächsten Runde 2W4 Säureschaden. Bei einem Fehlschlag bespritzt der Pfeil das Ziel mit Säure für die Hälfte des anfänglichen Schadens und keinen Schaden am Ende seiner nächsten Runde.\n\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Zauberplatz des 3. Grades oder höher wirkst, erhöht sich der Schaden (sowohl der anfängliche als auch der spätere) um 1W4 für jeden Zauberplatzgrad über dem 2."
     },
     "Acid Splash": {
         "level": 0,
         "school": "Beschwörung",
-        "desc": "You hurl a bubble of acid. Choose one creature within range, or choose two creatures within range that are within 5 feet of each other. A target must succeed on a Geschicklichkeit saving throw or take 1d6 acid damage.\nThis spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).\n\nAuf höheren Stufen: "
+        "desc": "Du schleuderst eine Säureblase. Wähle eine Kreatur in Reichweite oder zwei Kreaturen in Reichweite, die sich innerhalb von 5 Fuß voneinander befinden. Ein Ziel muss einen Geschicklichkeitsrettungswurf bestehen oder 1W6 Säureschaden erleiden.\nDer Schaden dieses Zaubers erhöht sich um 1W6, wenn du die 5. Stufe (2W6), die 11. Stufe (3W6) und die 17. Stufe (4W6) erreichst.\n\nAuf höheren Stufen: "
     },
     "Aid": {
         "level": 2,
         "school": "Bannmagie",
-        "desc": "Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target's hit point maximum and current hit points increase by 5 for the duration.\n\nAuf höheren Stufen: When you cast this spell using a spell slot of 3rd level or higher, a target's hit points increase by an additional 5 for each slot level above 2nd."
+        "desc": "Dein Zauber stärkt deine Verbündeten mit Zähigkeit und Entschlossenheit. Wähle bis zu drei Kreaturen in Reichweite. Das Trefferpunktemaximum und die aktuellen Trefferpunkte jedes Ziels erhöhen sich für die Dauer um 5.\n\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Zauberplatz des 3. Grades oder höher wirkst, erhöhen sich die Trefferpunkte eines Ziels um zusätzliche 5 für jeden Zauberplatzgrad über dem 2."
     },
     "Alarm": {
         "level": 1,
         "school": "Bannmagie",
-        "desc": "You set an alarm against unwanted intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot cube. Until the spell ends, an alarm alerts you whenever a Tiny or larger creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is mental or audible.\nA mental alarm alerts you with a ping in your mind if you are within 1 mile of the warded area. This ping awakens you if you are sleeping.\nAn audible alarm produces the sound of a hand bell for 10 seconds within 60 feet.\n\nAuf höheren Stufen: "
+        "desc": "Du stellst einen Alarm gegen unerwünschtes Eindringen auf. Wähle eine Tür, ein Fenster oder einen Bereich in Reichweite, der nicht größer als ein 20-Fuß-Würfel ist. Bis der Zauber endet, alarmiert dich ein Alarm, wenn eine winzige oder größere Kreatur den geschützten Bereich berührt oder betritt. Wenn du den Zauber wirkst, kannst du Kreaturen bestimmen, die den Alarm nicht auslösen. Du wählst auch, ob der Alarm mental oder hörbar ist.\nEin mentaler Alarm alarmiert dich mit einem Ping in deinem Geist, wenn du dich innerhalb von 1 Meile des geschützten Bereichs befindest. Dieser Ping weckt dich, wenn du schläfst.\nEin hörbarer Alarm erzeugt den Klang einer Handglocke für 10 Sekunden in einem Umkreis von 60 Fuß.\n\nAuf höheren Stufen: "
     },
     "Alter Self": {
         "level": 2,
         "school": "Verwandlung",
-        "desc": "You assume a different form. When you cast the spell, choose one of the following options, the effects of which last for the duration of the spell. While the spell lasts, you can end one option as an action to gain the benefits of a different one.\n***Aquatic Adaptation.*** You adapt your body to an aquatic environment, sprouting gills and growing webbing between your fingers. You can breathe underwater and gain a swimming speed equal to your walking speed.\n***Change Appearance.*** You transform your appearance. You decide what you look like, including your height, weight, facial features, sound of your voice, hair length, coloration, and distinguishing characteristics, if any. You can make yourself appear as a member of another race, though none of your statistics change. You also can't appear as a creature of a different size than you, and your basic shape stays the same; if you're bipedal, you can't use this spell to become quadrupedal, for instance. At any time for the duration of the spell, you can use your action to change your appearance in this way again.\n***Natural Weapons.*** You grow claws, fangs, spines, horns, or a different natural weapon of your choice. Your unarmed strikes deal 1d6 bludgeoning, piercing, or slashing damage, as appropriate to the natural weapon you chose, and you are proficient with your unarmed strikes. Finally, the natural weapon is magic and you have a +1 bonus to the attack and damage rolls you make using it.\n\nAuf höheren Stufen: "
+        "desc": "Du nimmst eine andere Gestalt an. Wenn du den Zauber wirkst, wähle eine der folgenden Optionen, deren Effekte für die Dauer des Zaubers anhalten. Solange der Zauber andauert, kannst du eine Option als Aktion beenden, um die Vorteile einer anderen zu erhalten.\n***Aquatische Anpassung.*** Du passt deinen Körper an eine aquatische Umgebung an, lässt Kiemen sprießen und Schwimmhäute zwischen deinen Fingern wachsen. Du kannst unter Wasser atmen und erhältst eine Schwimmgeschwindigkeit, die deiner Gehgeschwindigkeit entspricht.\n***Aussehen ändern.*** Du verwandelst dein Aussehen. Du entscheidest, wie du aussiehst, einschließlich deiner Größe, deines Gewichts, deiner Gesichtszüge, des Klangs deiner Stimme, deiner Haarlänge, deiner Färbung und deiner Unterscheidungsmerkmale, falls vorhanden. Du kannst dich als Mitglied einer anderen Rasse erscheinen lassen, obwohl sich keine deiner Werte ändern. Du kannst auch nicht als Kreatur einer anderen Größe als du erscheinen, und deine Grundform bleibt dieselbe; wenn du zweibeinig bist, kannst du diesen Zauber zum Beispiel nicht benutzen, um vierbeinig zu werden. Jederzeit für die Dauer des Zaubers kannst du deine Aktion nutzen, um dein Aussehen auf diese Weise erneut zu ändern.\n***Natürliche Waffen.*** Du lässt Klauen, Reißzähne, Stacheln, Hörner oder eine andere natürliche Waffe deiner Wahl wachsen. Deine unbewaffneten Schläge verursachen 1W6 Wucht-, Stich- oder Hiebschaden, je nach der von dir gewählten natürlichen Waffe, und du bist mit deinen unbewaffneten Schlägen geübt. Schließlich ist die natürliche Waffe magisch und du hast einen +1 Bonus auf die Angriffs- und Schadenswürfe, die du damit machst.\n\nAuf höheren Stufen: "
     },
     "Animal Friendship": {
         "level": 1,
         "school": "Verzauberung",
-        "desc": "This spell lets you convince a beast that you mean it no harm. Choose a beast that you can see within range. It must see and hear you. If the beast's Intelligenz is 4 or higher, the spell fails. Otherwise, the beast must succeed on a Weisheit saving throw or be charmed by you for the spell's duration. If you or one of your companions harms the target, the spells ends.\n\nAuf höheren Stufen: "
+        "desc": "Dieser Zauber lässt dich ein Tier davon überzeugen, dass du ihm nichts Böses willst. Wähle ein Tier, das du in Reichweite sehen kannst. Es muss dich sehen und hören. Wenn die Intelligenz des Tieres 4 oder höher ist, schlägt der Zauber fehl. Andernfalls muss das Tier einen Weisheitsrettungswurf bestehen oder es wird für die Dauer des Zaubers von dir bezaubert. Wenn du oder einer deiner Gefährten das Ziel verletzt, endet der Zauber.\n\nAuf höheren Stufen: "
     },
     "Animal Messenger": {
         "level": 2,
         "school": "Verzauberung",
-        "desc": "By means of this spell, you use an animal to deliver a message. Choose a Tiny beast you can see within range, such as a squirrel, a blue jay, or a bat. You specify a location, which you must have visited, and a recipient who matches a general description, such as \"a man or woman dressed in the uniform of the town guard\" or \"a red-haired Zwerg wearing a pointed hat.\" You also speak a message of up to twenty-five words. The target beast travels for the duration of the spell toward the specified location, covering about 50 miles per 24 hours for a flying messenger, or 25 miles for other animals.\nWhen the messenger arrives, it delivers your message to the creature that you described, replicating the sound of your voice. The messenger speaks only to a creature matching the description you gave. If the messenger doesn't reach its destination before the spell ends, the message is lost, and the beast makes its way back to where you cast this spell.\n\nAuf höheren Stufen: If you cast this spell using a spell slot of 3nd level or higher, the duration of the spell increases by 48 hours for each slot level above 2nd."
+        "desc": "Mit diesem Zauber benutzt du ein Tier, um eine Nachricht zu überbringen. Wähle ein winziges Tier, das du in Reichweite sehen kannst, wie ein Eichhörnchen, einen Blauhäher oder eine Fledermaus. Du gibst einen Ort an, den du besucht haben musst, und einen Empfänger, der einer allgemeinen Beschreibung entspricht, wie \"ein Mann oder eine Frau in der Uniform der Stadtwache\" oder \"ein rothaariger Zwerg mit spitzem Hut\". Du sprichst auch eine Nachricht von bis zu fünfundzwanzig Wörtern. Das Zieltier reist für die Dauer des Zaubers zum angegebenen Ort und legt dabei etwa 50 Meilen pro 24 Stunden für einen fliegenden Boten oder 25 Meilen für andere Tiere zurück.\nWenn der Bote ankommt, überbringt er deine Nachricht der von dir beschriebenen Kreatur und ahmt dabei den Klang deiner Stimme nach. Der Bote spricht nur mit einer Kreatur, die der von dir gegebenen Beschreibung entspricht. Wenn der Bote sein Ziel nicht erreicht, bevor der Zauber endet, geht die Nachricht verloren, und das Tier macht sich auf den Weg zurück zu dem Ort, an dem du diesen Zauber gewirkt hast.\n\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Zauberplatz des 3. Grades oder höher wirkst, erhöht sich die Dauer des Zaubers um 48 Stunden für jeden Zauberplatzgrad über dem 2."
     },
     "Animal Shapes": {
         "level": 8,
         "school": "Verwandlung",
-        "desc": "Your magic turns others into beasts. Choose any number of willing creatures that you can see within range. You transform each target into the form of a Large or smaller beast with a challenge rating of 4 or lower. On subsequent turns, you can use your action to transform affected creatures into new forms.\nThe transformation lasts for the duration for each target, or until the target drops to 0 hit points or dies. You can choose a different form for each target. A target's game statistics are replaced by the statistics of the chosen beast, though the target retains its alignment and Intelligenz, Weisheit, and Charisma scores. The target assumes the hit points of its new form, and when it reverts to its normal form, it returns to the number of hit points it had before it transformed. If it reverts as a result of dropping to 0 hit points, any excess damage carries over to its normal form. As long as the excess damage doesn't reduce the creature's normal form to 0 hit points, it isn't knocked unconscious. The creature is limited in the actions it can perform by the nature of its new form, and it can't speak or cast spells.\nThe target's gear melds into the new form. The target can't activate, wield, or otherwise benefit from any of its equipment.\n\nAuf höheren Stufen: "
+        "desc": "Deine Magie verwandelt andere in Tiere. Wähle eine beliebige Anzahl williger Kreaturen, die du in Reichweite sehen kannst. Du verwandelst jedes Ziel in die Form eines großen oder kleineren Tieres mit einem Herausforderungswert von 4 oder niedriger. In nachfolgenden Zügen kannst du deine Aktion verwenden, um betroffene Kreaturen in neue Formen zu verwandeln.\nDie Verwandlung dauert für jedes Ziel für die Dauer an oder bis das Ziel auf 0 Trefferpunkte fällt oder stirbt. Du kannst für jedes Ziel eine andere Form wählen. Die Spielwerte eines Ziels werden durch die Werte des gewählten Tieres ersetzt, obwohl das Ziel seine Gesinnung und seine Intelligenz-, Weisheits- und Charisma-Werte beibehält. Das Ziel übernimmt die Trefferpunkte seiner neuen Form, und wenn es in seine normale Form zurückkehrt, kehrt es zu der Anzahl der Trefferpunkte zurück, die es vor der Verwandlung hatte. Wenn es infolge des Fallens auf 0 Trefferpunkte zurückkehrt, wird jeder überschüssige Schaden auf seine normale Form übertragen. Solange der überschüssige Schaden die normale Form der Kreatur nicht auf 0 Trefferpunkte reduziert, wird sie nicht bewusstlos. Die Kreatur ist in den Aktionen, die sie ausführen kann, durch die Natur ihrer neuen Form eingeschränkt, und sie kann nicht sprechen oder Zauber wirken.\nDie Ausrüstung des Ziels verschmilzt mit der neuen Form. Das Ziel kann seine Ausrüstung nicht aktivieren, führen oder anderweitig davon profitieren.\n\nAuf höheren Stufen: "
     },
     "Animate Dead": {
         "level": 3,
         "school": "Nekromantie",
-        "desc": "This spell creates an undead servant. Choose a pile of bones or a corpse of a Medium or Small humanoid within range. Your spell imbues the target with a foul mimicry of life, raising it as an undead creature. The target becomes a skeleton if you chose bones or a zombie if you chose a corpse (the GM has the creature's game statistics).\nOn each of your turns, you can use a bonus action to mentally command any creature you made with this spell if the creature is within 60 feet of you (if you control multiple creatures, you can command any or all of them at the same time, issuing the same command to each one). You decide what action the creature will take and where it will move during its next turn, or you can issue a general command, such as to guard a particular chamber or corridor. If you issue no commands, the creature only defends itself against hostile creatures. Once given an order, the creature continues to follow it until its task is complete.\nThe creature is under your control for 24 hours, after which it stops obeying any command you've given it. To maintain control of the creature for another 24 hours, you must cast this spell on the creature again before the current 24-hour period ends. This use of the spell reasserts your control over up to four creatures you have animated with this spell, rather than animating a new one.\n\nAuf höheren Stufen: When you cast this spell using a spell slot of 4th level or higher, you animate or reassert control over two additional undead creatures for each slot level above 3rd. Each of the creatures must come from a different corpse or pile of bones."
+        "desc": "Dieser Zauber erschafft einen untoten Diener. Wähle einen Haufen Knochen oder eine Leiche eines mittelgroßen oder kleinen Humanoiden in Reichweite. Dein Zauber erfüllt das Ziel mit einer üblen Nachahmung des Lebens und erhebt es als untote Kreatur. Das Ziel wird zu einem Skelett, wenn du Knochen gewählt hast, oder zu einem Zombie, wenn du eine Leiche gewählt hast (der SL hat die Spielwerte der Kreatur).\nIn jedem deiner Züge kannst du eine Bonusaktion verwenden, um jede Kreatur, die du mit diesem Zauber erschaffen hast, mental zu befehligen, wenn sich die Kreatur innerhalb von 60 Fuß von dir befindet (wenn du mehrere Kreaturen kontrollierst, kannst du eine oder alle von ihnen gleichzeitig befehligen und denselben Befehl an jede ausgeben). Du entscheidest, welche Aktion die Kreatur in ihrem nächsten Zug ausführen und wohin sie sich bewegen wird, oder du kannst einen allgemeinen Befehl erteilen, z. B. eine bestimmte Kammer oder einen Korridor zu bewachen. Wenn du keine Befehle erteilst, verteidigt sich die Kreatur nur gegen feindliche Kreaturen. Sobald ein Befehl erteilt wurde, befolgt die Kreatur ihn weiter, bis ihre Aufgabe abgeschlossen ist.\nDie Kreatur steht 24 Stunden unter deiner Kontrolle, danach gehorcht sie keinem Befehl mehr, den du ihr gegeben hast. Um die Kontrolle über die Kreatur für weitere 24 Stunden aufrechtzuerhalten, musst du diesen Zauber erneut auf die Kreatur wirken, bevor der aktuelle 24-Stunden-Zeitraum endet. Diese Anwendung des Zaubers bestätigt deine Kontrolle über bis zu vier Kreaturen, die du mit diesem Zauber belebt hast, anstatt eine neue zu beleben.\n\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Zauberplatz des 4. Grades oder höher wirkst, belebst oder bestätigst du die Kontrolle über zwei zusätzliche untote Kreaturen für jeden Zauberplatzgrad über dem 3. Jede der Kreaturen muss von einer anderen Leiche oder einem anderen Knochenhaufen stammen."
     },
     "Animate Objects": {
         "level": 5,
         "school": "Verwandlung",
-        "desc": "Objects come to life at your command. Choose up to ten nonmagical objects within range that are not being worn or carried. Medium targets count as two objects, Large targets count as four objects, Huge targets count as eight objects. You can't animate any object larger than Huge. Each target animates and becomes a creature under your control until the spell ends or until reduced to 0 hit points.\nAs a bonus action, you can mentally command any creature you made with this spell if the creature is within 500 feet of you (if you control multiple creatures, you can command any or all of them at the same time, issuing the same command to each one). You decide what action the creature will take and where it will move during its next turn, or you can issue a general command, such as to guard a particular chamber or corridor. If you issue no commands, the creature only defends itself against hostile creatures. Once given an order, the creature continues to follow it until its task is complete.\n##### Animated Object Statistics\n| Size | HP | AC | Attack | Stärke | Geschicklichkeit |\n|---|---|---|---|---|---|\n| Tiny | 20 | 18 | +8 to hit, 1d4 + 4 damage | 4 | 18 |\n| Small | 25 | 16 | +6 to hit, 1d8 + 2 damage | 6 | 14 |\n| Medium | 40 | 13 | +5 to hit, 2d6 + 1 damage | 10 | 12 |\n| Large | 50 | 10 | +6 to hit, 2d10 + 2 damage | 14 | 10 |\n| Huge | 80 | 10 | +8 to hit, 2d12 + 4 damage | 18 | 6 |\nAn animated object is a construct with AC, hit points, attacks, Stärke, and Geschicklichkeit determined by its size. Its Konstitution is 10 and its Intelligenz and Weisheit are 3, and its Charisma is 1. Its speed is 30 feet; if the object lacks legs or other appendages it can use for locomotion, it instead has a flying speed of 30 feet and can hover. If the object is securely attached to a surface or a larger object, such as a chain bolted to a wall, its speed is 0. It has blindsight with a radius of 30 feet and is blind beyond that distance. When the animated object drops to 0 hit points, it reverts to its original object form, and any remaining damage carries over to its original object form.\nIf you command an object to attack, it can make a single melee attack against a creature within 5 feet of it. It makes a slam attack with an attack bonus and bludgeoning damage determined by its size. The GM might rule that a specific object inflicts slashing or piercing damage based on its form.\n\nAuf höheren Stufen: If you cast this spell using a spell slot of 6th level or higher, you can animate two additional objects for each slot level above 5th."
+        "desc": "Gegenstände erwachen auf deinen Befehl zum Leben. Wähle bis zu zehn nichtmagische Gegenstände in Reichweite, die nicht getragen oder mitgeführt werden. Mittlere Ziele zählen als zwei Objekte, große Ziele als vier Objekte, riesige Ziele als acht Objekte. Du kannst kein Objekt beleben, das größer als riesig ist. Jedes Ziel wird belebt und wird zu einer Kreatur unter deiner Kontrolle, bis der Zauber endet oder bis es auf 0 Trefferpunkte reduziert wird.\nAls Bonusaktion kannst du jede Kreatur, die du mit diesem Zauber erschaffen hast, mental befehligen, wenn sich die Kreatur innerhalb von 500 Fuß von dir befindet (wenn du mehrere Kreaturen kontrollierst, kannst du eine oder alle von ihnen gleichzeitig befehligen und denselben Befehl an jede ausgeben). Du entscheidest, welche Aktion die Kreatur in ihrem nächsten Zug ausführen und wohin sie sich bewegen wird, oder du kannst einen allgemeinen Befehl erteilen, z. B. eine bestimmte Kammer oder einen Korridor zu bewachen. Wenn du keine Befehle erteilst, verteidigt sich die Kreatur nur gegen feindliche Kreaturen. Sobald ein Befehl erteilt wurde, befolgt die Kreatur ihn weiter, bis ihre Aufgabe abgeschlossen ist.\n##### Belebter-Gegenstand-Statistiken\n| Größe | TP | RK | Angriff | Stärke | Geschicklichkeit |\n|---|---|---|---|---|---|\n| Winzig | 20 | 18 | +8 Treffer, 1W4 + 4 Schaden | 4 | 18 |\n| Klein | 25 | 16 | +6 Treffer, 1W8 + 2 Schaden | 6 | 14 |\n| Mittel | 40 | 13 | +5 Treffer, 2W6 + 1 Schaden | 10 | 12 |\n| Groß | 50 | 10 | +6 Treffer, 2W10 + 2 Schaden | 14 | 10 |\n| Riesig | 80 | 10 | +8 Treffer, 2W12 + 4 Schaden | 18 | 6 |\nEin belebter Gegenstand ist ein Konstrukt mit RK, Trefferpunkten, Angriffen, Stärke und Geschicklichkeit, die von seiner Größe bestimmt werden. Seine Konstitution ist 10 und seine Intelligenz und Weisheit sind 3, und sein Charisma ist 1. Seine Geschwindigkeit beträgt 30 Fuß; wenn dem Objekt Beine oder andere Fortbewegungsmittel fehlen, hat es stattdessen eine Fluggeschwindigkeit von 30 Fuß und kann schweben. Wenn das Objekt sicher an einer Oberfläche oder einem größeren Objekt befestigt ist, z. B. eine an eine Wand geschraubte Kette, beträgt seine Geschwindigkeit 0. Es hat eine Blindheit mit einem Radius von 30 Fuß und ist über diese Entfernung hinaus blind. Wenn der belebte Gegenstand auf 0 Trefferpunkte fällt, kehrt er in seine ursprüngliche Objektform zurück, und jeder verbleibende Schaden wird auf seine ursprüngliche Objektform übertragen.\nWenn du einem Objekt befiehlst anzugreifen, kann es einen einzelnen Nahkampfangriff gegen eine Kreatur innerhalb von 5 Fuß von ihm ausführen. Es führt einen Hiebangriff mit einem Angriffsbonus und Wuchtschaden aus, der von seiner Größe bestimmt wird. Der SL kann entscheiden, dass ein bestimmtes Objekt je nach seiner Form Hieb- oder Stichschaden verursacht.\n\nAuf höheren Stufen: Wenn du diesen Zauber mit einem Zauberplatz des 6. Grades oder höher wirkst, kannst du zwei zusätzliche Objekte für jeden Zauberplatzgrad über dem 5. beleben."
     },
     "Antilife Shell": {
         "level": 5,
@@ -1615,67 +1615,67 @@ CLASS_DATA = {
         "spells": {},
         "features": {
             1: [
-                { "name": "Rage", "desc": "In battle, you fight with primal ferocity. On your turn, you can enter a rage as a bonus action. While raging, you gain the following benefits if you aren't wearing Schwere Rüstung:\n- You have advantage on Stärke checks and Stärke saving throws.\n- When you make a melee weapon Attack using Stärke, you gain a +2 bonus to the damage roll. This bonus increases as you level.\n- You have Resistance to bludgeoning, piercing, and slashing damage.\nIf you are able to cast Spells, you can't cast them or concentrate on them while raging.\nYour rage lasts for 1 minute. It ends early if you are knocked Unconscious or if Your Turn ends and you haven't attacked a hostile creature since your last turn or taken damage since then. You can also end your rage on Your Turn as a Bonus Action.\nOnce you have raged the maximum number of times for your Barbar level, you must finish a Long Rest before you can rage again. You may rage 2 times at 1st level, 3 at 3rd, 4 at 6th, 5 at 12th, and 6 at 17th." },
-                { "name": "Unarmored Defense", "desc": "While you are not wearing any armor, your Armor Class equals 10 + your Geschicklichkeit modifier + your Konstitution modifier. You can use a shield and still gain this benefit." },
+                { "name": "Kampfrausch", "desc": "Im Kampf kämpfst du mit urtümlicher Wildheit. In deinem Zug kannst du als Bonusaktion in einen Kampfrausch verfallen. Während du wütest, erhältst du die folgenden Vorteile, wenn du keine schwere Rüstung trägst:\n- Du hast Vorteil bei Stärke-Checks und Stärke-Rettungswürfen.\n- Wenn du einen Nahkampfwaffenangriff mit Stärke ausführst, erhältst du einen Bonus von +2 auf den Schadenswurf. Dieser Bonus erhöht sich mit steigender Stufe.\n- Du hast Resistenz gegen Wucht-, Stich- und Hiebschaden.\nWenn du Zauber wirken kannst, kannst du sie nicht wirken oder dich darauf konzentrieren, während du wütest.\nDein Kampfrausch dauert 1 Minute. Er endet früher, wenn du bewusstlos wirst oder wenn dein Zug endet und du seit deinem letzten Zug keine feindliche Kreatur angegriffen oder Schaden erlitten hast. Du kannst deinen Kampfrausch auch in deinem Zug als Bonusaktion beenden.\nSobald du die maximale Anzahl an Kampfrauschen für deine Barbarenstufe erreicht hast, musst du eine lange Rast einlegen, bevor du wieder wüten kannst. Du kannst 2 Mal auf der 1. Stufe, 3 auf der 3., 4 auf der 6., 5 auf der 12. und 6 auf der 17. Stufe wüten." },
+                { "name": "Ungepanzerte Verteidigung", "desc": "Solange du keine Rüstung trägst, entspricht deine Rüstungsklasse 10 + deinem Geschicklichkeitsmodifikator + deinem Konstitutionsmodifikator. Du kannst einen Schild benutzen und trotzdem diesen Vorteil erhalten." },
             ],
             2: [
-                { "name": "Reckless Attack", "desc": "Starting at 2nd level, you can throw aside all concern for defense to attack with fierce desperation. When you make your first attack on your turn, you can decide to attack recklessly. Doing so gives you advantage on melee weapon attack rolls using Stärke during this turn, but attack rolls against you have advantage until your next turn." },
-                { "name": "Danger Sense", "desc": "At 2nd level, you gain an uncanny sense of when things nearby aren't as they should be, giving you an edge when you dodge away from danger. You have advantage on Geschicklichkeit saving throws against effects that you can see, such as traps and spells. To gain this benefit, you can't be blinded, deafened, or incapacitated." },
+                { "name": "Rücksichtsloser Angriff", "desc": "Ab der 2. Stufe kannst du jede Sorge um die Verteidigung beiseite werfen, um mit grimmiger Verzweiflung anzugreifen. Wenn du deinen ersten Angriff in deinem Zug machst, kannst du dich entscheiden, rücksichtslos anzugreifen. Dadurch erhältst du in diesem Zug Vorteil bei Nahkampfwaffen-Angriffswürfen mit Stärke, aber Angriffswürfe gegen dich haben bis zu deinem nächsten Zug Vorteil." },
+                { "name": "Gefahrensinn", "desc": "Auf der 2. Stufe erhältst du ein unheimliches Gespür dafür, wenn die Dinge in der Nähe nicht so sind, wie sie sein sollten, was dir einen Vorteil verschafft, wenn du Gefahren ausweichst. Du hast Vorteil bei Geschicklichkeitsrettungswürfen gegen Effekte, die du sehen kannst, wie Fallen und Zauber. Um diesen Vorteil zu erhalten, darfst du nicht geblendet, taub oder handlungsunfähig sein." },
             ],
             3: [
-                { "name": "Primal Path", "desc": "At 3rd level, you choose a path that shapes the nature of your rage. Choose the Path of the Berserker or the Path of the Totem Warrior, both detailed at the end of the class description. Your choice grants you features at 3rd level and again at 6th, 10th, and 14th levels." },
+                { "name": "Urtümlicher Pfad", "desc": "Auf der 3. Stufe wählst du einen Pfad, der die Natur deines Zorns formt. Wähle den Pfad des Berserkers oder den Pfad des Totemkriegers, die beide am Ende der Klassenbeschreibung aufgeführt sind. Deine Wahl gewährt dir Merkmale auf der 3. Stufe und erneut auf der 6., 10. und 14. Stufe." },
             ],
             4: [
-                { "name": "Ability Score Improvement", "desc": "When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature." },
+                { "name": "Attributswerterhöhung", "desc": "Wenn du die 4. Stufe erreichst, und erneut auf der 8., 12., 16. und 19. Stufe, kannst du einen Attributswert deiner Wahl um 2 erhöhen, oder du kannst zwei Attributswerte deiner Wahl um 1 erhöhen. Wie üblich kannst du einen Attributswert mit diesem Merkmal nicht über 20 erhöhen." },
             ],
             5: [
-                { "name": "Extra Attack", "desc": "Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn." },
-                { "name": "Fast Movement", "desc": "Starting at 5th level, your speed increases by 10 feet while you aren't wearing Schwere Rüstung." },
+                { "name": "Zusätzlicher Angriff", "desc": "Ab der 5. Stufe kannst du zweimal statt einmal angreifen, wann immer du die Angriffsaktion in deinem Zug ausführst." },
+                { "name": "Schnelle Bewegung", "desc": "Ab der 5. Stufe erhöht sich deine Geschwindigkeit um 10 Fuß, solange du keine schwere Rüstung trägst." },
             ],
             6: [
-                { "name": "Path feature", "desc": "At 3rd level, you choose a path that shapes the nature of your rage. Choose the Path of the Berserker or the Path of the Totem Warrior, both detailed at the end of the class description. Your choice grants you features at 3rd level and again at 6th, 10th, and 14th levels." },
+                { "name": "Pfadmerkmal", "desc": "Auf der 3. Stufe wählst du einen Pfad, der die Natur deines Zorns formt. Wähle den Pfad des Berserkers oder den Pfad des Totemkriegers, die beide am Ende der Klassenbeschreibung aufgeführt sind. Deine Wahl gewährt dir Merkmale auf der 3. Stufe und erneut auf der 6., 10. und 14. Stufe." },
             ],
             7: [
-                { "name": "Feral Instinct", "desc": "By 7th level, your instincts are so honed that you have advantage on initiative rolls.\nAdditionally, if you are surprised at the beginning of combat and aren't incapacitated, you can act normally on your first turn, but only if you enter your rage before doing anything else on that turn." },
+                { "name": "Wilder Instinkt", "desc": "Auf der 7. Stufe sind deine Instinkte so geschärft, dass du Vorteil bei Initiativewürfen hast.\nZusätzlich kannst du, wenn du zu Beginn des Kampfes überrascht wirst und nicht handlungsunfähig bist, in deinem ersten Zug normal handeln, aber nur, wenn du in deinen Kampfrausch verfällst, bevor du in diesem Zug etwas anderes tust." },
             ],
             8: [
-                { "name": "Ability Score Improvement", "desc": "When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature." },
+                { "name": "Attributswerterhöhung", "desc": "Wenn du die 4. Stufe erreichst, und erneut auf der 8., 12., 16. und 19. Stufe, kannst du einen Attributswert deiner Wahl um 2 erhöhen, oder du kannst zwei Attributswerte deiner Wahl um 1 erhöhen. Wie üblich kannst du einen Attributswert mit diesem Merkmal nicht über 20 erhöhen." },
             ],
             9: [
-                { "name": "Brutal Critical (1 die)", "desc": "Beginning at 9th level, you can roll one additional weapon damage die when determining the extra damage for a critical hit with a melee attack. This increases to two additional dice at 13th level and three additional dice at 17th level." },
+                { "name": "Brutaler Kritischer Treffer (1 Würfel)", "desc": "Ab der 9. Stufe kannst du einen zusätzlichen Waffenschadenswürfel werfen, wenn du den zusätzlichen Schaden für einen kritischen Treffer mit einem Nahkampfangriff bestimmst. Dies erhöht sich auf zwei zusätzliche Würfel auf der 13. Stufe und drei zusätzliche Würfel auf der 17. Stufe." },
             ],
             10: [
-                { "name": "Path feature", "desc": "At 3rd level, you choose a path that shapes the nature of your rage. Choose the Path of the Berserker or the Path of the Totem Warrior, both detailed at the end of the class description. Your choice grants you features at 3rd level and again at 6th, 10th, and 14th levels." },
+                { "name": "Pfadmerkmal", "desc": "Auf der 3. Stufe wählst du einen Pfad, der die Natur deines Zorns formt. Wähle den Pfad des Berserkers oder den Pfad des Totemkriegers, die beide am Ende der Klassenbeschreibung aufgeführt sind. Deine Wahl gewährt dir Merkmale auf der 3. Stufe und erneut auf der 6., 10. und 14. Stufe." },
             ],
             11: [
-                { "name": "Relentless Rage", "desc": "Starting at 11th level, your rage can keep you fighting despite grievous wounds. If you drop to 0 hit points while you're raging and don't die outright, you can make a DC 10 Konstitution saving throw. If you succeed, you drop to 1 hit point instead.\nEach time you use this feature after the first, the DC increases by 5. When you finish a short or long rest, the DC resets to 10." },
+                { "name": "Unermüdlicher Kampfrausch", "desc": "Ab der 11. Stufe kann dein Kampfrausch dich trotz schwerer Wunden weiterkämpfen lassen. Wenn du auf 0 Trefferpunkte fällst, während du wütest, und nicht sofort stirbst, kannst du einen Konstitutionsrettungswurf mit SG 10 machen. Wenn du Erfolg hast, fällst du stattdessen auf 1 Trefferpunkt.\nJedes Mal, wenn du dieses Merkmal nach dem ersten Mal benutzt, erhöht sich der SG um 5. Wenn du eine kurze oder lange Rast beendest, wird der SG auf 10 zurückgesetzt." },
             ],
             12: [
-                { "name": "Ability Score Improvement", "desc": "When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature." },
+                { "name": "Attributswerterhöhung", "desc": "Wenn du die 4. Stufe erreichst, und erneut auf der 8., 12., 16. und 19. Stufe, kannst du einen Attributswert deiner Wahl um 2 erhöhen, oder du kannst zwei Attributswerte deiner Wahl um 1 erhöhen. Wie üblich kannst du einen Attributswert mit diesem Merkmal nicht über 20 erhöhen." },
             ],
             13: [
-                { "name": "Brutal Critical (2 dice)", "desc": "Beginning at 9th level, you can roll one additional weapon damage die when determining the extra damage for a critical hit with a melee attack. This increases to two additional dice at 13th level and three additional dice at 17th level." },
+                { "name": "Brutaler Kritischer Treffer (2 Würfel)", "desc": "Ab der 9. Stufe kannst du einen zusätzlichen Waffenschadenswürfel werfen, wenn du den zusätzlichen Schaden für einen kritischen Treffer mit einem Nahkampfangriff bestimmst. Dies erhöht sich auf zwei zusätzliche Würfel auf der 13. Stufe und drei zusätzliche Würfel auf der 17. Stufe." },
             ],
             14: [
-                { "name": "Path feature", "desc": "At 3rd level, you choose a path that shapes the nature of your rage. Choose the Path of the Berserker or the Path of the Totem Warrior, both detailed at the end of the class description. Your choice grants you features at 3rd level and again at 6th, 10th, and 14th levels." },
+                { "name": "Pfadmerkmal", "desc": "Auf der 3. Stufe wählst du einen Pfad, der die Natur deines Zorns formt. Wähle den Pfad des Berserkers oder den Pfad des Totemkriegers, die beide am Ende der Klassenbeschreibung aufgeführt sind. Deine Wahl gewährt dir Merkmale auf der 3. Stufe und erneut auf der 6., 10. und 14. Stufe." },
             ],
             15: [
-                { "name": "Persistent Rage", "desc": "Beginning at 15th level, your rage is so fierce that it ends early only if you fall unconscious or if you choose to end it." },
+                { "name": "Anhaltender Kampfrausch", "desc": "Ab der 15. Stufe ist dein Kampfrausch so heftig, dass er nur dann vorzeitig endet, wenn du bewusstlos wirst oder wenn du dich entscheidest, ihn zu beenden." },
             ],
             16: [
-                { "name": "Ability Score Improvement", "desc": "When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature." },
+                { "name": "Attributswerterhöhung", "desc": "Wenn du die 4. Stufe erreichst, und erneut auf der 8., 12., 16. und 19. Stufe, kannst du einen Attributswert deiner Wahl um 2 erhöhen, oder du kannst zwei Attributswerte deiner Wahl um 1 erhöhen. Wie üblich kannst du einen Attributswert mit diesem Merkmal nicht über 20 erhöhen." },
             ],
             17: [
-                { "name": "Brutal Critical (3 dice)", "desc": "Beginning at 9th level, you can roll one additional weapon damage die when determining the extra damage for a critical hit with a melee attack. This increases to two additional dice at 13th level and three additional dice at 17th level." },
+                { "name": "Brutaler Kritischer Treffer (3 Würfel)", "desc": "Ab der 9. Stufe kannst du einen zusätzlichen Waffenschadenswürfel werfen, wenn du den zusätzlichen Schaden für einen kritischen Treffer mit einem Nahkampfangriff bestimmst. Dies erhöht sich auf zwei zusätzliche Würfel auf der 13. Stufe und drei zusätzliche Würfel auf der 17. Stufe." },
             ],
             18: [
-                { "name": "Indomitable Might", "desc": "Beginning at 18th level, if your total for a Stärke check is less than your Stärke score, you can use that score in place of the total." },
+                { "name": "Unbezwingbare Macht", "desc": "Ab der 18. Stufe kannst du, wenn dein Gesamtergebnis für einen Stärke-Check geringer ist als dein Stärke-Wert, diesen Wert anstelle des Gesamtergebnisses verwenden." },
             ],
             19: [
-                { "name": "Ability Score Improvement", "desc": "When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature." },
+                { "name": "Attributswerterhöhung", "desc": "Wenn du die 4. Stufe erreichst, und erneut auf der 8., 12., 16. und 19. Stufe, kannst du einen Attributswert deiner Wahl um 2 erhöhen, oder du kannst zwei Attributswerte deiner Wahl um 1 erhöhen. Wie üblich kannst du einen Attributswert mit diesem Merkmal nicht über 20 erhöhen." },
             ],
             20: [
-                { "name": "Primal Champion", "desc": "At 20th level, you embody the power of the wilds. Your Stärke and Konstitution scores increase by 4. Your maximum for those scores is now 24." },
+                { "name": "Urtümlicher Champion", "desc": "Auf der 20. Stufe verkörperst du die Macht der Wildnis. Deine Stärke- und Konstitutionswerte erhöhen sich um 4. Dein Maximum für diese Werte beträgt jetzt 24." },
             ],
         }
     },
@@ -2680,99 +2680,99 @@ WEAPON_DATA = {
         "damage": "1d4",
         "ability": "Stärke"
     },
-    "Club": {
+    "Keule": {
         "damage": "1d4",
         "ability": "Stärke"
     },
-    "Dagger": {
+    "Dolch": {
         "damage": "1d4",
         "ability": "Geschicklichkeit"
     },
-    "Greatclub": {
+    "Große Keule": {
         "damage": "1d8",
         "ability": "Stärke"
     },
-    "Handaxe": {
+    "Handaxt": {
         "damage": "1d6",
         "ability": "Stärke"
     },
-    "Javelin": {
+    "Wurfspeer": {
         "damage": "1d6",
         "ability": "Stärke"
     },
-    "Light hammer": {
+    "Leichter Hammer": {
         "damage": "1d4",
         "ability": "Stärke"
     },
-    "Mace": {
+    "Streitkolben": {
         "damage": "1d6",
         "ability": "Stärke"
     },
-    "Quarterstaff": {
+    "Kampfstab": {
         "damage": "1d6",
         "ability": "Stärke"
     },
-    "Sickle": {
+    "Sichel": {
         "damage": "1d4",
         "ability": "Stärke"
     },
-    "Spear": {
+    "Speer": {
         "damage": "1d6",
         "ability": "Stärke"
     },
-    "Crossbow, light": {
+    "Leichte Armbrust": {
         "damage": "1d8",
         "ability": "Geschicklichkeit"
     },
-    "Dart": {
+    "Wurfpfeil": {
         "damage": "1d4",
         "ability": "Geschicklichkeit"
     },
-    "Shortbow": {
+    "Kurzbogen": {
         "damage": "1d6",
         "ability": "Geschicklichkeit"
     },
-    "Sling": {
+    "Schleuder": {
         "damage": "1d4",
         "ability": "Geschicklichkeit"
     },
-    "Battleaxe": {
+    "Streitaxt": {
         "damage": "1d8",
         "ability": "Stärke"
     },
-    "Flail": {
+    "Flegel": {
         "damage": "1d8",
         "ability": "Stärke"
     },
-    "Glaive": {
+    "Glefe": {
         "damage": "1d10",
         "ability": "Stärke"
     },
-    "Greataxe": {
+    "Großaxt": {
         "damage": "1d12",
         "ability": "Stärke"
     },
-    "Greatsword": {
+    "Großschwert": {
         "damage": "2d6",
         "ability": "Stärke"
     },
-    "Halberd": {
+    "Hellebarde": {
         "damage": "1d10",
         "ability": "Stärke"
     },
-    "Lance": {
+    "Lanze": {
         "damage": "1d12",
         "ability": "Stärke"
     },
-    "Longsword": {
+    "Langschwert": {
         "damage": "1d8",
         "ability": "Stärke"
     },
-    "Maul": {
+    "Kriegshammer": {
         "damage": "2d6",
         "ability": "Stärke"
     },
-    "Morningstar": {
+    "Morgenstern": {
         "damage": "1d8",
         "ability": "Stärke"
     },
@@ -2784,43 +2784,43 @@ WEAPON_DATA = {
         "damage": "1d8",
         "ability": "Geschicklichkeit"
     },
-    "Scimitar": {
+    "Krummsäbel": {
         "damage": "1d6",
         "ability": "Geschicklichkeit"
     },
-    "Shortsword": {
+    "Kurzschwert": {
         "damage": "1d6",
         "ability": "Geschicklichkeit"
     },
-    "Trident": {
+    "Dreizack": {
         "damage": "1d6",
         "ability": "Stärke"
     },
-    "War pick": {
+    "Kriegspickel": {
         "damage": "1d8",
         "ability": "Stärke"
     },
-    "Warhammer": {
+    "Kriegshammer": {
         "damage": "1d8",
         "ability": "Stärke"
     },
-    "Whip": {
+    "Peitsche": {
         "damage": "1d4",
         "ability": "Geschicklichkeit"
     },
-    "Blowgun": {
+    "Blasrohr": {
         "damage": "1",
         "ability": "Geschicklichkeit"
     },
-    "Crossbow, hand": {
+    "Handarmbrust": {
         "damage": "1d6",
         "ability": "Geschicklichkeit"
     },
-    "Crossbow, heavy": {
+    "Schwere Armbrust": {
         "damage": "1d10",
         "ability": "Geschicklichkeit"
     },
-    "Longbow": {
+    "Langbogen": {
         "damage": "1d8",
         "ability": "Geschicklichkeit"
     }
