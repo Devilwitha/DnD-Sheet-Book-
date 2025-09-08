@@ -124,3 +124,53 @@ To make the application start automatically with the graphical user interface:
     Save and close the file.
 
 The application should now start automatically after a reboot.
+
+
+
+
+Schritt-für-Schritt-Anleitung
+Hier ist die Vorgehensweise, um deinen eigenen Splash-Screen einzurichten:
+
+1. Bild vorbereiten
+Dateiname: Dein Bild muss splash.png heissen.
+
+Format: Es muss im PNG-Format vorliegen.
+
+Auflösung: Idealerweise sollte die Auflösung deines Bildes der deines Displays entsprechen, um Verzerrungen zu vermeiden.
+
+2. Ins richtige Verzeichnis kopieren
+Dein vorbereitetes Bild muss in das Verzeichnis /usr/share/plymouth/themes/pix/ kopiert werden.
+
+Öffne ein Terminal auf deinem Raspberry Pi.
+
+Sichere das Originalbild (optional, aber empfohlen), damit du es später wiederherstellen kannst:
+
+Bash
+```
+sudo mv /usr/share/plymouth/themes/pix/splash.png /usr/share/plymouth/themes/pix/splash.png.bak
+```
+Kopiere dein eigenes Bild in das Verzeichnis. Angenommen, dein Bild befindet sich im Home-Verzeichnis (/home/pi/dein-bild.png), dann lautet der Befehl:
+
+Bash
+```
+sudo cp /home/pi/dein-bild.png /usr/share/plymouth/themes/pix/splash.png
+```
+Ersetze /home/pi/dein-bild.png mit dem tatsächlichen Pfad zu deiner Datei.
+
+3. System aktualisieren
+Damit dein neues Bild beim Systemstart geladen wird, musst du die "initial ramdisk" (initramfs) aktualisieren. Dies ist ein entscheidender Schritt unter Bookworm.
+
+Führe den folgenden Befehl im Terminal aus:
+
+Bash
+```
+sudo update-initramfs -u
+```
+4. Neustart
+Nachdem der vorherige Befehl abgeschlossen ist, starte deinen Raspberry Pi neu, um das Ergebnis zu sehen:
+
+Bash
+```
+sudo reboot
+```
+Dein Raspberry Pi sollte nun mit deinem benutzerdefinierten Splash-Screen starten.
