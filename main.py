@@ -1,5 +1,9 @@
 # main.py
 
+from kivy.config import Config
+Config.set('kivy', 'keyboard_mode', 'dock')
+Config.set('graphics', 'rotation', 0)
+
 import kivy
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -16,13 +20,10 @@ from kivy.uix.vkeyboard import VKeyboard
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window
 from kivy.clock import Clock
-from kivy.config import Config
 import random
 import pickle
 import os
 from functools import partial
-
-Config.set('graphics', 'rotation', 0)
 
 # Importiert die Daten aus der separaten Datei
 from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA, SKILL_LIST
