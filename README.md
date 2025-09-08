@@ -91,7 +91,7 @@ To make the application start automatically with the graphical user interface:
 1.  **Create a Start Script:**
     This script will activate the virtual environment (if used) and start the application.
     ```bash
-    nano ~/DnD-Sheet-Book/start_dnd.sh
+    nano start_dnd.sh
     ```
     Add the following content. **Important:** If you did not use a virtual environment, omit the `source` line.
     ```bash
@@ -103,7 +103,7 @@ To make the application start automatically with the graphical user interface:
 
     Make the script executable:
     ```bash
-    chmod +x ~/DnD-Sheet-Book/start_dnd.sh
+    chmod +x start_dnd.sh
     ```
 
 2.  **Create Autostart Entry:**
