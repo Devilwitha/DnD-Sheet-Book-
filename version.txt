@@ -2,9 +2,9 @@ Build Version:                09.09.2025
 
 Gui Version:               1.5 Alpha
 Updater Version:           1.0
-Firmware Version:          1.3 M33
+Firmware Version:          1.3 M33-2
 
 DnD E-Sheet & Book Version:   
-- DE: 1.1
+- DE: 1.3
 
 Code by BolliSoft (Nico Bollhalder)
