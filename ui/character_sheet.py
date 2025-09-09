@@ -11,19 +11,20 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
-from kivy.uix.image import Image
 from kivy.uix.textinput import TextInput
+from kivy.properties import ObjectProperty
 
 from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
 from utils.helpers import apply_background, apply_styles_to_widget
 
 class CharacterSheet(Screen):
     """Finaler Charakterbogen mit allen neuen Features."""
+    main_layout = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         super(CharacterSheet, self).__init__(**kwargs)
         self.character = None
-        self.main_layout = BoxLayout(orientation='vertical')
-        self.add_widget(self.main_layout)
+        self.currency_labels = {}
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -37,107 +38,53 @@ class CharacterSheet(Screen):
         self.update_sheet()
 
     def update_sheet(self):
-        self.main_layout.clear_widgets()
         if not self.character:
             return
 
-        header = GridLayout(cols=3, size_hint_y=None, height=60)
-        header.add_widget(Label(text=f"{self.character.name}", font_size='20sp'))
-        header.add_widget(Label(text=f"{self.character.race} {self.character.char_class} {self.character.level}"))
-        header.add_widget(Label(text=f"Gesinnung: {self.character.alignment}"))
-        self.main_layout.add_widget(header)
+        self.ids.name_label.text = f"{self.character.name}"
+        self.ids.class_label.text = f"{self.character.race} {self.character.char_class} {self.character.level}"
+        self.ids.alignment_label.text = f"Gesinnung: {self.character.alignment}"
 
-        scroll_view = ScrollView()
-        content_layout = GridLayout(cols=2, spacing=10, padding=10, size_hint_y=None)
-        content_layout.bind(minimum_height=content_layout.setter('height'))
-
-        left_column = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
-        left_column.bind(minimum_height=left_column.setter('height'))
-
-        stats_box = GridLayout(cols=2, size_hint_y=None, height=280)
+        self.ids.stats_box.clear_widgets()
         for ability, score in self.character.abilities.items():
             modifier = (score - 10) // 2
             sign = "+" if modifier >= 0 else ""
-            stats_box.add_widget(Label(text=f"{ability}:"))
-            stats_box.add_widget(Label(text=f"{score} ({sign}{modifier})"))
-        stats_box.add_widget(Label(text="Rüstungsklasse:"))
-        stats_box.add_widget(Label(text=f"{self.character.armor_class}"))
-        stats_box.add_widget(Label(text="Initiative:"))
-        stats_box.add_widget(Label(text=f"{self.character.initiative:+}"))
-        stats_box.add_widget(Label(text="Bewegungsrate:"))
-        stats_box.add_widget(Label(text=f"{self.character.speed}m ({int(self.character.speed / 1.5)} Felder)"))
-        left_column.add_widget(stats_box)
+            self.ids.stats_box.add_widget(Label(text=f"{ability}:"))
+            self.ids.stats_box.add_widget(Label(text=f"{score} ({sign}{modifier})"))
+        self.ids.stats_box.add_widget(Label(text="Rüstungsklasse:"))
+        self.ids.stats_box.add_widget(Label(text=f"{self.character.armor_class}"))
+        self.ids.stats_box.add_widget(Label(text="Initiative:"))
+        self.ids.stats_box.add_widget(Label(text=f"{self.character.initiative:+}"))
+        self.ids.stats_box.add_widget(Label(text="Bewegungsrate:"))
+        self.ids.stats_box.add_widget(Label(text=f"{self.character.speed}m ({int(self.character.speed / 1.5)} Felder)"))
 
-        hp_box = BoxLayout(size_hint_y=None, height=50)
-        hp_box.add_widget(Button(text="-", on_press=partial(self.change_hp, -1)))
-        self.hp_label = Label(text=f"HP: {self.character.hit_points} / {self.character.max_hit_points}")
-        hp_box.add_widget(self.hp_label)
-        hp_box.add_widget(Button(text="+", on_press=partial(self.change_hp, 1)))
-        left_column.add_widget(hp_box)
+        self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
 
-        combat_box = GridLayout(cols=1, size_hint_y=None, height=150, spacing=5)
-        self.weapon_spinner = Spinner(text=self.character.equipped_weapon, values=sorted(WEAPON_DATA.keys()))
-        self.weapon_spinner.bind(text=self.update_weapon)
-        combat_box.add_widget(Label(text="Ausrüstete Waffe:"))
-        combat_box.add_widget(self.weapon_spinner)
-        combat_box.add_widget(Button(text="Schaden auswürfeln", on_press=self.roll_damage))
-        left_column.add_widget(combat_box)
+        self.ids.weapon_spinner.text = self.character.equipped_weapon
+        self.ids.weapon_spinner.values = sorted(WEAPON_DATA.keys())
 
-        currency_box = GridLayout(cols=3, size_hint_y=None, height=200, spacing=5)
-        currency_box.add_widget(Label(text="Währung", size_hint_x=None, width=100))
-        currency_box.add_widget(Label())
-        currency_box.add_widget(Label())
-        self.currency_labels = {}
+        self.ids.currency_box.clear_widgets()
+        self.ids.currency_box.add_widget(Label(text="Währung", size_hint_x=None, width=100))
+        self.ids.currency_box.add_widget(Label())
+        self.ids.currency_box.add_widget(Label())
         for curr in ["KP", "SP", "EP", "GM", "PP"]:
-            currency_box.add_widget(Label(text=f"{curr}:"))
+            self.ids.currency_box.add_widget(Label(text=f"{curr}:"))
             self.currency_labels[curr] = Label(text=str(self.character.currency[curr]))
-            currency_box.add_widget(self.currency_labels[curr])
+            self.ids.currency_box.add_widget(self.currency_labels[curr])
             btn_box = BoxLayout()
             btn_box.add_widget(Button(text="-", on_press=partial(self.change_currency, curr, -1)))
             btn_box.add_widget(Button(text="+", on_press=partial(self.change_currency, curr, 1)))
-            currency_box.add_widget(btn_box)
-        left_column.add_widget(currency_box)
-        content_layout.add_widget(left_column)
+            self.ids.currency_box.add_widget(btn_box)
 
-        right_column = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
-        right_column.bind(minimum_height=right_column.setter('height'))
-
-        right_column.add_widget(Label(text="Fähigkeiten", font_size='20sp', size_hint_y=None, height=40))
-        features_layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
-        features_layout.bind(minimum_height=features_layout.setter('height'))
+        self.ids.features_layout.clear_widgets()
         for feature in self.character.features:
             btn = Button(text=feature['name'], size_hint_y=None, height=40, halign='left', valign='middle', padding=(10, 0))
             btn.bind(on_press=partial(self.show_feature_popup, feature))
-            features_layout.add_widget(btn)
+            self.ids.features_layout.add_widget(btn)
 
-        right_column.add_widget(features_layout)
-
-        right_column.add_widget(Label(text="Inventar", font_size='20sp', size_hint_y=None, height=40))
-        self.inventory_layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
-        self.inventory_layout.bind(minimum_height=self.inventory_layout.setter('height'))
         self.update_inventory_display()
-        right_column.add_widget(self.inventory_layout)
-        right_column.add_widget(Button(text="Item hinzufügen", on_press=self.show_add_item_popup, size_hint_y=None, height=44))
-
-        right_column.add_widget(Label(text="Ausrüstung", font_size='20sp', size_hint_y=None, height=40))
-        self.equipment_layout = GridLayout(cols=1, spacing=5, size_hint_y=None)
-        self.equipment_layout.bind(minimum_height=self.equipment_layout.setter('height'))
         self.update_equipment_display()
-        right_column.add_widget(self.equipment_layout)
-        right_column.add_widget(Button(text="Ausrüstung hinzufügen", on_press=self.show_add_equipment_popup, size_hint_y=None, height=44))
 
-        content_layout.add_widget(right_column)
-
-        scroll_view.add_widget(content_layout)
-        self.main_layout.add_widget(scroll_view)
-
-        footer = BoxLayout(size_hint_y=None, height=50, spacing=5)
-        footer.add_widget(Button(text="Info", on_press=self.show_info_popup))
-        footer.add_widget(Button(text="Zauber", on_press=self.show_spells_popup))
-        footer.add_widget(Button(text="Level Up", on_press=self.open_level_up_screen))
-        footer.add_widget(Button(text="Speichern", on_press=self.save_character))
-        footer.add_widget(Button(text="Hauptmenü", on_press=lambda x: setattr(self.manager, 'current', 'main')))
-        self.main_layout.add_widget(footer)
 
     def show_popup(self, title, message):
         content = ScrollView()
@@ -149,13 +96,13 @@ class CharacterSheet(Screen):
         content.add_widget(label)
         Popup(title=title, content=content, size_hint=(0.8, 0.8)).open()
 
-    def update_weapon(self, spinner, text):
+    def update_weapon(self, text):
         self.character.equipped_weapon = text
 
-    def change_hp(self, amount, instance):
+    def change_hp(self, amount):
         self.character.hit_points += amount
         self.character.hit_points = max(0, min(self.character.hit_points, self.character.max_hit_points))
-        self.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
+        self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
 
     def change_currency(self, currency, amount, instance):
         self.character.currency[currency] += amount
@@ -163,7 +110,7 @@ class CharacterSheet(Screen):
         self.currency_labels[currency].text = str(self.character.currency[currency])
 
     def update_inventory_display(self):
-        self.inventory_layout.clear_widgets()
+        self.ids.inventory_layout.clear_widgets()
         for item_name, quantity in self.character.inventory.items():
             item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
             item_row.add_widget(Label(text=f"{item_name} ({quantity})", halign='left', valign='middle'))
@@ -173,7 +120,7 @@ class CharacterSheet(Screen):
             btn_box.add_widget(Button(text="+", on_press=partial(self.adjust_item_quantity, item_name, 1)))
 
             item_row.add_widget(btn_box)
-            self.inventory_layout.add_widget(item_row)
+            self.ids.inventory_layout.add_widget(item_row)
 
     def adjust_item_quantity(self, item_name, amount, instance):
         self.character.inventory[item_name] += amount
@@ -182,7 +129,7 @@ class CharacterSheet(Screen):
         self.update_inventory_display()
 
     def update_equipment_display(self):
-        self.equipment_layout.clear_widgets()
+        self.ids.equipment_layout.clear_widgets()
         for item_name, ac_bonus in self.character.equipment.items():
             item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
             item_row.add_widget(Label(text=f"{item_name} (AC: +{ac_bonus})", halign='left', valign='middle'))
@@ -191,7 +138,7 @@ class CharacterSheet(Screen):
             remove_btn.bind(on_press=partial(self.remove_equipment, item_name))
 
             item_row.add_widget(remove_btn)
-            self.equipment_layout.add_widget(item_row)
+            self.ids.equipment_layout.add_widget(item_row)
 
     def remove_equipment(self, item_name, instance):
         if item_name in self.character.equipment:
@@ -199,7 +146,7 @@ class CharacterSheet(Screen):
             self.character.calculate_armor_class()
             self.update_sheet()
 
-    def show_add_equipment_popup(self, instance):
+    def show_add_equipment_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         name_input = TextInput(hint_text="Ausrüstungsname", multiline=False)
         ac_input = TextInput(hint_text="AC Bonus", multiline=False)
@@ -229,7 +176,7 @@ class CharacterSheet(Screen):
         apply_styles_to_widget(content)
         popup.open()
 
-    def show_add_item_popup(self, instance):
+    def show_add_item_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         item_input = TextInput(hint_text="Gegenstand eingeben", multiline=False)
         content.add_widget(item_input)
@@ -253,7 +200,7 @@ class CharacterSheet(Screen):
         apply_styles_to_widget(content)
         popup.open()
 
-    def roll_damage(self, instance):
+    def roll_damage(self):
         weapon_name = self.character.equipped_weapon
         weapon_info = WEAPON_DATA.get(weapon_name, WEAPON_DATA["Unbewaffneter Schlag"])
         ability_name = weapon_info["ability"]
@@ -274,7 +221,7 @@ class CharacterSheet(Screen):
     def show_feature_popup(self, feature, instance):
         self.show_popup(feature['name'], feature['desc'])
 
-    def show_info_popup(self, instance):
+    def show_info_popup(self):
         prof_text = ", ".join(self.character.proficiencies)
         lang_text = ", ".join(self.character.languages)
 
@@ -306,7 +253,7 @@ class CharacterSheet(Screen):
         )
         self.show_popup("Charakter-Informationen", text)
 
-    def show_spells_popup(self, instance):
+    def show_spells_popup(self):
         content = ScrollView()
         grid = GridLayout(cols=1, size_hint_y=None, spacing=5, padding=10)
         grid.bind(minimum_height=grid.setter('height'))
@@ -338,11 +285,11 @@ class CharacterSheet(Screen):
         )
         self.show_popup(spell_name, text)
 
-    def open_level_up_screen(self, instance):
+    def open_level_up_screen(self):
         self.manager.get_screen('level_up').set_character(self.character)
         self.manager.current = 'level_up'
 
-    def save_character(self, instance):
+    def save_character(self):
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         try:
             with open(filename, 'wb') as f:

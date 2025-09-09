@@ -5,7 +5,6 @@ import sys
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
@@ -18,35 +17,21 @@ class MainMenu(Screen):
     def __init__(self, **kwargs):
         super(MainMenu, self).__init__(**kwargs)
 
-        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        layout.add_widget(Image(source='logo/logo.png'))
-
-        self.new_char_button = Button(text="Neuen Charakter erstellen", on_press=self.switch_to_creator)
-        layout.add_widget(self.new_char_button)
-
-        self.load_char_button = Button(text="Charakter laden", on_press=self.show_load_popup)
-        layout.add_widget(self.load_char_button)
-
-        self.options_button = Button(text="Optionen", on_press=self.switch_to_options)
-        layout.add_widget(self.options_button)
-
-        self.add_widget(layout)
-
     def on_pre_enter(self, *args):
         """Wird ausgeführt, bevor der Bildschirm angezeigt wird."""
         apply_background(self)
         apply_styles_to_widget(self)
 
-    def switch_to_options(self, instance):
+    def switch_to_options(self):
         self.manager.current = 'options'
 
     def restart_app(self, dt):
         os.execv(sys.executable, ['python'] + sys.argv)
 
-    def switch_to_creator(self, instance):
+    def switch_to_creator(self):
         self.manager.current = 'creator'
 
-    def show_load_popup(self, instance):
+    def show_load_popup(self):
         content = BoxLayout(orientation='vertical', spacing=10)
         popup_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         popup_layout.bind(minimum_height=popup_layout.setter('height'))
@@ -94,7 +79,7 @@ class MainMenu(Screen):
             os.remove(filename)
             self.confirmation_popup.dismiss()
             self.popup.dismiss()
-            self.show_load_popup(None) # Refresh the list
+            self.show_load_popup() # Refresh the list
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Löschen des Charakters: {e}")
 

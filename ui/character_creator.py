@@ -1,6 +1,5 @@
 import random
 from functools import partial
-import os
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -12,8 +11,6 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.screenmanager import Screen
-from kivy.uix.image import Image
-
 from data_manager import (
     RACE_DATA, CLASS_DATA, ALIGNMENT_DATA, BACKGROUND_DATA,
     SKILL_LIST, FIGHTING_STYLE_DATA, SPELL_DATA
@@ -25,10 +22,15 @@ class CharacterCreator(Screen):
     """Creator mit +/- Buttons für Attribute."""
     def __init__(self, **kwargs):
         super(CharacterCreator, self).__init__(**kwargs)
+        self.inputs = {}
+        self.ability_scores_labels = {}
 
-        scroll_view = ScrollView(size_hint=(1, 1))
-        layout = GridLayout(cols=2, padding=10, spacing=10, size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
+    def build_ui(self):
+        # This check is to prevent rebuilding the UI every time the screen is entered
+        if self.ids.creator_layout.children:
+            return
+
+        layout = self.ids.creator_layout
 
         back_button = Button(text="Zurück zum Hauptmenü",
                              on_press=lambda x: setattr(self.manager, 'current', 'main'),
@@ -37,7 +39,6 @@ class CharacterCreator(Screen):
         layout.add_widget(back_button)
         layout.add_widget(Label(text="", size_hint_y=None, height=44))
 
-        self.inputs = {}
         default_height = 44
         multiline_height = 120
 
@@ -66,7 +67,6 @@ class CharacterCreator(Screen):
             self.inputs[field_name] = widget
             layout.add_widget(widget)
 
-        self.ability_scores_labels = {}
         abilities = ["Stärke", "Geschicklichkeit", "Konstitution", "Intelligenz", "Weisheit", "Charisma"]
         for ability in abilities:
             label = Label(text=ability, size_hint=(None, None), width=180, height=default_height, halign='left', valign='middle')
@@ -92,10 +92,8 @@ class CharacterCreator(Screen):
         layout.add_widget(roll_button)
         layout.add_widget(create_button)
 
-        scroll_view.add_widget(layout)
-        self.add_widget(scroll_view)
-
     def on_pre_enter(self, *args):
+        self.build_ui()
         apply_background(self)
         apply_styles_to_widget(self)
 

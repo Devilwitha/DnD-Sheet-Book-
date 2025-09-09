@@ -11,8 +11,6 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
-from kivy.uix.image import Image
-
 from data_manager import CLASS_DATA, SPELL_DATA
 from utils.helpers import apply_styles_to_widget
 
@@ -21,8 +19,6 @@ class LevelUpScreen(Screen):
     def __init__(self, **kwargs):
         super(LevelUpScreen, self).__init__(**kwargs)
         self.character = None
-        self.main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        self.add_widget(self.main_layout)
         self.spell_choices = {}
         self.ability_choices = {}
 
@@ -34,16 +30,13 @@ class LevelUpScreen(Screen):
         self.update_view()
 
     def update_view(self):
-        self.main_layout.clear_widgets()
+        level_up_layout = self.ids.level_up_layout
+        level_up_layout.clear_widgets()
         if not self.character:
             return
 
         new_level = self.character.level + 1
-        self.main_layout.add_widget(Label(text=f"Stufenaufstieg zu Level {new_level}", font_size='24sp', size_hint_y=None, height=50))
-
-        scroll_view = ScrollView()
-        level_up_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
-        level_up_layout.bind(minimum_height=level_up_layout.setter('height'))
+        self.ids.title_label.text = f"Stufenaufstieg zu Level {new_level}"
 
         hit_die = CLASS_DATA.get(self.character.char_class, {}).get("hit_die", 8)
         con_modifier = (self.character.abilities["Konstitution"] - 10) // 2
@@ -79,16 +72,6 @@ class LevelUpScreen(Screen):
             if self.character.level + 1 in progression:
                 manage_spells_btn = Button(text="Zauber auswählen", on_press=self.show_spell_selection_popup, size_hint_y=None, height=40)
                 level_up_layout.add_widget(manage_spells_btn)
-
-        scroll_view.add_widget(level_up_layout)
-        self.main_layout.add_widget(scroll_view)
-
-        btn_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
-        confirm_btn = Button(text="Bestätigen", on_press=self.confirm_level_up)
-        cancel_btn = Button(text="Abbrechen", on_press=self.cancel_level_up)
-        btn_layout.add_widget(confirm_btn)
-        btn_layout.add_widget(cancel_btn)
-        self.main_layout.add_widget(btn_layout)
 
     def show_spell_selection_popup(self, instance):
         class_data = CLASS_DATA.get(self.character.char_class, {})
@@ -245,7 +228,7 @@ class LevelUpScreen(Screen):
         )
         self.show_popup(spell_name, text)
 
-    def confirm_level_up(self, instance):
+    def confirm_level_up(self):
         choices = {}
 
         selected_abilities = [ability for ability, checkbox in self.ability_choices.items() if checkbox.active]
@@ -263,7 +246,7 @@ class LevelUpScreen(Screen):
         self.manager.get_screen('sheet').load_character(self.character)
         self.manager.current = 'sheet'
 
-    def cancel_level_up(self, instance):
+    def cancel_level_up(self):
         self.manager.current = 'sheet'
 
     def show_popup(self, title, message):

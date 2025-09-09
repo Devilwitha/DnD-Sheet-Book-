@@ -6,6 +6,7 @@ Config.set('graphics', 'rotation', 0)
 Config.set('kivy', 'keyboard_height', '600')
 
 from kivy.app import App
+from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window
@@ -19,6 +20,12 @@ from ui.level_up_screen import LevelUpScreen
 class DnDApp(App):
     """Haupt-App-Klasse."""
     def build(self):
+        Builder.load_file('ui/mainmenu.kv')
+        Builder.load_file('ui/charactercreator.kv')
+        Builder.load_file('ui/charactersheet.kv')
+        Builder.load_file('ui/levelupscreen.kv')
+        Builder.load_file('ui/optionsscreen.kv')
+
         Window.fullscreen = 'auto'
         Window.clearcolor = (0.1, 0.1, 0.1, 1)
         

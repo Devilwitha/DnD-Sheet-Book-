@@ -23,76 +23,39 @@ class OptionsScreen(Screen):
     def __init__(self, **kwargs):
         super(OptionsScreen, self).__init__(**kwargs)
 
-        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        title = Label(text="Optionen", font_size='30sp', size_hint_y=None, height=80)
-        layout.add_widget(title)
-
-        settings = load_settings()
-
-        self.transparency_label = Label(text=f"Button Transparenz: {int(settings.get('button_transparency', 1.0) * 100)}%", size_hint_y=None, height=40)
-        layout.add_widget(self.transparency_label)
-
-        self.transparency_slider = Slider(min=0.1, max=1.0, value=settings.get('button_transparency', 1.0), size_hint_y=None, height=40)
-        self.transparency_slider.bind(value=self.on_transparency_change)
-        layout.add_widget(self.transparency_slider)
-
-        transparency_switch_layout = BoxLayout(size_hint_y=None, height=40)
-        transparency_switch_layout.add_widget(Label(text="Transparenz an/aus"))
-        self.transparency_switch = Switch(active=settings.get('transparency_enabled', True))
-        self.transparency_switch.bind(active=self.on_transparency_toggle)
-        transparency_switch_layout.add_widget(self.transparency_switch)
-        layout.add_widget(transparency_switch_layout)
-
-        background_switch_layout = BoxLayout(size_hint_y=None, height=40)
-        background_switch_layout.add_widget(Label(text="Hintergrund anzeigen"))
-        self.background_switch = Switch(active=settings.get('background_enabled', True))
-        self.background_switch.bind(active=self.on_background_toggle)
-        background_switch_layout.add_widget(self.background_switch)
-        layout.add_widget(background_switch_layout)
-
-        choose_bg_button = Button(text="Hintergrundbild wählen", on_press=self.show_background_chooser_popup, size_hint_y=None, height=60)
-        layout.add_widget(choose_bg_button)
-
-        layout.add_widget(BoxLayout(size_hint_y=0.2))
-
-        button_height = 80
-        font_size = '20sp'
-        update_button = Button(text="Nach Updates suchen", on_press=self.update_app, size_hint_y=None, height=button_height, font_size=font_size)
-        layout.add_widget(update_button)
-        version_button = Button(text="Version", on_press=self.show_version_popup, size_hint_y=None, height=button_height, font_size=font_size)
-        layout.add_widget(version_button)
-        shutdown_button = Button(text="System herunterfahren", on_press=self.shutdown_system, size_hint_y=None, height=button_height, font_size=font_size)
-        layout.add_widget(shutdown_button)
-        layout.add_widget(BoxLayout(size_hint_y=1.0))
-        back_button = Button(text="Zurück zum Hauptmenü", on_press=lambda x: setattr(self.manager, 'current', 'main'), size_hint_y=None, height=button_height, font_size=font_size)
-        layout.add_widget(back_button)
-        self.add_widget(layout)
-
     def on_pre_enter(self, *args):
+        self.load_and_apply_settings()
         apply_background(self)
         apply_styles_to_widget(self)
 
-    def on_transparency_change(self, instance, value):
+    def load_and_apply_settings(self):
+        settings = load_settings()
+        self.ids.transparency_slider.value = settings.get('button_transparency', 1.0)
+        self.ids.transparency_label.text = f"Button Transparenz: {int(self.ids.transparency_slider.value * 100)}%"
+        self.ids.transparency_switch.active = settings.get('transparency_enabled', True)
+        self.ids.background_switch.active = settings.get('background_enabled', True)
+
+    def on_transparency_change(self, value):
         settings = load_settings()
         settings['button_transparency'] = value
         save_settings(settings)
-        self.transparency_label.text = f"Button Transparenz: {int(value * 100)}%"
+        self.ids.transparency_label.text = f"Button Transparenz: {int(value * 100)}%"
         apply_styles_to_widget(self.manager)
 
-    def on_transparency_toggle(self, instance, value):
+    def on_transparency_toggle(self, value):
         settings = load_settings()
         settings['transparency_enabled'] = value
         save_settings(settings)
         apply_styles_to_widget(self.manager)
 
-    def on_background_toggle(self, instance, value):
+    def on_background_toggle(self, value):
         settings = load_settings()
         settings['background_enabled'] = value
         save_settings(settings)
         for screen in self.manager.screens:
             apply_background(screen)
 
-    def show_background_chooser_popup(self, instance):
+    def show_background_chooser_popup(self):
         content = BoxLayout(orientation='vertical', spacing=10)
 
         initial_path = os.path.abspath(".")
@@ -129,7 +92,7 @@ class OptionsScreen(Screen):
 
         popup.open()
 
-    def shutdown_system(self, instance):
+    def shutdown_system(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         content.add_widget(Label(text='Möchten Sie das System wirklich herunterfahren?'))
         btn_layout = BoxLayout(spacing=10)
@@ -158,7 +121,7 @@ class OptionsScreen(Screen):
         popup = Popup(title=title, content=Label(text=message), size_hint=(0.7, 0.5))
         popup.open()
 
-    def update_app(self, instance):
+    def update_app(self):
         self.popup = Popup(title='Update', content=Label(text='Suche nach Updates...'), size_hint=(0.6, 0.4), auto_dismiss=False)
         self.popup.open()
         Clock.schedule_once(self._update_task, 0.1)
@@ -172,7 +135,7 @@ class OptionsScreen(Screen):
             self.popup.content.text = f"Fehler beim Starten des Updaters:\n{e}"
             Clock.schedule_once(lambda x: self.popup.dismiss(), 5)
 
-    def show_version_popup(self, instance):
+    def show_version_popup(self):
         try:
             with open("version.txt", "r", encoding="utf-8") as f:
                 version_info = f.read()
