@@ -22,6 +22,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.slider import Slider
 from kivy.uix.switch import Switch
 from kivy.uix.filechooser import FileChooserListView
+from kivy.graphics import Color, RoundedRectangle
 from kivy.core.window import Window
 from kivy.clock import Clock
 import random
@@ -58,29 +59,41 @@ def save_settings(settings):
     with open(SETTINGS_FILE, 'w') as f:
         json.dump(settings, f, indent=4)
 
-def apply_transparency_to_widget(widget):
-    """Durchläuft ein Widget und seine Kinder und wendet die Transparenzeinstellung auf alle Buttons an."""
+def apply_styles_to_widget(widget):
+    """Durchläuft ein Widget und seine Kinder und wendet Transparenz und abgerundete Ecken auf Buttons an."""
     settings = load_settings()
     
-    # Prüfen, ob die Transparenz überhaupt aktiviert ist
-    if not settings.get('transparency_enabled', True):
-        transparency = 1.0
-    else:
-        transparency = settings.get('button_transparency', 1.0)
-        
-    color = (1, 1, 1, transparency)
+    use_transparency = settings.get('transparency_enabled', True)
+    transparency = settings.get('button_transparency', 1.0) if use_transparency else 1.0
+    
+    # Basisfarbe für Buttons (weiß)
+    base_color = (1, 1, 1)
 
-    # Diese innere Funktion wird rekursiv aufgerufen
     def apply_to_children(w):
         if isinstance(w, Button):
-            w.background_color = color
-            if transparency < 1.0:
-                w.background_normal = ''
-            else:
-                w.background_normal = 'atlas://data/images/defaulttheme/button'
+            # Definiere die Farben für Normal- und Gedrückt-Zustand
+            normal_color = (*base_color, transparency)
+            down_color = (base_color[0] * 0.8, base_color[1] * 0.8, base_color[2] * 0.8, transparency)
+
+            # Entferne den Standard-Button-Hintergrund
+            w.background_normal = ''
+            w.background_down = ''
+            w.background_color = (0, 0, 0, 0) # Mache den Standardhintergrund unsichtbar
+
+            # Funktion zum Zeichnen des abgerundeten Rechtecks
+            def update_canvas(instance, value):
+                instance.canvas.before.clear()
+                with instance.canvas.before:
+                    Color(rgba=(down_color if instance.state == 'down' else normal_color))
+                    RoundedRectangle(pos=instance.pos, size=instance.size, radius=[15])
+
+            # Binde die Funktion an die relevanten Eigenschaften
+            w.bind(pos=update_canvas, size=update_canvas, state=update_canvas)
+            # Führe die Funktion einmal aus, um den initialen Zustand zu zeichnen
+            update_canvas(w, None)
         
         # Rekursiv auf alle Kinder anwenden
-        if hasattr(w, 'children'):
+        elif hasattr(w, 'children'):
             for child in w.children:
                 apply_to_children(child)
 
@@ -305,7 +318,7 @@ class MainMenu(Screen):
     def on_pre_enter(self, *args):
         """Wird ausgeführt, bevor der Bildschirm angezeigt wird."""
         apply_background(self)
-        apply_transparency_to_widget(self)
+        apply_styles_to_widget(self)
 
     def switch_to_options(self, instance):
         self.manager.current = 'options'
@@ -339,7 +352,7 @@ class MainMenu(Screen):
         scroll_view.add_widget(popup_layout)
         content.add_widget(scroll_view)
         
-        apply_transparency_to_widget(content)
+        apply_styles_to_widget(content)
         self.popup = Popup(title="Charakter laden", content=content, size_hint=(0.8, 0.8))
         self.popup.open()
 
@@ -355,7 +368,7 @@ class MainMenu(Screen):
         
         content.add_widget(btn_layout)
         
-        apply_transparency_to_widget(content)
+        apply_styles_to_widget(content)
         self.confirmation_popup = Popup(title="Löschen bestätigen", content=content, size_hint=(0.6, 0.4))
         self.confirmation_popup.open()
 
@@ -458,7 +471,7 @@ class CharacterCreator(Screen):
 
     def on_pre_enter(self, *args):
         apply_background(self)
-        apply_transparency_to_widget(self)
+        apply_styles_to_widget(self)
 
     def adjust_ability(self, ability, amount, instance):
         current_score = int(self.ability_scores_labels[ability].text)
@@ -640,7 +653,7 @@ class CharacterCreator(Screen):
                 self.finish_character_creation(character)
 
         confirm_btn.bind(on_press=confirm_choice)
-        apply_transparency_to_widget(popup_content)
+        apply_styles_to_widget(popup_content)
         popup.open()
 
     def show_initial_spell_selection_popup(self, character):
@@ -723,7 +736,7 @@ class CharacterCreator(Screen):
 
         confirm_btn.bind(on_press=confirm_choices)
         
-        apply_transparency_to_widget(popup_content)
+        apply_styles_to_widget(popup_content)
         popup.open()
 
     def finish_character_creation(self, character):
@@ -749,7 +762,7 @@ class CharacterCreator(Screen):
         )
         content.add_widget(label)
         popup = Popup(title=title, content=content, size_hint=(0.8, 0.8))
-        apply_transparency_to_widget(popup.content)
+        apply_styles_to_widget(popup.content)
         popup.open()
 
 class CharacterSheet(Screen):
@@ -762,7 +775,7 @@ class CharacterSheet(Screen):
 
     def on_pre_enter(self, *args):
         apply_background(self)
-        apply_transparency_to_widget(self)
+        apply_styles_to_widget(self)
 
     def load_character(self, character):
         self.character = character
@@ -964,7 +977,7 @@ class CharacterSheet(Screen):
                 self.show_popup("Fehler", "AC Bonus muss eine Zahl sein.")
                 
         add_btn.bind(on_press=add_action)
-        apply_transparency_to_widget(content)
+        apply_styles_to_widget(content)
         popup.open()
 
     def show_add_item_popup(self, instance):
@@ -988,7 +1001,7 @@ class CharacterSheet(Screen):
                 popup.dismiss()
                 
         add_btn.bind(on_press=add_action)
-        apply_transparency_to_widget(content)
+        apply_styles_to_widget(content)
         popup.open()
 
     def roll_damage(self, instance):
@@ -1065,7 +1078,7 @@ class CharacterSheet(Screen):
                     grid.add_widget(btn)
         
         content.add_widget(grid)
-        apply_transparency_to_widget(content)
+        apply_styles_to_widget(content)
         Popup(title="Zauberbuch", content=content, size_hint=(0.8, 0.9)).open()
 
     def show_spell_details_popup(self, spell_name, instance):
@@ -1145,20 +1158,20 @@ class OptionsScreen(Screen):
 
     def on_pre_enter(self, *args):
         apply_background(self)
-        apply_transparency_to_widget(self)
+        apply_styles_to_widget(self)
 
     def on_transparency_change(self, instance, value):
         settings = load_settings()
         settings['button_transparency'] = value
         save_settings(settings)
         self.transparency_label.text = f"Button Transparenz: {int(value * 100)}%"
-        apply_transparency_to_widget(self.manager)
+        apply_styles_to_widget(self.manager)
 
     def on_transparency_toggle(self, instance, value):
         settings = load_settings()
         settings['transparency_enabled'] = value
         save_settings(settings)
-        apply_transparency_to_widget(self.manager)
+        apply_styles_to_widget(self.manager)
 
     def on_background_toggle(self, instance, value):
         settings = load_settings()
@@ -1213,7 +1226,7 @@ class OptionsScreen(Screen):
         btn_layout.add_widget(yes_btn)
         btn_layout.add_widget(no_btn)
         content.add_widget(btn_layout)
-        apply_transparency_to_widget(content)
+        apply_styles_to_widget(content)
         self.confirmation_popup = Popup(title="Herunterfahren bestätigen", content=content, size_hint=(0.6, 0.5))
         self.confirmation_popup.open()
 
@@ -1269,7 +1282,7 @@ class LevelUpScreen(Screen):
         self.ability_choices = {}
 
     def on_pre_enter(self, *args):
-        apply_transparency_to_widget(self)
+        apply_styles_to_widget(self)
 
     def set_character(self, character):
         self.character = character
@@ -1480,7 +1493,7 @@ class LevelUpScreen(Screen):
         confirm_btn.bind(on_press=confirm_choices)
         cancel_btn.bind(on_press=popup.dismiss)
         
-        apply_transparency_to_widget(popup_content)
+        apply_styles_to_widget(popup_content)
         popup.open()
 
     def show_spell_info_popup(self, spell_name, instance):
@@ -1526,7 +1539,7 @@ class LevelUpScreen(Screen):
         )
         content.add_widget(label)
         popup = Popup(title=title, content=content, size_hint=(0.8, 0.8))
-        apply_transparency_to_widget(popup.content)
+        apply_styles_to_widget(popup.content)
         popup.open()
 
 class DnDApp(App):
