@@ -43,10 +43,14 @@ class MainMenu(Screen):
             load_btn = Button(text=filename)
             load_btn.bind(on_release=lambda btn, fn=filename: self.load_character(fn))
 
+            edit_btn = Button(text="Bearbeiten", size_hint_x=0.3)
+            edit_btn.bind(on_release=lambda btn, fn=filename: self.edit_character(fn))
+
             delete_btn = Button(text="Löschen", size_hint_x=0.3)
             delete_btn.bind(on_release=lambda btn, fn=filename: self.delete_character_popup(fn))
 
             char_layout.add_widget(load_btn)
+            char_layout.add_widget(edit_btn)
             char_layout.add_widget(delete_btn)
             popup_layout.add_widget(char_layout)
 
@@ -92,6 +96,17 @@ class MainMenu(Screen):
             self.popup.dismiss()
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
+
+    def edit_character(self, filename):
+        try:
+            with open(filename, 'rb') as f:
+                character = pickle.load(f)
+            editor_screen = self.manager.get_screen('editor')
+            editor_screen.load_character(character)
+            self.manager.current = 'editor'
+            self.popup.dismiss()
+        except Exception as e:
+            self.show_popup("Fehler", f"Fehler beim Laden des Charakters für die Bearbeitung: {e}")
 
     def show_popup(self, title, message):
         Popup(title=title, content=Label(text=message), size_hint=(0.6, 0.4)).open()

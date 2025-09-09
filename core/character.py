@@ -36,6 +36,8 @@ class Character:
 
     def initialize_character(self):
         """Sammelt alle Daten bei der Erstellung oder beim Laden."""
+        self.spells = {}
+        self.fighting_style = None
         self.update_race_bonuses_and_speed()
         self.collect_proficiencies_and_languages()
         self.calculate_initial_hp()

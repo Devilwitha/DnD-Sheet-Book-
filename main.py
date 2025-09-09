@@ -16,12 +16,14 @@ from ui.character_creator import CharacterCreator
 from ui.character_sheet import CharacterSheet
 from ui.options_screen import OptionsScreen
 from ui.level_up_screen import LevelUpScreen
+from ui.character_editor import CharacterEditor
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
     def build(self):
         Builder.load_file('ui/mainmenu.kv')
         Builder.load_file('ui/charactercreator.kv')
+        Builder.load_file('ui/charactereditor.kv')
         Builder.load_file('ui/charactersheet.kv')
         Builder.load_file('ui/levelupscreen.kv')
         Builder.load_file('ui/optionsscreen.kv')
@@ -34,6 +36,7 @@ class DnDApp(App):
         sm = ScreenManager()
         sm.add_widget(MainMenu(name='main'))
         sm.add_widget(CharacterCreator(name='creator'))
+        sm.add_widget(CharacterEditor(name='editor'))
         sm.add_widget(CharacterSheet(name='sheet'))
         sm.add_widget(OptionsScreen(name='options'))
         sm.add_widget(LevelUpScreen(name='level_up'))
