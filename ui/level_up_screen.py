@@ -54,16 +54,36 @@ class LevelUpScreen(Screen):
                 )
                 level_up_layout.add_widget(feature_label)
 
-        self.ability_choices = {}
+        self.ability_scores_to_increase = {}
+        self.total_points_allocated = 0
+        self.ability_increase_labels = {}
+        self.ability_buttons = {}
+
         if any("Attributswerterhöhung" in f['name'] for f in features):
-            level_up_layout.add_widget(Label(text="Attributsverbesserung (wähle 2):", font_size='20sp', size_hint_y=None, height=40))
+            level_up_layout.add_widget(Label(text="Attributsverbesserung (verteile 2 Punkte):", font_size='20sp', size_hint_y=None, height=40))
+
+            self.points_label = Label(text="Verbleibende Punkte: 2", size_hint_y=None, height=40)
+            level_up_layout.add_widget(self.points_label)
+
             abilities = ["Stärke", "Geschicklichkeit", "Konstitution", "Intelligenz", "Weisheit", "Charisma"]
             for ability in abilities:
-                box = BoxLayout(size_hint_y=None, height=40)
-                box.add_widget(Label(text=ability))
-                checkbox = CheckBox()
-                self.ability_choices[ability] = checkbox
-                box.add_widget(checkbox)
+                box = BoxLayout(size_hint_y=None, height=40, spacing=10)
+
+                info_btn = Button(text="?", size_hint_x=0.1, on_press=partial(self.show_ability_info, ability))
+                ability_label = Label(text=f"{ability}: {self.character.abilities[ability]}", size_hint_x=0.4)
+
+                increase_label = Label(text="", size_hint_x=0.2)
+                self.ability_increase_labels[ability] = increase_label
+
+                plus_btn = Button(text="+", size_hint_x=0.15, on_press=partial(self.increase_ability, ability))
+                minus_btn = Button(text="-", size_hint_x=0.15, on_press=partial(self.decrease_ability, ability))
+                self.ability_buttons[ability] = (plus_btn, minus_btn)
+
+                box.add_widget(info_btn)
+                box.add_widget(ability_label)
+                box.add_widget(increase_label)
+                box.add_widget(plus_btn)
+                box.add_widget(minus_btn)
                 level_up_layout.add_widget(box)
 
         class_data = CLASS_DATA.get(self.character.char_class, {})
@@ -87,9 +107,21 @@ class LevelUpScreen(Screen):
         if not old_prog or not new_prog:
             return
 
-        cantrips_to_learn = new_prog["cantrips_known"] - old_prog["cantrips_known"]
-        spells_to_learn = new_prog["spells_known"] - old_prog["spells_known"]
+        cantrips_to_learn = new_prog.get("cantrips_known", 0) - old_prog.get("cantrips_known", 0)
+        spells_to_learn = new_prog.get("spells_known", 0) - old_prog.get("spells_known", 0)
         can_replace_spell = self.character.char_class == "Barde"
+
+        # Handle prepared casters
+        if self.character.char_class in ["Kleriker", "Druide"]:
+            # For simplicity, we'll let them "learn" one new spell, as their preparable count increases by 1 each level.
+            spells_to_learn = 1
+        elif self.character.char_class == "Paladin":
+            # Paladins gain spells at level 2, and their preparable count changes based on half their level.
+            old_preparable = (self.character.abilities["Charisma"] - 10) // 2 + current_level // 2
+            new_preparable = (self.character.abilities["Charisma"] - 10) // 2 + new_level // 2
+            spells_to_learn = max(0, new_preparable - old_preparable)
+            if new_level == 2:
+                spells_to_learn = (self.character.abilities["Charisma"] - 10) // 2 + 1 # Initial spells at level 2
 
         max_spell_level = 0
         for level, slots in new_prog["spell_slots"].items():
@@ -228,16 +260,60 @@ class LevelUpScreen(Screen):
         )
         self.show_popup(spell_name, text)
 
+    def increase_ability(self, ability, instance):
+        if self.total_points_allocated >= 2:
+            self.show_popup("Fehler", "Du hast bereits 2 Punkte verteilt.")
+            return
+
+        current_increase = self.ability_scores_to_increase.get(ability, 0)
+        # Prevent increasing a single ability by more than 2, or by 2 if another ability is already at 1
+        if current_increase >= 2 or (current_increase >= 1 and self.total_points_allocated >=1):
+            self.show_popup("Fehler", "Du kannst ein Attribut um maximal 2, oder zwei Attribute um maximal 1 erhöhen.")
+            return
+
+        self.ability_scores_to_increase[ability] = current_increase + 1
+        self.total_points_allocated += 1
+        self.update_ability_increase_display()
+
+    def decrease_ability(self, ability, instance):
+        if self.ability_scores_to_increase.get(ability, 0) > 0:
+            self.ability_scores_to_increase[ability] -= 1
+            if self.ability_scores_to_increase[ability] == 0:
+                del self.ability_scores_to_increase[ability]
+            self.total_points_allocated -= 1
+            self.update_ability_increase_display()
+
+    def update_ability_increase_display(self):
+        self.points_label.text = f"Verbleibende Punkte: {2 - self.total_points_allocated}"
+        for ability, label in self.ability_increase_labels.items():
+            increase = self.ability_scores_to_increase.get(ability, 0)
+            label.text = f"+{increase}" if increase > 0 else ""
+
+    def show_ability_info(self, ability_name, instance):
+        descriptions = {
+            "Stärke": "Misst die körperliche Kraft. Wichtig für Barbaren, Kämpfer und Paladine.",
+            "Geschicklichkeit": "Misst die Beweglichkeit, Reflexe und Balance. Wichtig für Schurken, Waldläufer und Mönche.",
+            "Konstitution": "Misst die Ausdauer und Lebenskraft. Wichtig für alle Klassen, da es die Trefferpunkte beeinflusst.",
+            "Intelligenz": "Misst die geistige Schärfe und das Erinnerungsvermögen. Wichtig für Magier.",
+            "Weisheit": "Misst die Wahrnehmungsfähigkeit und Intuition. Wichtig für Kleriker und Druiden.",
+            "Charisma": "Misst die Überzeugungskraft und die Stärke der Persönlichkeit. Wichtig für Barden, Hexenmeister und Paktmagier."
+        }
+        self.show_popup(f"Info: {ability_name}", descriptions.get(ability_name, "Keine Beschreibung verfügbar."))
+
     def confirm_level_up(self):
         choices = {}
 
-        selected_abilities = [ability for ability, checkbox in self.ability_choices.items() if checkbox.active]
-        if self.ability_choices and len(selected_abilities) != 2:
-            self.show_popup("Fehler", "Bitte wähle genau 2 Attribute zur Verbesserung aus.")
-            return
+        if hasattr(self, 'total_points_allocated') and self.total_points_allocated > 0:
+            if self.total_points_allocated != 2:
+                self.show_popup("Fehler", "Bitte verteile genau 2 Attributspunkte.")
+                return
 
-        if selected_abilities:
-            choices["ability_increase"] = selected_abilities
+            ability_increases = []
+            for ability, increase in self.ability_scores_to_increase.items():
+                for _ in range(increase):
+                    ability_increases.append(ability)
+            choices["ability_increase"] = ability_increases
+
 
         if self.spell_choices:
             choices.update(self.spell_choices)

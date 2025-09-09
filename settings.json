@@ -1,0 +1,6 @@
+{
+    "button_transparency": 0.25,
+    "transparency_enabled": true,
+    "background_enabled": false,
+    "background_path": "osbackground/hmbg.png"
+}

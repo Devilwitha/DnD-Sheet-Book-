@@ -1,0 +1,26 @@
+[INFO   ] [Logger      ] Record log in /home/jules/.kivy/logs/kivy_25-09-09_1.txt
+[INFO   ] [Kivy        ] v2.3.1
+[INFO   ] [Kivy        ] Installed at "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/kivy/__init__.py"
+[INFO   ] [Python      ] v3.12.11 (main, Jul 29 2025, 18:21:07) [GCC 13.3.0]
+[INFO   ] [Python      ] Interpreter at "/home/jules/.pyenv/versions/3.12.11/bin/python3"
+[INFO   ] [Logger      ] Purge log fired. Processing...
+[INFO   ] [Logger      ] Purge finished!
+[INFO   ] [Factory     ] 195 symbols loaded
+[INFO   ] [Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+[INFO   ] [Window      ] Provider: sdl2
+[INFO   ] [GL          ] Using the "OpenGL" graphics system
+[INFO   ] [GL          ] Backend used <sdl2>
+[INFO   ] [GL          ] OpenGL version <b'4.5 (Compatibility Profile) Mesa 24.2.8-1ubuntu1~24.04.1'>
+[INFO   ] [GL          ] OpenGL vendor <b'Mesa'>
+[INFO   ] [GL          ] OpenGL renderer <b'llvmpipe (LLVM 19.1.1, 256 bits)'>
+[INFO   ] [GL          ] OpenGL parsed version: 4, 5
+[INFO   ] [GL          ] Shading version <b'4.50'>
+[INFO   ] [GL          ] Texture max size <16384>
+[INFO   ] [GL          ] Texture max units <32>
+[INFO   ] [Window      ] auto add sdl2 input provider
+[INFO   ] [Window      ] virtual keyboard allowed, single mode, docked
+[INFO   ] [Text        ] Provider: sdl2
+[INFO   ] [GL          ] NPOT texture support is available
+[WARNING] Deprecated property "<BooleanProperty name=allow_stretch>" of object "<kivy.uix.image.Image object at 0x7fbfdd973b60>" has been set, it will be removed in a future version
+[WARNING] Deprecated property "<BooleanProperty name=keep_ratio>" of object "<kivy.uix.image.Image object at 0x7fbfdd973b60>" was accessed, it will be removed in a future version
+[INFO   ] [Base        ] Start application main loop

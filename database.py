@@ -81,7 +81,7 @@ def populate_db_from_json(conn):
     SKILL_LIST = load_json('skills.json')
     FIGHTING_STYLE_DATA = load_json('fighting_styles.json')
     WEAPON_DATA = load_json('weapons.json')
-    SPELL_DATA = load_json('spells.json')
+    SPELL_DATA = load_json('spells_translated.json')
     RACE_DATA = load_json('races.json')
     CLASS_DATA = load_json('classes.json')
 
@@ -158,7 +158,15 @@ def get_data_from_db():
     }
 
 def init_db():
-    """Initializes the database if it doesn't exist."""
+    """Initializes the database. Deletes the old one if it exists to ensure fresh data."""
+    try:
+        # Delete the old database file to ensure it's rebuilt with corrected data sources.
+        if os.path.exists(DATABASE_FILE):
+            os.remove(DATABASE_FILE)
+            print(f"Removed old database file: {DATABASE_FILE}")
+    except OSError as e:
+        print(f"Error removing database file: {e}")
+
     if not os.path.exists(DATABASE_FILE):
         conn = get_db_connection()
         create_tables(conn)

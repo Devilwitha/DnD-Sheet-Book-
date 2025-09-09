@@ -132,10 +132,8 @@ class CharacterCreator(Screen):
              self.show_fighting_style_popup(character)
         elif character.race == "Halbelf":
             self.show_half_elf_choices_popup(character)
-        elif "progression" in class_data:
-            self.show_initial_spell_selection_popup(character)
         else:
-            self.finish_character_creation(character)
+            self.show_skill_selection_popup(character)
 
     def show_half_elf_choices_popup(self, character):
         popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
@@ -200,12 +198,7 @@ class CharacterCreator(Screen):
             character.proficiencies = sorted(list(set(character.proficiencies)))
 
             popup.dismiss()
-
-            class_data = CLASS_DATA.get(character.char_class, {})
-            if "progression" in class_data:
-                self.show_initial_spell_selection_popup(character)
-            else:
-                self.finish_character_creation(character)
+            self.show_skill_selection_popup(character)
 
         confirm_btn.bind(on_press=confirm_choices)
         apply_styles_to_widget(popup_content)
@@ -259,12 +252,7 @@ class CharacterCreator(Screen):
             character.features.append({"name": f"Kampfstil: {selected_style}", "desc": FIGHTING_STYLE_DATA[selected_style]})
 
             popup.dismiss()
-
-            class_data = CLASS_DATA.get(character.char_class, {})
-            if "progression" in class_data:
-                self.show_initial_spell_selection_popup(character)
-            else:
-                self.finish_character_creation(character)
+            self.show_skill_selection_popup(character)
 
         confirm_btn.bind(on_press=confirm_choice)
         apply_styles_to_widget(popup_content)
@@ -280,10 +268,21 @@ class CharacterCreator(Screen):
 
         cantrips_to_learn = level_1_prog.get("cantrips_known", 0)
         spells_to_learn = level_1_prog.get("spells_known", 0)
+
+        # Handle prepared casters like Cleric and Druid
+        if character.char_class in ["Kleriker", "Druide"]:
+            ability_modifier = (character.base_abilities["Weisheit"] - 10) // 2
+            spells_to_learn = max(1, ability_modifier + character.level)
+            popup_title_text = f"Bereite deine Startzauber für {character.char_class} vor"
+            spell_label_text = f"Bereite {spells_to_learn} Zauber des 1. Grades vor"
+        else:
+            popup_title_text = f"Wähle deine Startzauber für {character.char_class}"
+            spell_label_text = f"Wähle {spells_to_learn} Zauber des 1. Grades"
+
         all_available_spells = class_data.get("spell_list", {})
 
         popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        title = Label(text=f"Wähle deine Startzauber für {character.char_class}", font_size='20sp', size_hint_y=None, height=44)
+        title = Label(text=popup_title_text, font_size='20sp', size_hint_y=None, height=44)
         popup_content.add_widget(title)
 
         scroll_content = GridLayout(cols=1, size_hint_y=None, spacing=15)
@@ -306,7 +305,7 @@ class CharacterCreator(Screen):
 
         spell_checkboxes = {}
         if spells_to_learn > 0:
-            scroll_content.add_widget(Label(text=f"Wähle {spells_to_learn} Zauber des 1. Grades", size_hint_y=None, height=30, font_size='18sp'))
+            scroll_content.add_widget(Label(text=spell_label_text, size_hint_y=None, height=30, font_size='18sp'))
             spell_grid = GridLayout(cols=2, size_hint_y=None, spacing=5)
             spell_grid.bind(minimum_height=spell_grid.setter('height'))
             for spell_name in sorted(all_available_spells.get(1, [])):
@@ -349,6 +348,68 @@ class CharacterCreator(Screen):
 
         confirm_btn.bind(on_press=confirm_choices)
 
+        apply_styles_to_widget(popup_content)
+        popup.open()
+
+    def show_skill_selection_popup(self, character):
+        class_data = CLASS_DATA.get(character.char_class, {})
+        skill_choices_data = class_data.get("skill_choices")
+
+        if not skill_choices_data:
+            # If no skills to choose, proceed to the next step
+            if "progression" in class_data:
+                self.show_initial_spell_selection_popup(character)
+            else:
+                self.finish_character_creation(character)
+            return
+
+        num_to_choose = skill_choices_data["choose"]
+        skill_options = skill_choices_data["from"]
+
+        popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        title = Label(text=f"Wähle {num_to_choose} Fertigkeiten", font_size='20sp', size_hint_y=None, height=44)
+        popup_content.add_widget(title)
+
+        scroll_content = GridLayout(cols=2, size_hint_y=None, spacing=10)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
+
+        self.skill_checkboxes = {}
+        for skill_name in sorted(skill_options):
+            if skill_name not in character.proficiencies:
+                box = BoxLayout(size_hint_y=None, height=30)
+                cb = CheckBox(size_hint_x=0.1)
+                self.skill_checkboxes[skill_name] = cb
+                box.add_widget(cb)
+                box.add_widget(Label(text=skill_name))
+                scroll_content.add_widget(box)
+
+        scroll_view = ScrollView()
+        scroll_view.add_widget(scroll_content)
+        popup_content.add_widget(scroll_view)
+
+        confirm_btn = Button(text="Bestätigen", size_hint_y=None, height=50)
+        popup_content.add_widget(confirm_btn)
+
+        popup = Popup(title="Fertigkeiten auswählen", content=popup_content, size_hint=(0.9, 0.9), auto_dismiss=False)
+
+        def confirm_skills(instance):
+            selected_skills = [name for name, cb in self.skill_checkboxes.items() if cb.active]
+            if len(selected_skills) != num_to_choose:
+                self.show_popup("Fehler", f"Bitte wähle genau {num_to_choose} Fertigkeiten.")
+                return
+
+            character.proficiencies.extend(selected_skills)
+            character.proficiencies = sorted(list(set(character.proficiencies)))
+
+            popup.dismiss()
+
+            # Proceed to the next step in character creation
+            if "progression" in class_data:
+                self.show_initial_spell_selection_popup(character)
+            else:
+                self.finish_character_creation(character)
+
+        confirm_btn.bind(on_press=confirm_skills)
         apply_styles_to_widget(popup_content)
         popup.open()
 
