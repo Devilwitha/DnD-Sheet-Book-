@@ -1793,27 +1793,47 @@ CLASS_DATA = {
     "Kleriker": {
         "hit_die": 8,
         "proficiencies": [
-        "Einfache Waffen",
-        "Leichte Rüstung",
-        "Mittelschwere Rüstung",
-        "Saving Throw: Charisma",
-        "Saving Throw: Weisheit",
-        "Schilde"
-],
-        "spells": {
-        "cantrips": [
-                "Guidance",
-                "Light",
-                "Mending",
-                "Resistance"
+            "Einfache Waffen",
+            "Leichte Rüstung",
+            "Mittelschwere Rüstung",
+            "Saving Throw: Charisma",
+            "Saving Throw: Weisheit",
+            "Schilde"
         ],
-        "level1": [
-                "Bane",
-                "Bless",
-                "Command",
-                "Create or Destroy Water"
-        ]
-},
+        "progression": {
+            1: {"cantrips_known": 3, "spell_slots": {1: 2, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            2: {"cantrips_known": 3, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            3: {"cantrips_known": 3, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            4: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            5: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            6: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            7: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            8: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            9: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            10: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}},
+            11: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            12: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            13: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            14: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            15: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            16: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            17: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1}},
+            18: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}},
+            19: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1}},
+            20: {"cantrips_known": 5, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1}},
+        },
+        "spell_list": {
+            0: ["Guidance", "Light", "Mending", "Resistance", "Sacred Flame", "Spare the Dying", "Thaumaturgy"],
+            1: ["Bane", "Bless", "Command", "Create or Destroy Water", "Cure Wounds", "Detect Evil and Good", "Detect Magic", "Detect Poison and Disease", "Guiding Bolt", "Healing Word", "Inflict Wounds", "Protection from Evil and Good", "Purify Food and Drink", "Sanctuary", "Shield of Faith"],
+            2: ["Aid", "Augury", "Blindness/Deafness", "Calm Emotions", "Continual Flame", "Enhance Ability", "Find Traps", "Gentle Repose", "Hold Person", "Lesser Restoration", "Locate Object", "Prayer of Healing", "Protection from Poison", "Silence", "Spiritual Weapon", "Warding Bond", "Zone of Truth"],
+            3: ["Animate Dead", "Beacon of Hope", "Bestow Curse", "Clairvoyance", "Create Food and Water", "Daylight", "Dispel Magic", "Glyph of Warding", "Magic Circle", "Mass Healing Word", "Meld into Stone", "Protection from Energy", "Remove Curse", "Revivify", "Sending", "Speak with Dead", "Spirit Guardians", "Tongues", "Water Walk"],
+            4: ["Banishment", "Control Water", "Death Ward", "Divination", "Freedom of Movement", "Guardian of Faith", "Locate Creature", "Stone Shape"],
+            5: ["Commune", "Contagion", "Dispel Evil and Good", "Flame Strike", "Geas", "Greater Restoration", "Hallow", "Insect Plague", "Legend Lore", "Mass Cure Wounds", "Planar Binding", "Raise Dead", "Scrying"],
+            6: ["Blade Barrier", "Create Undead", "Find the Path", "Forbiddance", "Harm", "Heal", "Heroes' Feast", "Planar Ally", "True Seeing", "Word of Recall"],
+            7: ["Conjure Celestial", "Divine Word", "Etherealness", "Fire Storm", "Plane Shift", "Regenerate", "Resurrection", "Symbol"],
+            8: ["Antimagic Field", "Control Weather", "Earthquake", "Holy Aura"],
+            9: ["Astral Projection", "Gate", "Mass Heal", "True Resurrection"]
+        },
         "features": {
             1: [
                 { "name": "Zauberwirken: Kleriker", "desc": "Als Kanal für göttliche Macht kannst du Klerikerzauber wirken." },
@@ -1883,37 +1903,45 @@ CLASS_DATA = {
     "Druide": {
         "hit_die": 8,
         "proficiencies": [
-        "Dolche",
-        "Javelins",
-        "Keulen",
-        "Kräuterkundler-Set",
-        "Leichte Rüstung",
-        "Mittelschwere Rüstung",
-        "Saving Throw: Intelligenz",
-        "Saving Throw: Weisheit",
-        "Schilde",
-        "Schleudern",
-        "Sicheln",
-        "Speere",
-        "Streitkolben",
-        "Säbel",
-        "Viertelstäbe",
-        "Wurfpfeile"
-],
-        "spells": {
-        "cantrips": [
-                "Druidcraft",
-                "Guidance",
-                "Mending",
-                "Poison Spray"
+            "Keulen", "Dolche", "Wurfpfeile", "Javelins", "Streitkolben", "Viertelstäbe", "Säbel", "Sicheln", "Schleudern", "Speere",
+            "Leichte Rüstung", "Mittelschwere Rüstung", "Schilde",
+            "Kräuterkundler-Set",
+            "Saving Throw: Intelligenz", "Saving Throw: Weisheit"
         ],
-        "level1": [
-                "Animal Friendship",
-                "Charm Person",
-                "Create or Destroy Water",
-                "Cure Wounds"
-        ]
-},
+        "progression": {
+            1: {"cantrips_known": 2, "spell_slots": {1: 2, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            2: {"cantrips_known": 2, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            3: {"cantrips_known": 2, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            4: {"cantrips_known": 3, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            5: {"cantrips_known": 3, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            6: {"cantrips_known": 3, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            7: {"cantrips_known": 3, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            8: {"cantrips_known": 3, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            9: {"cantrips_known": 3, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            10: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}},
+            11: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            12: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            13: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            14: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            15: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            16: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            17: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1}},
+            18: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}},
+            19: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1}},
+            20: {"cantrips_known": 4, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1}},
+        },
+        "spell_list": {
+            0: ["Druidcraft", "Guidance", "Mending", "Poison Spray", "Produce Flame", "Resistance", "Shillelagh"],
+            1: ["Animal Friendship", "Charm Person", "Create or Destroy Water", "Cure Wounds", "Detect Magic", "Detect Poison and Disease", "Entangle", "Faerie Fire", "Fog Cloud", "Goodberry", "Healing Word", "Jump", "Longstrider", "Purify Food and Drink", "Speak with Animals", "Thunderwave"],
+            2: ["Animal Messenger", "Barkskin", "Darkvision", "Enhance Ability", "Find Traps", "Flame Blade", "Flaming Sphere", "Gust of Wind", "Heat Metal", "Hold Person", "Lesser Restoration", "Locate Animals or Plants", "Locate Object", "Moonbeam", "Pass without Trace", "Protection from Poison", "Spike Growth"],
+            3: ["Call Lightning", "Conjure Animals", "Daylight", "Dispel Magic", "Meld into Stone", "Plant Growth", "Protection from Energy", "Sleet Storm", "Speak with Plants", "Water Breathing", "Water Walk", "Wind Wall"],
+            4: ["Blight", "Confusion", "Conjure Minor Elementals", "Conjure Woodland Beings", "Control Water", "Dominate Beast", "Freedom of Movement", "Giant Insect", "Hallucinatory Terrain", "Ice Storm", "Locate Creature", "Polymorph", "Stone Shape", "Stoneskin", "Wall of Fire"],
+            5: ["Antilife Shell", "Awaken", "Commune with Nature", "Conjure Elemental", "Contagion", "Geas", "Greater Restoration", "Insect Plague", "Mass Cure Wounds", "Planar Binding", "Reincarnate", "Scrying", "Tree Stride", "Wall of Stone"],
+            6: ["Conjure Fey", "Find the Path", "Heal", "Heroes' Feast", "Move Earth", "Sunbeam", "Transport via Plants", "Wall of Thorns", "Wind Walk"],
+            7: ["Fire Storm", "Mirage Arcane", "Plane Shift", "Regenerate", "Reverse Gravity"],
+            8: ["Animal Shapes", "Antipathy/Sympathy", "Control Weather", "Earthquake", "Feeblemind", "Sunburst"],
+            9: ["Foresight", "Shapechange", "Storm of Vengeance", "True Resurrection"]
+        },
         "features": {
             1: [
                 { "name": "Zauberwirken: Druide", "desc": "Indem du auf die göttliche Essenz der Natur selbst zurückgreifst, kannst du Zauber wirken, um diese Essenz nach deinem Willen zu formen." },
@@ -2126,14 +2154,35 @@ CLASS_DATA = {
         "Rettungswurf: Weisheit",
         "Schilde"
 ],
-        "spells": {
-        "level1": [
-                "Bless",
-                "Command",
-                "Cure Wounds",
-                "Detect Evil and Good"
-        ]
-},
+        "progression": {
+            1: {"cantrips_known": 0, "spells_known": 0, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            2: {"cantrips_known": 0, "spells_known": 4, "spell_slots": {1: 2, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            3: {"cantrips_known": 0, "spells_known": 4, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            4: {"cantrips_known": 0, "spells_known": 5, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            5: {"cantrips_known": 0, "spells_known": 5, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            6: {"cantrips_known": 0, "spells_known": 6, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            7: {"cantrips_known": 0, "spells_known": 6, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            8: {"cantrips_known": 0, "spells_known": 7, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            9: {"cantrips_known": 0, "spells_known": 7, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            10: {"cantrips_known": 0, "spells_known": 8, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            11: {"cantrips_known": 0, "spells_known": 8, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            12: {"cantrips_known": 0, "spells_known": 9, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            13: {"cantrips_known": 0, "spells_known": 9, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            14: {"cantrips_known": 0, "spells_known": 10, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            15: {"cantrips_known": 0, "spells_known": 10, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            16: {"cantrips_known": 0, "spells_known": 11, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            17: {"cantrips_known": 0, "spells_known": 11, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            18: {"cantrips_known": 0, "spells_known": 12, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            19: {"cantrips_known": 0, "spells_known": 12, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}},
+            20: {"cantrips_known": 0, "spells_known": 13, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}}
+        },
+        "spell_list": {
+            1: ["Bless", "Command", "Cure Wounds", "Detect Evil and Good", "Detect Magic", "Detect Poison and Disease", "Divine Favor", "Heroism", "Protection from Evil and Good", "Purify Food and Drink", "Shield of Faith"],
+            2: ["Aid", "Branding Smite", "Find Steed", "Lesser Restoration", "Locate Object", "Magic Weapon", "Protection from Poison", "Zone of Truth"],
+            3: ["Create Food and Water", "Daylight", "Dispel Magic", "Magic Circle", "Remove Curse", "Revivify"],
+            4: ["Banishment", "Death Ward", "Locate Creature"],
+            5: ["Dispel Evil and Good", "Geas", "Raise Dead"]
+        },
         "features": {
             1: [
                 { "name": "Göttliches Gespür", "desc": "Die Anwesenheit von starkem Bösen registriert sich in deinen Sinnen wie ein übler Geruch, und mächtiges Gutes klingt wie himmlische Musik in deinen Ohren. Als eine Aktion kannst du dein Bewusstsein öffnen, um solche Kräfte zu entdecken. Bis zum Ende deines nächsten Zuges kennst du den Standort jedes Celestials, Unholds oder Untoten innerhalb von 60 Fuß von dir, der nicht hinter vollständiger Deckung ist. Du kennst den Typ (Celestial, Unhold oder Untoter) jedes Wesens, dessen Anwesenheit du spürst, aber nicht seine Identität. Innerhalb desselben Radius entdeckst du auch die Anwesenheit jedes Ortes oder Objekts, das geweiht oder entweiht wurde, wie mit dem Weihezauber.\nDu kannst dieses Merkmal eine Anzahl von Malen verwenden, die 1 + deinem Charisma-Modifikator entspricht. Wenn du eine lange Rast beendest, erhältst du alle verbrauchten Anwendungen zurück." },
@@ -2205,14 +2254,35 @@ CLASS_DATA = {
         "Saving Throw: Stärke",
         "Schilde"
 ],
-        "spells": {
-        "level1": [
-                "Alarm",
-                "Animal Friendship",
-                "Cure Wounds",
-                "Detect Magic"
-        ]
-},
+        "progression": {
+            1: {"cantrips_known": 0, "spells_known": 0, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            2: {"cantrips_known": 0, "spells_known": 2, "spell_slots": {1: 2, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            3: {"cantrips_known": 0, "spells_known": 3, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            4: {"cantrips_known": 0, "spells_known": 3, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            5: {"cantrips_known": 0, "spells_known": 4, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            6: {"cantrips_known": 0, "spells_known": 4, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            7: {"cantrips_known": 0, "spells_known": 5, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            8: {"cantrips_known": 0, "spells_known": 5, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            9: {"cantrips_known": 0, "spells_known": 6, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            10: {"cantrips_known": 0, "spells_known": 6, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            11: {"cantrips_known": 0, "spells_known": 7, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            12: {"cantrips_known": 0, "spells_known": 7, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            13: {"cantrips_known": 0, "spells_known": 8, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            14: {"cantrips_known": 0, "spells_known": 8, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            15: {"cantrips_known": 0, "spells_known": 9, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            16: {"cantrips_known": 0, "spells_known": 9, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            17: {"cantrips_known": 0, "spells_known": 10, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            18: {"cantrips_known": 0, "spells_known": 10, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            19: {"cantrips_known": 0, "spells_known": 11, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}},
+            20: {"cantrips_known": 0, "spells_known": 11, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}}
+        },
+        "spell_list": {
+            1: ["Alarm", "Animal Friendship", "Cure Wounds", "Detect Magic", "Detect Poison and Disease", "Fog Cloud", "Goodberry", "Hunter's Mark", "Jump", "Longstrider", "Speak with Animals"],
+            2: ["Animal Messenger", "Barkskin", "Darkvision", "Find Traps", "Lesser Restoration", "Locate Animals or Plants", "Locate Object", "Pass without Trace", "Protection from Poison", "Silence", "Spike Growth"],
+            3: ["Conjure Animals", "Daylight", "Nondetection", "Plant Growth", "Protection from Energy", "Speak with Plants", "Water Breathing", "Water Walk", "Wind Wall"],
+            4: ["Conjure Woodland Beings", "Freedom of Movement", "Locate Creature", "Stoneskin"],
+            5: ["Commune with Nature", "Tree Stride"]
+        },
         "features": {
             1: [
                 { "name": "Erzfeind (1 Typ)", "desc": "Ab der 1. Stufe hast du bedeutende Erfahrung im Studieren, Aufspüren, Jagen und sogar im Gespräch mit einer bestimmten Art von Feind.\nWähle eine Art von Erzfeind: Aberrationen, Bestien, Celestials, Konstrukte, Drachen, Elementare, Feen, Unholde, Riesen, Monstrositäten, Schlicke, Pflanzen oder Untote. Alternativ kannst du zwei Rassen von Humanoiden (wie Gnolle und Orks) als Erzfeinde auswählen.\nDu hast Vorteil bei Weisheits- (Überlebenskunst-)Würfen, um deine Erzfeinde aufzuspüren, sowie bei Intelligenz-Würfen, um Informationen über sie abzurufen.\nWenn du dieses Merkmal erhältst, lernst du auch eine Sprache deiner Wahl, die von deinen Erzfeinden gesprochen wird, falls sie überhaupt eine sprechen.\nDu wählst auf der 6. und 14. Stufe einen zusätzlichen Erzfeind sowie eine zugehörige Sprache. Wenn du Stufen aufsteigst, sollten deine Entscheidungen die Arten von Monstern widerspiegeln, denen du auf deinen Abenteuern begegnet bist." },
@@ -2356,28 +2426,43 @@ CLASS_DATA = {
     "Hexenmeister": {
         "hit_die": 6,
         "proficiencies": [
-        "Crossbows, light",
-        "Dolche",
-        "Saving Throw: Charisma",
-        "Saving Throw: Konstitution",
-        "Schleudern",
-        "Viertelstäbe",
-        "Wurfpfeile"
-],
-        "spells": {
-        "cantrips": [
-                "Acid Splash",
-                "Chill Touch",
-                "Dancing Lights",
-                "Fire Bolt"
+            "Dolche", "Wurfpfeile", "Schleudern", "Viertelstäbe", "Leichte Armbrüste",
+            "Saving Throw: Charisma", "Saving Throw: Konstitution"
         ],
-        "level1": [
-                "Burning Hands",
-                "Charm Person",
-                "Color Spray",
-                "Comprehend Languages"
-        ]
-},
+        "progression": {
+            1: {"cantrips_known": 4, "spells_known": 2, "spell_slots": {1: 2, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            2: {"cantrips_known": 4, "spells_known": 3, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            3: {"cantrips_known": 4, "spells_known": 4, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            4: {"cantrips_known": 5, "spells_known": 5, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            5: {"cantrips_known": 5, "spells_known": 6, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            6: {"cantrips_known": 5, "spells_known": 7, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            7: {"cantrips_known": 5, "spells_known": 8, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            8: {"cantrips_known": 5, "spells_known": 9, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            9: {"cantrips_known": 5, "spells_known": 10, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            10: {"cantrips_known": 6, "spells_known": 11, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}},
+            11: {"cantrips_known": 6, "spells_known": 12, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            12: {"cantrips_known": 6, "spells_known": 12, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            13: {"cantrips_known": 6, "spells_known": 13, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            14: {"cantrips_known": 6, "spells_known": 13, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            15: {"cantrips_known": 6, "spells_known": 14, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            16: {"cantrips_known": 6, "spells_known": 14, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            17: {"cantrips_known": 6, "spells_known": 15, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1}},
+            18: {"cantrips_known": 6, "spells_known": 15, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}},
+            19: {"cantrips_known": 6, "spells_known": 15, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1}},
+            20: {"cantrips_known": 6, "spells_known": 15, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1}}
+        },
+        "spell_list": {
+            0: ["Acid Splash", "Chill Touch", "Dancing Lights", "Fire Bolt", "Light", "Mage Hand", "Mending", "Message", "Minor Illusion", "Poison Spray", "Prestidigitation", "Ray of Frost", "Shocking Grasp", "True Strike"],
+            1: ["Burning Hands", "Charm Person", "Color Spray", "Comprehend Languages", "Detect Magic", "Disguise Self", "Expeditious Retreat", "False Life", "Feather Fall", "Fog Cloud", "Jump", "Mage Armor", "Magic Missile", "Shield", "Silent Image", "Sleep", "Thunderwave"],
+            2: ["Alter Self", "Blindness/Deafness", "Blur", "Darkness", "Darkvision", "Detect Thoughts", "Enhance Ability", "Enlarge/Reduce", "Gust of Wind", "Hold Person", "Invisibility", "Knock", "Levitate", "Mirror Image", "Misty Step", "Scorching Ray", "See Invisibility", "Shatter", "Spider Climb", "Suggestion", "Web"],
+            3: ["Blink", "Clairvoyance", "Counterspell", "Daylight", "Dispel Magic", "Fear", "Fireball", "Fly", "Gaseous Form", "Haste", "Hypnotic Pattern", "Lightning Bolt", "Major Image", "Protection from Energy", "Sleet Storm", "Slow", "Stinking Cloud", "Tongues", "Water Breathing", "Water Walk"],
+            4: ["Banishment", "Blight", "Confusion", "Dimension Door", "Dominate Beast", "Greater Invisibility", "Ice Storm", "Polymorph", "Stoneskin", "Wall of Fire"],
+            5: ["Animate Objects", "Cloudkill", "Cone of Cold", "Creation", "Dominate Person", "Hold Monster", "Insect Plague", "Seeming", "Telekinesis", "Teleportation Circle", "Wall of Stone"],
+            6: ["Chain Lightning", "Circle of Death", "Disintegrate", "Eyebite", "Globe of Invulnerability", "Mass Suggestion", "Move Earth", "Sunbeam", "True Seeing"],
+            7: ["Delayed Blast Fireball", "Etherealness", "Finger of Death", "Fire Storm", "Plane Shift", "Prismatic Spray", "Reverse Gravity", "Teleport"],
+            8: ["Dominate Monster", "Earthquake", "Incendiary Cloud", "Power Word Stun", "Sunburst"],
+            9: ["Gate", "Meteor Swarm", "Power Word Kill", "Time Stop", "Wish"]
+        },
         "features": {
             1: [
                 { "name": "Zauberwirken: Hexenmeister", "desc": "Ein Ereignis in deiner Vergangenheit oder im Leben eines Elternteils oder Vorfahren hat eine unauslöschliche Spur bei dir hinterlassen und dich mit arkaner Magie erfüllt. Diese Quelle der Magie, was auch immer ihr Ursprung sein mag, treibt deine Zauber an." },
@@ -2429,25 +2514,45 @@ CLASS_DATA = {
     "Paktmagier": {
         "hit_die": 8,
         "proficiencies": [
-        "Einfache Waffen",
-        "Leichte Rüstung",
-        "Saving Throw: Charisma",
-        "Saving Throw: Weisheit"
-],
-        "spells": {
-        "cantrips": [
-                "Chill Touch",
-                "Eldritch Blast",
-                "Mage Hand",
-                "Minor Illusion"
+            "Einfache Waffen",
+            "Leichte Rüstung",
+            "Saving Throw: Charisma",
+            "Saving Throw: Weisheit"
         ],
-        "level1": [
-                "Charm Person",
-                "Comprehend Languages",
-                "Expeditious Retreat",
-                "Hellish Rebuke"
-        ]
-},
+        "progression": {
+            1: {"cantrips_known": 2, "spells_known": 2, "spell_slots": {1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 1},
+            2: {"cantrips_known": 2, "spells_known": 3, "spell_slots": {1: 2, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 1},
+            3: {"cantrips_known": 2, "spells_known": 4, "spell_slots": {1: 0, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 2},
+            4: {"cantrips_known": 3, "spells_known": 5, "spell_slots": {1: 0, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 2},
+            5: {"cantrips_known": 3, "spells_known": 6, "spell_slots": {1: 0, 2: 0, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 3},
+            6: {"cantrips_known": 3, "spells_known": 7, "spell_slots": {1: 0, 2: 0, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 3},
+            7: {"cantrips_known": 3, "spells_known": 8, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 4},
+            8: {"cantrips_known": 3, "spells_known": 9, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 4},
+            9: {"cantrips_known": 3, "spells_known": 10, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            10: {"cantrips_known": 4, "spells_known": 10, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            11: {"cantrips_known": 4, "spells_known": 11, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            12: {"cantrips_known": 4, "spells_known": 11, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            13: {"cantrips_known": 4, "spells_known": 12, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            14: {"cantrips_known": 4, "spells_known": 12, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            15: {"cantrips_known": 4, "spells_known": 13, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            16: {"cantrips_known": 4, "spells_known": 13, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            17: {"cantrips_known": 4, "spells_known": 14, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 4, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            18: {"cantrips_known": 4, "spells_known": 14, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 4, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            19: {"cantrips_known": 4, "spells_known": 15, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 4, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5},
+            20: {"cantrips_known": 4, "spells_known": 15, "spell_slots": {1: 0, 2: 0, 3: 0, 4: 0, 5: 4, 6: 0, 7: 0, 8: 0, 9: 0}, "slot_level": 5}
+        },
+        "spell_list": {
+            0: ["Eldritch Blast", "Chill Touch", "Mage Hand", "Minor Illusion", "Poison Spray", "Prestidigitation", "True Strike"],
+            1: ["Charm Person", "Comprehend Languages", "Expeditious Retreat", "Hellish Rebuke", "Illusory Script", "Protection from Evil and Good", "Unseen Servant"],
+            2: ["Darkness", "Enthrall", "Hold Person", "Invisibility", "Mirror Image", "Misty Step", "Ray of Enfeeblement", "Shatter", "Spider Climb", "Suggestion"],
+            3: ["Counterspell", "Dispel Magic", "Fear", "Fly", "Gaseous Form", "Hypnotic Pattern", "Magic Circle", "Major Image", "Remove Curse", "Tongues", "Vampiric Touch"],
+            4: ["Banishment", "Blight", "Dimension Door", "Hallucinatory Terrain"],
+            5: ["Contact Other Plane", "Dream", "Hold Monster", "Scrying"],
+            6: ["Circle of Death", "Conjure Fey", "Create Undead", "Eyebite", "Flesh to Stone", "Mass Suggestion", "True Seeing"],
+            7: ["Etherealness", "Finger of Death", "Forcecage", "Plane Shift"],
+            8: ["Demiplane", "Dominate Monster", "Feeblemind", "Glibness", "Power Word Stun"],
+            9: ["Astral Projection", "Foresight", "Imprisonment", "Power Word Kill", "True Polymorph"]
+        },
         "features": {
             1: [
                 { "name": "Außerweltlicher Gönner", "desc": "Auf der 1. Stufe hast du einen Pakt mit einem außerweltlichen Wesen deiner Wahl geschlossen, wie zum Beispiel dem Unhold. Deine Wahl gewährt dir Merkmale auf der 1. Stufe und erneut auf der 6., 10. und 14. Stufe." },
@@ -2503,28 +2608,48 @@ CLASS_DATA = {
     "Magier": {
         "hit_die": 6,
         "proficiencies": [
-        "Crossbows, light",
-        "Dolche",
-        "Saving Throw: Intelligenz",
-        "Saving Throw: Weisheit",
-        "Schleudern",
-        "Viertelstäbe",
-        "Wurfpfeile"
-],
-        "spells": {
-        "cantrips": [
-                "Acid Splash",
-                "Chill Touch",
-                "Dancing Lights",
-                "Fire Bolt"
+            "Dolche",
+            "Wurfpfeile",
+            "Schleudern",
+            "Viertelstäbe",
+            "Leichte Armbrüste",
+            "Saving Throw: Intelligenz",
+            "Saving Throw: Weisheit"
         ],
-        "level1": [
-                "Alarm",
-                "Burning Hands",
-                "Charm Person",
-                "Color Spray"
-        ]
-},
+        "progression": {
+            1: {"cantrips_known": 3, "spells_known": 6, "spell_slots": {1: 2, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            2: {"cantrips_known": 3, "spells_known": 8, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            3: {"cantrips_known": 3, "spells_known": 10, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            4: {"cantrips_known": 4, "spells_known": 12, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            5: {"cantrips_known": 4, "spells_known": 14, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            6: {"cantrips_known": 4, "spells_known": 16, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            7: {"cantrips_known": 4, "spells_known": 18, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            8: {"cantrips_known": 4, "spells_known": 20, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            9: {"cantrips_known": 4, "spells_known": 22, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            10: {"cantrips_known": 5, "spells_known": 24, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}},
+            11: {"cantrips_known": 5, "spells_known": 26, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            12: {"cantrips_known": 5, "spells_known": 28, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            13: {"cantrips_known": 5, "spells_known": 30, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            14: {"cantrips_known": 5, "spells_known": 32, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            15: {"cantrips_known": 5, "spells_known": 34, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            16: {"cantrips_known": 5, "spells_known": 36, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            17: {"cantrips_known": 5, "spells_known": 38, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1}},
+            18: {"cantrips_known": 5, "spells_known": 40, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}},
+            19: {"cantrips_known": 5, "spells_known": 42, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1}},
+            20: {"cantrips_known": 5, "spells_known": 44, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1}},
+        },
+        "spell_list": {
+            0: ["Acid Splash", "Chill Touch", "Dancing Lights", "Fire Bolt", "Light", "Mage Hand", "Mending", "Message", "Minor Illusion", "Poison Spray", "Prestidigitation", "Ray of Frost", "Shocking Grasp", "True Strike"],
+            1: ["Alarm", "Burning Hands", "Charm Person", "Color Spray", "Comprehend Languages", "Detect Magic", "Disguise Self", "Expeditious Retreat", "False Life", "Feather Fall", "Find Familiar", "Floating Disk", "Fog Cloud", "Grease", "Hideous Laughter", "Identify", "Illusory Script", "Jump", "Longstrider", "Mage Armor", "Magic Missile", "Protection from Evil and Good", "Shield", "Silent Image", "Sleep", "Thunderwave", "Unseen Servant"],
+            2: ["Acid Arrow", "Alter Self", "Arcane Lock", "Arcanist's Magic Aura", "Blindness/Deafness", "Blur", "Continual Flame", "Darkness", "Darkvision", "Detect Thoughts", "Enlarge/Reduce", "Flaming Sphere", "Gentle Repose", "Gust of Wind", "Hold Person", "Invisibility", "Knock", "Levitate", "Locate Object", "Magic Mouth", "Magic Weapon", "Mirror Image", "Misty Step", "Ray of Enfeeblement", "Rope Trick", "Scorching Ray", "See Invisibility", "Shatter", "Spider Climb", "Suggestion", "Web"],
+            3: ["Animate Dead", "Bestow Curse", "Blink", "Clairvoyance", "Counterspell", "Dispel Magic", "Fear", "Fireball", "Fly", "Gaseous Form", "Glyph of Warding", "Haste", "Hypnotic Pattern", "Lightning Bolt", "Magic Circle", "Major Image", "Nondetection", "Phantom Steed", "Protection from Energy", "Remove Curse", "Sending", "Sleet Storm", "Slow", "Stinking Cloud", "Tiny Hut", "Tongues", "Vampiric Touch", "Water Breathing"],
+            4: ["Arcane Eye", "Banishment", "Black Tentacles", "Blight", "Confusion", "Conjure Minor Elementals", "Control Water", "Dimension Door", "Fabricate", "Faithful Hound", "Fire Shield", "Greater Invisibility", "Hallucinatory Terrain", "Ice Storm", "Locate Creature", "Phantasmal Killer", "Polymorph", "Private Sanctum", "Resilient Sphere", "Secret Chest", "Stone Shape", "Stoneskin", "Wall of Fire"],
+            5: ["Animate Objects", "Arcane Hand", "Cloudkill", "Cone of Cold", "Conjure Elemental", "Contact Other Plane", "Creation", "Dominate Person", "Dream", "Geas", "Hold Monster", "Legend Lore", "Mislead", "Modify Memory", "Passwall", "Planar Binding", "Scrying", "Seeming", "Telekinesis", "Telepathic Bond", "Teleportation Circle", "Wall of Force", "Wall of Stone"],
+            6: ["Chain Lightning", "Circle of Death", "Contingency", "Create Undead", "Disintegrate", "Eyebite", "Flesh to Stone", "Freezing Sphere", "Globe of Invulnerability", "Guards and Wards", "Instant Summons", "Irresistible Dance", "Magic Jar", "Mass Suggestion", "Move Earth", "Programmed Illusion", "Sunbeam", "True Seeing", "Wall of Ice"],
+            7: ["Arcane Sword", "Delayed Blast Fireball", "Etherealness", "Finger of Death", "Forcecage", "Magnificent Mansion", "Mirage Arcane", "Plane Shift", "Prismatic Spray", "Project Image", "Reverse Gravity", "Sequester", "Simulacrum", "Symbol", "Teleport"],
+            8: ["Antimagic Field", "Antipathy/Sympathy", "Clone", "Control Weather", "Demiplane", "Dominate Monster", "Feeblemind", "Incendiary Cloud", "Maze", "Mind Blank", "Power Word Stun", "Sunburst"],
+            9: ["Astral Projection", "Foresight", "Gate", "Imprisonment", "Meteor Swarm", "Power Word Kill", "Prismatic Wall", "Shapechange", "Time Stop", "True Polymorph", "Weird", "Wish"]
+        },
         "features": {
             1: [
                 { "name": "Zauberwirken: Magier", "desc": "Als Schüler der arkanen Magie besitzt du ein Zauberbuch mit Zaubern, die die ersten Schimmer deiner wahren Macht zeigen." },
@@ -2893,4 +3018,12 @@ SKILL_LIST = {
     "Fingerfertigkeit": "Geschicklichkeit",
     "Heimlichkeit": "Geschicklichkeit",
     "Überlebenskunst": "Weisheit"
+}
+
+FIGHTING_STYLE_DATA = {
+    "Archery": "Du erhältst einen Bonus von +2 auf Angriffswürfe mit Fernkampfwaffen.",
+    "Defense": "Während du Rüstung trägst, erhältst du einen Bonus von +1 auf die RK.",
+    "Dueling": "Wenn du eine Nahkampfwaffe in einer Hand führst und keine andere Waffe, erhältst du einen Bonus von +2 auf Schadenswürfe mit dieser Waffe.",
+    "Great Weapon Fighting": "Wenn du bei einem Angriff mit einer Nahkampfwaffe, die du mit zwei Händen führst, eine 1 oder 2 auf einem Schadenswürfel würfelst, kannst du den Würfel erneut würfeln und musst das neue Ergebnis verwenden. Die Waffe muss die zweihändige oder vielseitige Eigenschaft haben, damit du diesen Vorteil erhältst.",
+    "Protection": "Wenn eine Kreatur, die du sehen kannst, ein anderes Ziel als dich angreift, das sich innerhalb von 5 Fuß von dir befindet, kannst du deine Reaktion verwenden, um den Angriffswurf mit Nachteil zu belegen. Du musst einen Schild führen."
 }

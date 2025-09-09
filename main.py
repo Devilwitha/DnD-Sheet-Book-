@@ -107,7 +107,7 @@ def apply_background(screen):
 
 
 # Importiert die Daten aus der separaten Datei
-from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA, SKILL_LIST
+from dnd_data import CLASS_DATA, RACE_DATA, WEAPON_DATA, SPELL_DATA, ALIGNMENT_DATA, BACKGROUND_DATA, SKILL_LIST, FIGHTING_STYLE_DATA
 
 class Character:
     """Finale Version der Charakter-Klasse mit allen neuen Attributen."""
@@ -140,6 +140,7 @@ class Character:
         self.proficiencies = []
         self.languages = []
         self.spells = {}  # Für bekannte Zauber
+        self.fighting_style = None
 
     def initialize_character(self):
         """Sammelt alle Daten bei der Erstellung oder beim Laden."""
@@ -489,10 +490,158 @@ class CharacterCreator(Screen):
         character.flaws = self.inputs["Makel"].text
 
         class_data = CLASS_DATA.get(character.char_class, {})
-        if "progression" in class_data:
+        
+        # Check for fighting style choice
+        if "Kampfstil" in [f['name'] for f in class_data.get("features", {}).get(1, [])]:
+             self.show_fighting_style_popup(character)
+        elif character.race == "Halbelf":
+            self.show_half_elf_choices_popup(character)
+        elif "progression" in class_data:
             self.show_initial_spell_selection_popup(character)
         else:
             self.finish_character_creation(character)
+
+    def show_half_elf_choices_popup(self, character):
+        popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        title = Label(text="Wähle deine Halbelf-Boni", font_size='20sp', size_hint_y=None, height=44)
+        popup_content.add_widget(title)
+
+        scroll_content = GridLayout(cols=1, size_hint_y=None, spacing=15)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
+
+        # Ability Score Choices
+        scroll_content.add_widget(Label(text="Erhöhe zwei Attributswerte um 1", size_hint_y=None, height=30, font_size='18sp'))
+        ability_grid = GridLayout(cols=3, size_hint_y=None, spacing=5)
+        ability_grid.bind(minimum_height=ability_grid.setter('height'))
+        self.half_elf_ability_checkboxes = {}
+        abilities = ["Stärke", "Geschicklichkeit", "Konstitution", "Intelligenz", "Weisheit"] # Charisma is already +2
+        for ability in abilities:
+            box = BoxLayout(size_hint_y=None, height=30)
+            cb = CheckBox()
+            self.half_elf_ability_checkboxes[ability] = cb
+            box.add_widget(Label(text=ability))
+            box.add_widget(cb)
+            ability_grid.add_widget(box)
+        scroll_content.add_widget(ability_grid)
+
+        # Skill Versatility
+        scroll_content.add_widget(Label(text="Wähle zwei neue Fertigkeiten", size_hint_y=None, height=30, font_size='18sp'))
+        skill_grid = GridLayout(cols=2, size_hint_y=None, spacing=5)
+        skill_grid.bind(minimum_height=skill_grid.setter('height'))
+        self.half_elf_skill_checkboxes = {}
+        for skill in sorted(SKILL_LIST.keys()):
+            if skill not in character.proficiencies: # Don't show skills they already have
+                box = BoxLayout(size_hint_y=None, height=30)
+                cb = CheckBox()
+                self.half_elf_skill_checkboxes[skill] = cb
+                box.add_widget(Label(text=skill))
+                box.add_widget(cb)
+                skill_grid.add_widget(box)
+        scroll_content.add_widget(skill_grid)
+
+        scroll_view = ScrollView()
+        scroll_view.add_widget(scroll_content)
+        popup_content.add_widget(scroll_view)
+
+        confirm_btn = Button(text="Bestätigen", size_hint_y=None, height=50)
+        popup_content.add_widget(confirm_btn)
+
+        popup = Popup(title="Halbelf-Anpassung", content=popup_content, size_hint=(0.9, 0.9), auto_dismiss=False)
+
+        def confirm_choices(instance):
+            # Validate ability scores
+            selected_abilities = [name for name, cb in self.half_elf_ability_checkboxes.items() if cb.active]
+            if len(selected_abilities) != 2:
+                self.show_popup("Fehler", "Bitte wähle genau zwei Attributswerte.")
+                return
+
+            # Validate skills
+            selected_skills = [name for name, cb in self.half_elf_skill_checkboxes.items() if cb.active]
+            if len(selected_skills) != 2:
+                self.show_popup("Fehler", "Bitte wähle genau zwei Fertigkeiten.")
+                return
+
+            # Apply choices
+            for ability in selected_abilities:
+                character.base_abilities[ability] += 1
+            
+            character.proficiencies.extend(selected_skills)
+            character.proficiencies = sorted(list(set(character.proficiencies)))
+
+            popup.dismiss()
+
+            # Continue creation process
+            class_data = CLASS_DATA.get(character.char_class, {})
+            if "progression" in class_data:
+                self.show_initial_spell_selection_popup(character)
+            else:
+                self.finish_character_creation(character)
+
+        confirm_btn.bind(on_press=confirm_choices)
+        apply_transparency_to_widget(popup_content)
+        popup.open()
+
+    def show_fighting_style_popup(self, character):
+        popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        title = Label(text="Wähle deinen Kampfstil", font_size='20sp', size_hint_y=None, height=44)
+        popup_content.add_widget(title)
+
+        scroll_content = GridLayout(cols=1, size_hint_y=None, spacing=15)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
+
+        # Fighter gets a specific list of styles
+        fighter_styles = ["Defense", "Dueling", "Great Weapon Fighting", "Protection"]
+        
+        style_checkboxes = {}
+        for style_name in fighter_styles:
+            if style_name in FIGHTING_STYLE_DATA:
+                box = BoxLayout(size_hint_y=None, height=40)
+                cb = CheckBox(group='fighting_style', size_hint_x=0.1)
+                style_checkboxes[style_name] = cb
+                
+                desc = FIGHTING_STYLE_DATA[style_name]
+                info_btn = Button(text=f"{style_name}: {desc}", text_size=(self.width - 150, None), halign='left')
+                
+                box.add_widget(cb)
+                box.add_widget(info_btn)
+                scroll_content.add_widget(box)
+
+        scroll_view = ScrollView()
+        scroll_view.add_widget(scroll_content)
+        popup_content.add_widget(scroll_view)
+
+        confirm_btn = Button(text="Bestätigen", size_hint_y=None, height=50)
+        popup_content.add_widget(confirm_btn)
+        
+        popup = Popup(title="Kampfstil auswählen", content=popup_content, size_hint=(0.9, 0.9), auto_dismiss=False)
+
+        def confirm_choice(instance):
+            selected_style = None
+            for name, cb in style_checkboxes.items():
+                if cb.active:
+                    selected_style = name
+                    break
+            
+            if not selected_style:
+                self.show_popup("Fehler", "Bitte wähle einen Kampfstil.")
+                return
+
+            character.fighting_style = selected_style
+            # Add the chosen style as a feature
+            character.features.append({"name": f"Kampfstil: {selected_style}", "desc": FIGHTING_STYLE_DATA[selected_style]})
+            
+            popup.dismiss()
+
+            # After fighting style, check for spells (for archetypes like Eldritch Knight, though not in SRD)
+            class_data = CLASS_DATA.get(character.char_class, {})
+            if "progression" in class_data:
+                self.show_initial_spell_selection_popup(character)
+            else:
+                self.finish_character_creation(character)
+
+        confirm_btn.bind(on_press=confirm_choice)
+        apply_transparency_to_widget(popup_content)
+        popup.open()
 
     def show_initial_spell_selection_popup(self, character):
         class_data = CLASS_DATA.get(character.char_class, {})
@@ -514,7 +663,6 @@ class CharacterCreator(Screen):
         scroll_content = GridLayout(cols=1, size_hint_y=None, spacing=15)
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
         
-        # --- Cantrips ---
         cantrip_checkboxes = {}
         if cantrips_to_learn > 0:
             scroll_content.add_widget(Label(text=f"Wähle {cantrips_to_learn} Zaubertrick/s", size_hint_y=None, height=30, font_size='18sp'))
@@ -522,14 +670,14 @@ class CharacterCreator(Screen):
             cantrip_grid.bind(minimum_height=cantrip_grid.setter('height'))
             for spell_name in sorted(all_available_spells.get(0, [])):
                 box = BoxLayout(size_hint_y=None, height=30)
-                cb = CheckBox(size_hint_x=0.2)
+                cb = CheckBox(size_hint_x=0.1)
                 cantrip_checkboxes[spell_name] = cb
+                info_btn = Button(text=spell_name, on_press=partial(self.show_spell_info_popup, spell_name))
                 box.add_widget(cb)
-                box.add_widget(Label(text=spell_name))
+                box.add_widget(info_btn)
                 cantrip_grid.add_widget(box)
             scroll_content.add_widget(cantrip_grid)
 
-        # --- Level 1 Spells ---
         spell_checkboxes = {}
         if spells_to_learn > 0:
             scroll_content.add_widget(Label(text=f"Wähle {spells_to_learn} Zauber des 1. Grades", size_hint_y=None, height=30, font_size='18sp'))
@@ -537,10 +685,11 @@ class CharacterCreator(Screen):
             spell_grid.bind(minimum_height=spell_grid.setter('height'))
             for spell_name in sorted(all_available_spells.get(1, [])):
                 box = BoxLayout(size_hint_y=None, height=30)
-                cb = CheckBox(size_hint_x=0.2)
+                cb = CheckBox(size_hint_x=0.1)
                 spell_checkboxes[spell_name] = cb
+                info_btn = Button(text=spell_name, on_press=partial(self.show_spell_info_popup, spell_name))
                 box.add_widget(cb)
-                box.add_widget(Label(text=spell_name))
+                box.add_widget(info_btn)
                 spell_grid.add_widget(box)
             scroll_content.add_widget(spell_grid)
 
@@ -548,7 +697,6 @@ class CharacterCreator(Screen):
         scroll_view.add_widget(scroll_content)
         popup_content.add_widget(scroll_view)
 
-        # --- Popup Buttons ---
         btn_box = BoxLayout(size_hint_y=None, height=50, spacing=10)
         confirm_btn = Button(text="Bestätigen")
         btn_box.add_widget(confirm_btn)
@@ -582,9 +730,27 @@ class CharacterCreator(Screen):
         character.initialize_character()
         self.manager.get_screen('sheet').load_character(character)
         self.manager.current = 'sheet'
-    
+
+    def show_spell_info_popup(self, spell_name, instance):
+        spell_info = SPELL_DATA.get(spell_name, {})
+        text = (
+            f"[b]Level:[/b] {spell_info.get('level', 'N/A')}\n"
+            f"[b]Schule:[/b] {spell_info.get('school', 'N/A')}\n\n"
+            f"{spell_info.get('desc', 'Keine Beschreibung verfügbar.')}"
+        )
+        self.show_popup(spell_name, text)
+
     def show_popup(self, title, message):
-        Popup(title=title, content=Label(text=message), size_hint=(0.5, 0.5)).open()
+        content = ScrollView()
+        label = Label(text=message, markup=True, size_hint_y=None, padding=(10, 10))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
+        content.add_widget(label)
+        popup = Popup(title=title, content=content, size_hint=(0.8, 0.8))
+        apply_transparency_to_widget(popup.content)
+        popup.open()
 
 class CharacterSheet(Screen):
     """Finaler Charakterbogen mit allen neuen Features."""
@@ -1214,10 +1380,11 @@ class LevelUpScreen(Screen):
             for spell_name in sorted(available_cantrips):
                 if spell_name not in known_cantrips:
                     box = BoxLayout(size_hint_y=None, height=30)
-                    cb = CheckBox(size_hint_x=0.2)
+                    cb = CheckBox(size_hint_x=0.1)
                     new_cantrip_checkboxes[spell_name] = cb
+                    info_btn = Button(text=spell_name, on_press=partial(self.show_spell_info_popup, spell_name))
                     box.add_widget(cb)
-                    box.add_widget(Label(text=spell_name))
+                    box.add_widget(info_btn)
                     cantrip_grid.add_widget(box)
             scroll_content.add_widget(cantrip_grid)
 
@@ -1235,8 +1402,9 @@ class LevelUpScreen(Screen):
                             box = BoxLayout(size_hint_y=None, height=30)
                             cb = CheckBox(size_hint_x=0.1)
                             new_spell_checkboxes[spell_name] = cb
+                            info_btn = Button(text=spell_name, on_press=partial(self.show_spell_info_popup, spell_name))
                             box.add_widget(cb)
-                            box.add_widget(Label(text=spell_name))
+                            box.add_widget(info_btn)
                             spell_grid.add_widget(box)
             scroll_content.add_widget(spell_grid)
 
@@ -1253,10 +1421,15 @@ class LevelUpScreen(Screen):
                 all_possible_replacements.extend(sorted(all_available_spells.get(spell_level, [])))
             
             replacement_spell_spinner = Spinner(text="Wähle Ersatz...", values=list(dict.fromkeys(all_possible_replacements)))
+            
+            info_btn1 = Button(text="?", size_hint_x=0.2, on_press=lambda x: self.show_spell_info_popup(spell_to_replace_spinner.text, x))
+            info_btn2 = Button(text="?", size_hint_x=0.2, on_press=lambda x: self.show_spell_info_popup(replacement_spell_spinner.text, x))
 
             replace_box.add_widget(spell_to_replace_spinner)
+            replace_box.add_widget(info_btn1)
             replace_box.add_widget(Label(text="durch", size_hint_x=0.3))
             replace_box.add_widget(replacement_spell_spinner)
+            replace_box.add_widget(info_btn2)
             scroll_content.add_widget(replace_box)
 
         scroll_view = ScrollView()
@@ -1310,6 +1483,17 @@ class LevelUpScreen(Screen):
         apply_transparency_to_widget(popup_content)
         popup.open()
 
+    def show_spell_info_popup(self, spell_name, instance):
+        if spell_name in ["Keiner", "Wähle Zauber...", "Wähle Ersatz..."]:
+            return
+        spell_info = SPELL_DATA.get(spell_name, {})
+        text = (
+            f"[b]Level:[/b] {spell_info.get('level', 'N/A')}\n"
+            f"[b]Schule:[/b] {spell_info.get('school', 'N/A')}\n\n"
+            f"{spell_info.get('desc', 'Keine Beschreibung verfügbar.')}"
+        )
+        self.show_popup(spell_name, text)
+
     def confirm_level_up(self, instance):
         choices = {}
 
@@ -1334,7 +1518,16 @@ class LevelUpScreen(Screen):
         self.manager.current = 'sheet'
     
     def show_popup(self, title, message):
-        Popup(title=title, content=Label(text=message), size_hint=(0.5, 0.5)).open()
+        content = ScrollView()
+        label = Label(text=message, markup=True, size_hint_y=None, padding=(10, 10))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
+        content.add_widget(label)
+        popup = Popup(title=title, content=content, size_hint=(0.8, 0.8))
+        apply_transparency_to_widget(popup.content)
+        popup.open()
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
