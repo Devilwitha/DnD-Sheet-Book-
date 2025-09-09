@@ -187,8 +187,9 @@ class Character:
                 self.features.extend(class_features[lvl])
 
     def prepare_spellbook(self):
-        """Stellt das Zauberbuch für den Charakter zusammen."""
-        self.spells = CLASS_DATA.get(self.char_class, {}).get("spells", {})
+        """Ensures the spells dictionary exists."""
+        if not hasattr(self, 'spells'):
+            self.spells = {}
 
     def level_up(self, choices):
         self.level += 1
@@ -201,11 +202,72 @@ class Character:
         if "ability_increase" in choices:
             for ability in choices["ability_increase"]:
                 self.base_abilities[ability] += 1
+        
+        # Handle spell choices
+        if "new_cantrips" in choices and choices["new_cantrips"]:
+            if 0 not in self.spells:
+                self.spells[0] = []
+            for cantrip in choices["new_cantrips"]:
+                if cantrip not in self.spells[0]:
+                    self.spells[0].append(cantrip)
+
+        if "new_spells" in choices and choices["new_spells"]:
+            for spell_name in choices["new_spells"]:
+                spell_info = SPELL_DATA.get(spell_name, {})
+                spell_level = spell_info.get("level", -1)
+                if spell_level > 0:
+                    if spell_level not in self.spells:
+                        self.spells[spell_level] = []
+                    if spell_name not in self.spells[spell_level]:
+                        self.spells[spell_level].append(spell_name)
+        
+        if "replaced_spell" in choices and "replacement_spell" in choices:
+            old_spell_name = choices["replaced_spell"]
+            new_spell_name = choices["replacement_spell"]
+            if old_spell_name and new_spell_name and old_spell_name != "Keiner" and new_spell_name != "Keiner":
+                # Remove old spell
+                for level, spell_list in self.spells.items():
+                    if level > 0 and old_spell_name in spell_list:
+                        spell_list.remove(old_spell_name)
+                        # Add new spell
+                        new_spell_info = SPELL_DATA.get(new_spell_name, {})
+                        new_spell_level = new_spell_info.get("level", -1)
+                        if new_spell_level > 0:
+                            if new_spell_level not in self.spells:
+                                self.spells[new_spell_level] = []
+                            if new_spell_name not in self.spells[new_spell_level]:
+                                self.spells[new_spell_level].append(new_spell_name)
+                        break
 
         self.update_race_bonuses_and_speed()
         self.update_features()
         self.calculate_initiative()
         self.calculate_armor_class()
+
+    def normalize_spells(self):
+        """Converts spell dictionary keys to integers for compatibility."""
+        normalized_spells = {}
+        if hasattr(self, 'spells') and self.spells:
+            for level_key, spell_list in self.spells.items():
+                new_key = -1
+                if isinstance(level_key, str):
+                    if level_key == 'cantrips':
+                        new_key = 0
+                    elif 'level' in level_key:
+                        try:
+                            new_key = int(level_key.replace('level', ''))
+                        except ValueError:
+                            continue
+                elif isinstance(level_key, int):
+                    new_key = level_key
+                
+                if new_key != -1:
+                    if new_key not in normalized_spells:
+                        normalized_spells[new_key] = []
+                    for spell in spell_list:
+                        if spell not in normalized_spells[new_key]:
+                            normalized_spells[new_key].append(spell)
+        self.spells = normalized_spells
 
     def calculate_initiative(self):
         self.initiative = (self.abilities["Geschicklichkeit"] - 10) // 2
@@ -426,8 +488,98 @@ class CharacterCreator(Screen):
         character.bonds = self.inputs["Bindungen"].text
         character.flaws = self.inputs["Makel"].text
 
-        character.initialize_character()
+        class_data = CLASS_DATA.get(character.char_class, {})
+        if "progression" in class_data:
+            self.show_initial_spell_selection_popup(character)
+        else:
+            self.finish_character_creation(character)
+
+    def show_initial_spell_selection_popup(self, character):
+        class_data = CLASS_DATA.get(character.char_class, {})
+        progression = class_data.get("progression", {})
+        level_1_prog = progression.get(1, {})
+        if not level_1_prog:
+            self.finish_character_creation(character)
+            return
+
+        cantrips_to_learn = level_1_prog.get("cantrips_known", 0)
+        spells_to_learn = level_1_prog.get("spells_known", 0)
+        all_available_spells = class_data.get("spell_list", {})
+
+        # --- UI Building ---
+        popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        title = Label(text=f"Wähle deine Startzauber für {character.char_class}", font_size='20sp', size_hint_y=None, height=44)
+        popup_content.add_widget(title)
+
+        scroll_content = GridLayout(cols=1, size_hint_y=None, spacing=15)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
         
+        # --- Cantrips ---
+        cantrip_checkboxes = {}
+        if cantrips_to_learn > 0:
+            scroll_content.add_widget(Label(text=f"Wähle {cantrips_to_learn} Zaubertrick/s", size_hint_y=None, height=30, font_size='18sp'))
+            cantrip_grid = GridLayout(cols=2, size_hint_y=None, spacing=5)
+            cantrip_grid.bind(minimum_height=cantrip_grid.setter('height'))
+            for spell_name in sorted(all_available_spells.get(0, [])):
+                box = BoxLayout(size_hint_y=None, height=30)
+                cb = CheckBox(size_hint_x=0.2)
+                cantrip_checkboxes[spell_name] = cb
+                box.add_widget(cb)
+                box.add_widget(Label(text=spell_name))
+                cantrip_grid.add_widget(box)
+            scroll_content.add_widget(cantrip_grid)
+
+        # --- Level 1 Spells ---
+        spell_checkboxes = {}
+        if spells_to_learn > 0:
+            scroll_content.add_widget(Label(text=f"Wähle {spells_to_learn} Zauber des 1. Grades", size_hint_y=None, height=30, font_size='18sp'))
+            spell_grid = GridLayout(cols=2, size_hint_y=None, spacing=5)
+            spell_grid.bind(minimum_height=spell_grid.setter('height'))
+            for spell_name in sorted(all_available_spells.get(1, [])):
+                box = BoxLayout(size_hint_y=None, height=30)
+                cb = CheckBox(size_hint_x=0.2)
+                spell_checkboxes[spell_name] = cb
+                box.add_widget(cb)
+                box.add_widget(Label(text=spell_name))
+                spell_grid.add_widget(box)
+            scroll_content.add_widget(spell_grid)
+
+        scroll_view = ScrollView()
+        scroll_view.add_widget(scroll_content)
+        popup_content.add_widget(scroll_view)
+
+        # --- Popup Buttons ---
+        btn_box = BoxLayout(size_hint_y=None, height=50, spacing=10)
+        confirm_btn = Button(text="Bestätigen")
+        btn_box.add_widget(confirm_btn)
+        popup_content.add_widget(btn_box)
+
+        popup = Popup(title="Startzauber auswählen", content=popup_content, size_hint=(0.9, 0.9), auto_dismiss=False)
+
+        def confirm_choices(instance):
+            selected_cantrips = [name for name, cb in cantrip_checkboxes.items() if cb.active]
+            if cantrips_to_learn > 0 and len(selected_cantrips) != cantrips_to_learn:
+                self.show_popup("Fehler", f"Bitte wähle genau {cantrips_to_learn} Zaubertrick/s.")
+                return
+
+            selected_spells = [name for name, cb in spell_checkboxes.items() if cb.active]
+            if spells_to_learn > 0 and len(selected_spells) != spells_to_learn:
+                self.show_popup("Fehler", f"Bitte wähle genau {spells_to_learn} Zauber des 1. Grades.")
+                return
+
+            character.spells[0] = selected_cantrips
+            character.spells[1] = selected_spells
+            
+            popup.dismiss()
+            self.finish_character_creation(character)
+
+        confirm_btn.bind(on_press=confirm_choices)
+        
+        apply_transparency_to_widget(popup_content)
+        popup.open()
+
+    def finish_character_creation(self, character):
+        character.initialize_character()
         self.manager.get_screen('sheet').load_character(character)
         self.manager.current = 'sheet'
     
@@ -448,6 +600,10 @@ class CharacterSheet(Screen):
 
     def load_character(self, character):
         self.character = character
+        if self.character:
+            # This ensures old character files are compatible with new spell logic
+            if hasattr(self.character, 'normalize_spells'):
+                self.character.normalize_spells()
         self.update_sheet()
 
     def update_sheet(self):
@@ -730,10 +886,14 @@ class CharacterSheet(Screen):
         if not self.character.spells:
             grid.add_widget(Label(text="Dieser Charakter kann nicht zaubern.", size_hint_y=None, height=40))
         else:
-            for spell_level, spell_list in self.character.spells.items():
-                level_name = "Zaubertricks" if spell_level == 'cantrips' else f"Level {spell_level[-1]} Zauber"
+            # Sort by spell level
+            for spell_level in sorted(self.character.spells.keys()):
+                spell_list = self.character.spells[spell_level]
+                if not spell_list: continue # Skip empty levels
+                
+                level_name = "Zaubertricks" if spell_level == 0 else f"Level {spell_level} Zauber"
                 grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=40))
-                for spell_name in spell_list:
+                for spell_name in sorted(spell_list):
                     btn = Button(text=spell_name, size_hint_y=None, height=40)
                     btn.bind(on_press=partial(self.show_spell_details_popup, spell_name))
                     grid.add_widget(btn)
@@ -939,6 +1099,8 @@ class LevelUpScreen(Screen):
         self.character = None
         self.main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         self.add_widget(self.main_layout)
+        self.spell_choices = {}
+        self.ability_choices = {}
 
     def on_pre_enter(self, *args):
         apply_transparency_to_widget(self)
@@ -979,7 +1141,7 @@ class LevelUpScreen(Screen):
 
         # Ability Score Improvement
         self.ability_choices = {}
-        if any("Ability Score Improvement" in f['name'] for f in features):
+        if any("Attributswerterhöhung" in f['name'] for f in features):
             level_up_layout.add_widget(Label(text="Attributsverbesserung (wähle 2):", font_size='20sp', size_hint_y=None, height=40))
             abilities = ["Stärke", "Geschicklichkeit", "Konstitution", "Intelligenz", "Weisheit", "Charisma"]
             for ability in abilities:
@@ -989,6 +1151,14 @@ class LevelUpScreen(Screen):
                 self.ability_choices[ability] = checkbox
                 box.add_widget(checkbox)
                 level_up_layout.add_widget(box)
+        
+        # Spell Selection
+        class_data = CLASS_DATA.get(self.character.char_class, {})
+        if "progression" in class_data:
+            progression = class_data.get("progression", {})
+            if self.character.level + 1 in progression:
+                manage_spells_btn = Button(text="Zauber auswählen", on_press=self.show_spell_selection_popup, size_hint_y=None, height=40)
+                level_up_layout.add_widget(manage_spells_btn)
 
         scroll_view.add_widget(level_up_layout)
         self.main_layout.add_widget(scroll_view)
@@ -1001,6 +1171,145 @@ class LevelUpScreen(Screen):
         btn_layout.add_widget(cancel_btn)
         self.main_layout.add_widget(btn_layout)
 
+    def show_spell_selection_popup(self, instance):
+        class_data = CLASS_DATA.get(self.character.char_class, {})
+        if not class_data or "progression" not in class_data:
+            return
+
+        progression = class_data["progression"]
+        current_level = self.character.level
+        new_level = current_level + 1
+
+        old_prog = progression.get(current_level, {})
+        new_prog = progression.get(new_level, {})
+        if not old_prog or not new_prog:
+            return
+
+        # --- Calculations ---
+        cantrips_to_learn = new_prog["cantrips_known"] - old_prog["cantrips_known"]
+        spells_to_learn = new_prog["spells_known"] - old_prog["spells_known"]
+        can_replace_spell = self.character.char_class == "Barde"
+
+        max_spell_level = 0
+        for level, slots in new_prog["spell_slots"].items():
+            if slots > 0:
+                max_spell_level = max(max_spell_level, int(level))
+
+        known_cantrips = self.character.spells.get(0, [])
+        known_spells_flat = [spell for lvl, spells in self.character.spells.items() if lvl > 0 for spell in spells]
+        
+        all_available_spells = class_data.get("spell_list", {})
+
+        # --- UI Building ---
+        popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        scroll_content = GridLayout(cols=1, size_hint_y=None, spacing=15)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
+        
+        new_cantrip_checkboxes = {}
+        if cantrips_to_learn > 0:
+            scroll_content.add_widget(Label(text=f"Wähle {cantrips_to_learn} neue/n Zaubertrick/s", size_hint_y=None, height=30, font_size='18sp'))
+            cantrip_grid = GridLayout(cols=2, size_hint_y=None, spacing=5)
+            cantrip_grid.bind(minimum_height=cantrip_grid.setter('height'))
+            available_cantrips = all_available_spells.get(0, [])
+            for spell_name in sorted(available_cantrips):
+                if spell_name not in known_cantrips:
+                    box = BoxLayout(size_hint_y=None, height=30)
+                    cb = CheckBox(size_hint_x=0.2)
+                    new_cantrip_checkboxes[spell_name] = cb
+                    box.add_widget(cb)
+                    box.add_widget(Label(text=spell_name))
+                    cantrip_grid.add_widget(box)
+            scroll_content.add_widget(cantrip_grid)
+
+        new_spell_checkboxes = {}
+        if spells_to_learn > 0:
+            scroll_content.add_widget(Label(text=f"Wähle {spells_to_learn} neue/n Zauber (bis Grad {max_spell_level})", size_hint_y=None, height=30, font_size='18sp'))
+            spell_grid = GridLayout(cols=1, size_hint_y=None, spacing=5)
+            spell_grid.bind(minimum_height=spell_grid.setter('height'))
+            for spell_level in range(1, max_spell_level + 1):
+                available_spells_at_level = all_available_spells.get(spell_level, [])
+                if available_spells_at_level:
+                    spell_grid.add_widget(Label(text=f"Grad {spell_level}", font_size='16sp', size_hint_y=None, height=25))
+                    for spell_name in sorted(available_spells_at_level):
+                        if spell_name not in known_spells_flat:
+                            box = BoxLayout(size_hint_y=None, height=30)
+                            cb = CheckBox(size_hint_x=0.1)
+                            new_spell_checkboxes[spell_name] = cb
+                            box.add_widget(cb)
+                            box.add_widget(Label(text=spell_name))
+                            spell_grid.add_widget(box)
+            scroll_content.add_widget(spell_grid)
+
+        spell_to_replace_spinner = None
+        replacement_spell_spinner = None
+        if can_replace_spell and known_spells_flat:
+            scroll_content.add_widget(Label(text="Ersetze einen bekannten Zauber", size_hint_y=None, height=30, font_size='18sp'))
+            replace_box = BoxLayout(size_hint_y=None, height=40, spacing=10)
+            
+            spell_to_replace_spinner = Spinner(text="Wähle Zauber...", values=["Keiner"] + sorted(known_spells_flat))
+            
+            all_possible_replacements = ["Keiner"]
+            for spell_level in range(1, max_spell_level + 1):
+                all_possible_replacements.extend(sorted(all_available_spells.get(spell_level, [])))
+            
+            replacement_spell_spinner = Spinner(text="Wähle Ersatz...", values=list(dict.fromkeys(all_possible_replacements)))
+
+            replace_box.add_widget(spell_to_replace_spinner)
+            replace_box.add_widget(Label(text="durch", size_hint_x=0.3))
+            replace_box.add_widget(replacement_spell_spinner)
+            scroll_content.add_widget(replace_box)
+
+        scroll_view = ScrollView()
+        scroll_view.add_widget(scroll_content)
+        popup_content.add_widget(scroll_view)
+
+        btn_box = BoxLayout(size_hint_y=None, height=50, spacing=10)
+        confirm_btn = Button(text="Bestätigen")
+        cancel_btn = Button(text="Abbrechen")
+        btn_box.add_widget(confirm_btn)
+        btn_box.add_widget(cancel_btn)
+        popup_content.add_widget(btn_box)
+
+        popup = Popup(title="Zauber für Stufenaufstieg auswählen", content=popup_content, size_hint=(0.9, 0.9))
+
+        def confirm_choices(instance):
+            selected_cantrips = [name for name, cb in new_cantrip_checkboxes.items() if cb.active]
+            if cantrips_to_learn > 0 and len(selected_cantrips) != cantrips_to_learn:
+                self.show_popup("Fehler", f"Bitte wähle genau {cantrips_to_learn} Zaubertrick/s.")
+                return
+
+            selected_spells = [name for name, cb in new_spell_checkboxes.items() if cb.active]
+            if spells_to_learn > 0 and len(selected_spells) != spells_to_learn:
+                self.show_popup("Fehler", f"Bitte wähle genau {spells_to_learn} neue/n Zauber.")
+                return
+            
+            spell_to_replace = spell_to_replace_spinner.text if spell_to_replace_spinner else "Keiner"
+            replacement_spell = replacement_spell_spinner.text if replacement_spell_spinner else "Keiner"
+
+            if spell_to_replace != "Keiner" and replacement_spell == "Keiner":
+                self.show_popup("Fehler", "Bitte wähle einen Ersatzzauber aus.")
+                return
+            if spell_to_replace == "Keiner" and replacement_spell != "Keiner":
+                self.show_popup("Fehler", "Bitte wähle einen Zauber zum Ersetzen aus.")
+                return
+            if replacement_spell in known_spells_flat and replacement_spell != spell_to_replace:
+                 self.show_popup("Fehler", f"Du kennst '{replacement_spell}' bereits.")
+                 return
+
+            self.spell_choices['new_cantrips'] = selected_cantrips
+            self.spell_choices['new_spells'] = selected_spells
+            if spell_to_replace != "Keiner" and replacement_spell != "Keiner":
+                self.spell_choices['replaced_spell'] = spell_to_replace
+                self.spell_choices['replacement_spell'] = replacement_spell
+            
+            popup.dismiss()
+
+        confirm_btn.bind(on_press=confirm_choices)
+        cancel_btn.bind(on_press=popup.dismiss)
+        
+        apply_transparency_to_widget(popup_content)
+        popup.open()
+
     def confirm_level_up(self, instance):
         choices = {}
 
@@ -1012,6 +1321,10 @@ class LevelUpScreen(Screen):
 
         if selected_abilities:
             choices["ability_increase"] = selected_abilities
+        
+        # Collect spell choices
+        if self.spell_choices:
+            choices.update(self.spell_choices)
 
         self.character.level_up(choices)
         self.manager.get_screen('sheet').load_character(self.character)

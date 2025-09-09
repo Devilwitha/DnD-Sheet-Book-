@@ -1682,29 +1682,49 @@ CLASS_DATA = {
     "Barde": {
         "hit_die": 8,
         "proficiencies": [
-        "Einfache Waffen",
-        "Handarmbrüste",
-        "Kurzschwerter",
-        "Langschwerter",
-        "Leichte Rüstung",
-        "Rapiere",
-        "Saving Throw: Charisma",
-        "Saving Throw: Geschicklichkeit"
-],
-        "spells": {
-        "cantrips": [
-                "Dancing Lights",
-                "Light",
-                "Mage Hand",
-                "Mending"
+            "Einfache Waffen",
+            "Handarmbrüste",
+            "Kurzschwerter",
+            "Langschwerter",
+            "Leichte Rüstung",
+            "Rapiere",
+            "Saving Throw: Charisma",
+            "Saving Throw: Geschicklichkeit"
         ],
-        "level1": [
-                "Animal Friendship",
-                "Bane",
-                "Charm Person",
-                "Comprehend Languages"
-        ]
-},
+        "progression": {
+            1: {"cantrips_known": 2, "spells_known": 4, "spell_slots": {1: 2, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            2: {"cantrips_known": 2, "spells_known": 5, "spell_slots": {1: 3, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            3: {"cantrips_known": 2, "spells_known": 6, "spell_slots": {1: 4, 2: 2, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            4: {"cantrips_known": 3, "spells_known": 7, "spell_slots": {1: 4, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            5: {"cantrips_known": 3, "spells_known": 8, "spell_slots": {1: 4, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            6: {"cantrips_known": 3, "spells_known": 9, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            7: {"cantrips_known": 3, "spells_known": 10, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            8: {"cantrips_known": 3, "spells_known": 11, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}},
+            9: {"cantrips_known": 3, "spells_known": 12, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0}},
+            10: {"cantrips_known": 4, "spells_known": 14, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 0, 7: 0, 8: 0, 9: 0}},
+            11: {"cantrips_known": 4, "spells_known": 15, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            12: {"cantrips_known": 4, "spells_known": 15, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0, 9: 0}},
+            13: {"cantrips_known": 4, "spells_known": 16, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            14: {"cantrips_known": 4, "spells_known": 18, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 0, 9: 0}},
+            15: {"cantrips_known": 4, "spells_known": 19, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            16: {"cantrips_known": 4, "spells_known": 19, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 0}},
+            17: {"cantrips_known": 4, "spells_known": 20, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1}},
+            18: {"cantrips_known": 4, "spells_known": 22, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}},
+            19: {"cantrips_known": 4, "spells_known": 22, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1}},
+            20: {"cantrips_known": 4, "spells_known": 22, "spell_slots": {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1}},
+        },
+        "spell_list": {
+            0: ["Dancing Lights", "Light", "Mage Hand", "Mending", "Message", "Minor Illusion", "Prestidigitation", "True Strike", "Vicious Mockery"],
+            1: ["Animal Friendship", "Bane", "Charm Person", "Comprehend Languages", "Cure Wounds", "Detect Magic", "Disguise Self", "Faerie Fire", "Feather Fall", "Healing Word", "Heroism", "Hideous Laughter", "Identify", "Illusory Script", "Longstrider", "Silent Image", "Sleep", "Speak with Animals", "Thunderwave", "Unseen Servant"],
+            2: ["Animal Messenger", "Calm Emotions", "Detect Thoughts", "Enhance Ability", "Enthrall", "Heat Metal", "Hold Person", "Invisibility", "Knock", "Lesser Restoration", "Locate Animals or Plants", "Locate Object", "Magic Mouth", "See Invisibility", "Shatter", "Silence", "Suggestion", "Zone of Truth"],
+            3: ["Bestow Curse", "Clairvoyance", "Dispel Magic", "Fear", "Glyph of Warding", "Hypnotic Pattern", "Major Image", "Nondetection", "Plant Growth", "Sending", "Speak with Dead", "Speak with Plants", "Stinking Cloud", "Tiny Hut", "Tongues"],
+            4: ["Confusion", "Dimension Door", "Freedom of Movement", "Greater Invisibility", "Hallucinatory Terrain", "Locate Creature", "Polymorph"],
+            5: ["Animate Objects", "Awaken", "Dominate Person", "Dream", "Geas", "Greater Restoration", "Hold Monster", "Legend Lore", "Mass Cure Wounds", "Mislead", "Modify Memory", "Planar Binding", "Raise Dead", "Scrying", "Seeming", "Teleportation Circle"],
+            6: ["Eyebite", "Find the Path", "Guards and Wards", "Irresistible Dance", "Mass Suggestion", "Programmed Illusion", "True Seeing"],
+            7: ["Arcane Sword", "Etherealness", "Forcecage", "Magnificent Mansion", "Mirage Arcane", "Project Image", "Regenerate", "Resurrection", "Symbol", "Teleport"],
+            8: ["Dominate Monster", "Feeblemind", "Glibness", "Mind Blank", "Power Word Stun"],
+            9: ["Foresight", "Power Word Kill", "True Polymorph"]
+        },
         "features": {
             1: [
                 { "name": "Zauberwirken: Barde", "desc": "Du hast gelernt, das Gewebe der Realität im Einklang mit deinen Wünschen und deiner Musik zu entwirren und neu zu formen. Deine Zauber sind Teil deines riesigen Repertoires, Magie, die du auf verschiedene Situationen abstimmen kannst." },
