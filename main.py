@@ -33,10 +33,12 @@ from ui.level_up_screen import LevelUpScreen
 from ui.character_editor import CharacterEditor
 from ui.info_screen import InfoScreen
 from ui.settings_screen import SettingsScreen
+from ui.splash_screen import SplashScreen
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
     def build(self):
+        Builder.load_file('ui/splashscreen.kv')
         Builder.load_file('ui/mainmenu.kv')
         Builder.load_file('ui/charactercreator.kv')
         Builder.load_file('ui/charactereditor.kv')
@@ -57,6 +59,7 @@ class DnDApp(App):
         root = FloatLayout()
 
         sm = ScreenManager()
+        sm.add_widget(SplashScreen(name='splash'))
         sm.add_widget(MainMenu(name='main'))
         sm.add_widget(CharacterCreator(name='creator'))
         sm.add_widget(CharacterEditor(name='editor'))
