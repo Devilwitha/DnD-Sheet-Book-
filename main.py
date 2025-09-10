@@ -8,7 +8,7 @@ if settings.get('keyboard_enabled', False):
     # Setzt die Höhe der Bildschirmtastatur auf 600 Pixel
     Config.set('kivy', 'keyboard_height', '600')
 else:
-    Config.set('kivy', 'keyboard_mode', 'systemandmulti')
+    Config.set('kivy', 'keyboard_mode', '')
 
 Config.set('graphics', 'rotation', 0)
 

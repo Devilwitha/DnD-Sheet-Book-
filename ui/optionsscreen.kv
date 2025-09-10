@@ -74,6 +74,21 @@
             font_size: '20sp'
 
         Button:
+            text: "Info"
+            on_press: root.switch_to_info()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "Anwendung neustarten"
+            on_press: root.restart_app_popup()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            id: shutdown_button
             text: "System herunterfahren"
             on_press: root.shutdown_system()
             size_hint_y: None

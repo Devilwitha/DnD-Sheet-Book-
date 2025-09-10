@@ -25,9 +25,6 @@ class MainMenu(Screen):
     def switch_to_options(self):
         self.manager.current = 'options'
 
-    def switch_to_info(self):
-        self.manager.current = 'info'
-
     def restart_app(self, dt):
         os.execv(sys.executable, ['python'] + sys.argv)
 

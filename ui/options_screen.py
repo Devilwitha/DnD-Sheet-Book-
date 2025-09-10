@@ -28,6 +28,19 @@ class OptionsScreen(Screen):
         apply_background(self)
         apply_styles_to_widget(self)
 
+        # Show shutdown button only on Linux
+        if not sys.platform.startswith('linux'):
+            self.ids.shutdown_button.size_hint_y = None
+            self.ids.shutdown_button.height = 0
+            self.ids.shutdown_button.disabled = True
+            self.ids.shutdown_button.text = ''
+        else:
+            self.ids.shutdown_button.size_hint_y = None
+            self.ids.shutdown_button.height = 80
+            self.ids.shutdown_button.disabled = False
+            self.ids.shutdown_button.text = 'System herunterfahren'
+
+
     def load_and_apply_settings(self):
         settings = load_settings()
         self.ids.transparency_slider.value = settings.get('button_transparency', 1.0)
@@ -141,6 +154,27 @@ class OptionsScreen(Screen):
         except Exception as e:
             self.popup.content.text = f"Fehler beim Starten des Updaters:\n{e}"
             Clock.schedule_once(lambda x: self.popup.dismiss(), 5)
+
+    def switch_to_info(self):
+        self.manager.current = 'info'
+
+    def restart_app_popup(self):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text='Möchten Sie die Anwendung wirklich neustarten?'))
+        btn_layout = BoxLayout(spacing=10)
+        yes_btn = Button(text="Ja", on_press=self.do_restart, height=80, font_size='20sp')
+        no_btn = Button(text="Nein", on_press=lambda x: self.confirmation_popup.dismiss(), height=80, font_size='20sp')
+        btn_layout.add_widget(yes_btn)
+        btn_layout.add_widget(no_btn)
+        content.add_widget(btn_layout)
+        apply_styles_to_widget(content)
+        self.confirmation_popup = Popup(title="Neustart bestätigen", content=content, size_hint=(0.6, 0.5))
+        self.confirmation_popup.open()
+
+    def do_restart(self, instance):
+        self.confirmation_popup.dismiss()
+        # Nehmen wir an, die App wird mit "python main.py" gestartet
+        os.execv(sys.executable, ['python'] + sys.argv)
 
     def show_version_popup(self):
         try:
