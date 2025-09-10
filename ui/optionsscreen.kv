@@ -60,6 +60,14 @@
             size_hint_y: 0.2
 
         Button:
+            id: wifi_button
+            text: "Wifi"
+            on_press: root.show_wifi_popup()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
             id: update_button
             text: "Nach Updates suchen"
             on_press: root.update_app()
