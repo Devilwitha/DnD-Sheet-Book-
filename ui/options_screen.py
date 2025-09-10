@@ -34,6 +34,7 @@ class OptionsScreen(Screen):
         self.ids.transparency_label.text = f"Button Transparenz: {int(self.ids.transparency_slider.value * 100)}%"
         self.ids.transparency_switch.active = settings.get('transparency_enabled', True)
         self.ids.background_switch.active = settings.get('background_enabled', True)
+        self.ids.keyboard_switch.active = settings.get('keyboard_enabled', sys.platform.startswith('linux'))
 
     def on_transparency_change(self, value):
         settings = load_settings()
@@ -54,6 +55,12 @@ class OptionsScreen(Screen):
         save_settings(settings)
         for screen in self.manager.screens:
             apply_background(screen)
+
+    def on_keyboard_toggle(self, value):
+        settings = load_settings()
+        settings['keyboard_enabled'] = value
+        save_settings(settings)
+        self.show_popup("Neustart erforderlich", "Die Änderung an der Bildschirmtastatur\nwird nach einem Neustart der Anwendung wirksam.")
 
     def show_background_chooser_popup(self):
         content = BoxLayout(orientation='vertical', spacing=10)
