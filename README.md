@@ -64,9 +64,9 @@ Ein digitaler Charakterbogen und ein Zauberbuch für Dungeons & Dragons 5e.
     Wenn Sie Probleme beim Erstellen einer virtuellen Umgebung haben, können Sie die Pakete systemweit installieren. Dies wird nicht empfohlen, da es andere Anwendungen stören kann.
     ```bash
     pip3 install --break-system-packages kivy
-
+    ```
     or
-
+    ```
     pip install -r --break-system-packages requirements.txt
 
     ```
