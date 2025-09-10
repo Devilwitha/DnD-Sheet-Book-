@@ -41,6 +41,15 @@
                 id: background_switch
                 on_active: root.on_background_toggle(self.active)
 
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "Bildschirmtastatur an/aus"
+            Switch:
+                id: keyboard_switch
+                on_active: root.on_keyboard_toggle(self.active)
+
         Button:
             text: "Hintergrundbild wählen"
             on_press: root.show_background_chooser_popup()
@@ -51,6 +60,7 @@
             size_hint_y: 0.2
 
         Button:
+            id: update_button
             text: "Nach Updates suchen"
             on_press: root.update_app()
             size_hint_y: None
@@ -58,13 +68,21 @@
             font_size: '20sp'
 
         Button:
-            text: "Version"
-            on_press: root.show_version_popup()
+            text: "Info"
+            on_press: root.switch_to_info()
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
+            text: "Anwendung neustarten"
+            on_press: root.restart_app_popup()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            id: shutdown_button
             text: "System herunterfahren"
             on_press: root.shutdown_system()
             size_hint_y: None

@@ -1,9 +1,17 @@
+import sys
 from kivy.config import Config
-# Konfiguration für Kivy, bevor andere Module importiert werden
-Config.set('kivy', 'keyboard_mode', 'dock')
+from utils.helpers import load_settings
+
+# Laden der Einstellungen, um die Tastaturkonfiguration zu bestimmen
+settings = load_settings()
+if settings.get('keyboard_enabled', False):
+    Config.set('kivy', 'keyboard_mode', 'dock')
+    # Setzt die Höhe der Bildschirmtastatur auf 600 Pixel
+    Config.set('kivy', 'keyboard_height', '600')
+else:
+    Config.set('kivy', 'keyboard_mode', '')
+
 Config.set('graphics', 'rotation', 0)
-# Setzt die Höhe der Bildschirmtastatur auf 600 Pixel
-Config.set('kivy', 'keyboard_height', '600')
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -17,6 +25,7 @@ from ui.character_sheet import CharacterSheet
 from ui.options_screen import OptionsScreen
 from ui.level_up_screen import LevelUpScreen
 from ui.character_editor import CharacterEditor
+from ui.info_screen import InfoScreen
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
@@ -27,8 +36,14 @@ class DnDApp(App):
         Builder.load_file('ui/charactersheet.kv')
         Builder.load_file('ui/levelupscreen.kv')
         Builder.load_file('ui/optionsscreen.kv')
+        Builder.load_file('ui/infoscreen.kv')
 
-        Window.fullscreen = 'auto'
+        if sys.platform.startswith('linux'):
+            Window.fullscreen = 'auto'
+        else:
+            Window.fullscreen = False
+            Window.size = (1280, 720) # Eine gängige Fenstergröße
+
         Window.clearcolor = (0.1, 0.1, 0.1, 1)
         
         root = FloatLayout()
@@ -39,6 +54,7 @@ class DnDApp(App):
         sm.add_widget(CharacterEditor(name='editor'))
         sm.add_widget(CharacterSheet(name='sheet'))
         sm.add_widget(OptionsScreen(name='options'))
+        sm.add_widget(InfoScreen(name='info'))
         sm.add_widget(LevelUpScreen(name='level_up'))
 
         root.add_widget(sm)

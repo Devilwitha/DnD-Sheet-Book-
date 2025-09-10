@@ -28,12 +28,36 @@ class OptionsScreen(Screen):
         apply_background(self)
         apply_styles_to_widget(self)
 
+        if not sys.platform.startswith('linux'):
+            # Hide shutdown button
+            self.ids.shutdown_button.size_hint_y = None
+            self.ids.shutdown_button.height = 0
+            self.ids.shutdown_button.opacity = 0
+            self.ids.shutdown_button.disabled = True
+            # Hide update button
+            self.ids.update_button.size_hint_y = None
+            self.ids.update_button.height = 0
+            self.ids.update_button.opacity = 0
+            self.ids.update_button.disabled = True
+        else:
+            # Ensure buttons are visible on Linux
+            self.ids.shutdown_button.size_hint_y = None
+            self.ids.shutdown_button.height = 80
+            self.ids.shutdown_button.opacity = 1
+            self.ids.shutdown_button.disabled = False
+            self.ids.update_button.size_hint_y = None
+            self.ids.update_button.height = 80
+            self.ids.update_button.opacity = 1
+            self.ids.update_button.disabled = False
+
+
     def load_and_apply_settings(self):
         settings = load_settings()
         self.ids.transparency_slider.value = settings.get('button_transparency', 1.0)
         self.ids.transparency_label.text = f"Button Transparenz: {int(self.ids.transparency_slider.value * 100)}%"
         self.ids.transparency_switch.active = settings.get('transparency_enabled', True)
         self.ids.background_switch.active = settings.get('background_enabled', True)
+        self.ids.keyboard_switch.active = settings.get('keyboard_enabled', sys.platform.startswith('linux'))
 
     def on_transparency_change(self, value):
         settings = load_settings()
@@ -54,6 +78,12 @@ class OptionsScreen(Screen):
         save_settings(settings)
         for screen in self.manager.screens:
             apply_background(screen)
+
+    def on_keyboard_toggle(self, value):
+        settings = load_settings()
+        settings['keyboard_enabled'] = value
+        save_settings(settings)
+        self.show_popup("Neustart erforderlich", "Die Änderung an der Bildschirmtastatur\nwird nach einem Neustart der Anwendung wirksam.")
 
     def show_background_chooser_popup(self):
         content = BoxLayout(orientation='vertical', spacing=10)
@@ -135,13 +165,23 @@ class OptionsScreen(Screen):
             self.popup.content.text = f"Fehler beim Starten des Updaters:\n{e}"
             Clock.schedule_once(lambda x: self.popup.dismiss(), 5)
 
-    def show_version_popup(self):
-        try:
-            with open("version.txt", "r", encoding="utf-8") as f:
-                version_info = f.read()
-        except FileNotFoundError:
-            version_info = "version.txt nicht gefunden."
-        except Exception as e:
-            version_info = f"Fehler beim Lesen der Version:\n{e}"
-        popup = Popup(title="Version", content=Label(text=version_info), size_hint=(0.7, 0.5))
-        popup.open()
+    def switch_to_info(self):
+        self.manager.current = 'info'
+
+    def restart_app_popup(self):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text='Möchten Sie die Anwendung wirklich neustarten?'))
+        btn_layout = BoxLayout(spacing=10)
+        yes_btn = Button(text="Ja", on_press=self.do_restart, height=80, font_size='20sp')
+        no_btn = Button(text="Nein", on_press=lambda x: self.confirmation_popup.dismiss(), height=80, font_size='20sp')
+        btn_layout.add_widget(yes_btn)
+        btn_layout.add_widget(no_btn)
+        content.add_widget(btn_layout)
+        apply_styles_to_widget(content)
+        self.confirmation_popup = Popup(title="Neustart bestätigen", content=content, size_hint=(0.6, 0.5))
+        self.confirmation_popup.open()
+
+    def do_restart(self, instance):
+        self.confirmation_popup.dismiss()
+        # Nehmen wir an, die App wird mit "python main.py" gestartet
+        os.execv(sys.executable, ['python'] + sys.argv)
