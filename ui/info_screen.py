@@ -20,7 +20,7 @@ class InfoScreen(Screen):
         self.ids.os_version.text = f"Betriebssystem: {self.get_os_version()}"
         self.ids.resolution.text = f"Auflösung: {self.get_screen_resolution()}"
         self.ids.folder_size.text = f"Größe des App-Ordners: {self.get_folder_size()} MB"
-        self.ids.version_info.text = f"Version: {self.get_version_info()}"
+        self.ids.version_info.text = self.get_version_info()
 
     def get_version_info(self):
         """Liest die Versionsinformationen aus der version.txt-Datei."""

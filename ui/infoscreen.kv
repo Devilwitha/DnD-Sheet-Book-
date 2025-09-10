@@ -12,60 +12,86 @@
             bold: True
 
         BoxLayout:
-            orientation: 'vertical'
-            padding: 10
-            spacing: 10
+            orientation: 'horizontal'
+            spacing: 20
             size_hint_y: 1
 
-            Label:
-                id: raspberry_model
-                text: "Raspberry Pi Modell: "
-                font_size: '18sp'
-                halign: 'left'
-                valign: 'middle'
-                text_size: self.width, None
-                size_hint_y: None
-                height: 50
+            # Left Column for System Info
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                spacing: 10
+                size_hint_x: 0.6
 
-            Label:
-                id: os_version
-                text: "Betriebssystem: "
-                font_size: '18sp'
-                halign: 'left'
-                valign: 'middle'
-                text_size: self.width, None
-                size_hint_y: None
-                height: 50
+                Label:
+                    text: "System"
+                    font_size: '22sp'
+                    bold: True
+                    size_hint_y: None
+                    height: 40
 
-            Label:
-                id: resolution
-                text: "Auflösung: "
-                font_size: '18sp'
-                halign: 'left'
-                valign: 'middle'
-                text_size: self.width, None
-                size_hint_y: None
-                height: 50
+                Label:
+                    id: raspberry_model
+                    text: "Raspberry Pi Modell: "
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
 
-            Label:
-                id: folder_size
-                text: "Größe des App-Ordners: "
-                font_size: '18sp'
-                halign: 'left'
-                valign: 'middle'
-                text_size: self.width, None
-                size_hint_y: None
-                height: 50
+                Label:
+                    id: os_version
+                    text: "Betriebssystem: "
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
 
-            Label:
-                id: version_info
-                text: "Version: "
-                font_size: '18sp'
-                halign: 'left'
-                valign: 'middle'
-                text_size: self.width, None
-                size_hint_y: None
-                height: 50
+                Label:
+                    id: resolution
+                    text: "Auflösung: "
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
+
+                Label:
+                    id: folder_size
+                    text: "Größe des App-Ordners: "
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
+
+            # Right Column for Version Info
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                spacing: 10
+                size_hint_x: 0.4
+
+                Label:
+                    text: "Version"
+                    font_size: '22sp'
+                    bold: True
+                    size_hint_y: None
+                    height: 40
+
+                Label:
+                    id: version_info
+                    text: ""
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: 1
 
         BoxLayout:
             size_hint_y: 0.5
