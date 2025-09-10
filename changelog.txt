@@ -1,0 +1,38 @@
+==========================================
+Build Version:                10.09.2025
+
+Gui Version:               0.5.14 Alpha
+Firmware Version:          0.2.0 M33
+Updater Version:           1.0.0
+
+DnD E-Sheet & Book Version:   
+- DE: 1.4
+
+------------------------------------------
+feat: Add System/Changelog screens and refactor Options menu
+
+This commit introduces a significant refactoring of the options menu into multiple sub-screens and adds a new changelog feature.
+
+- **Options Screen Refactoring:**
+  - The `OptionsScreen` has been further refactored. It now navigates to two new sub-menus: "Gui Einstellungen" (`SettingsScreen`) and "System Einstellungen" (`SystemScreen`).
+  - The `SystemScreen` now contains the buttons for restarting the app, shutting down the system, and checking for updates.
+
+- **New Changelog Screen:**
+  - A `changelog.txt` file has been added to the repository.
+  - A new "Changelog" button on the `SystemScreen` leads to a new, dedicated `ChangelogScreen`.
+  - This screen displays the contents of `changelog.txt` in a scrollable view.
+===========================================
+===========================================
+
+Version 1.2.0 (Current)
+- Added a new splash screen on startup.
+- Refactored the Options screen into "Gui Einstellungen" and "System Einstellungen".
+- Added a new Changelog screen.
+- Application window size is now saved and restored.
+
+Version 1.1.0
+- Added configurable backgrounds for character creation and character sheet screens.
+- Default background for these screens is now csbg.png.
+
+Version 1.0.0
+- Initial release.
