@@ -14,7 +14,8 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 from kivy.properties import ObjectProperty
 from kivy.clock import Clock
-from kivy3 import Scene, Renderer, PerspectiveCamera, DirectionalLight
+from kivy3 import Scene, Renderer, PerspectiveCamera
+from kivy3.light import Light
 from .stl_loader import STLLoader
 
 from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
@@ -29,11 +30,10 @@ class CharacterSheet(Screen):
         self.character = None
         self.currency_labels = {}
         self.scene = Scene()
-        light = DirectionalLight(color=(1, 1, 1), intensity=0.7)
-        light.pos.z = 1
-        self.scene.add(light)
         self.renderer = Renderer()
         self.renderer.scene = self.scene
+        light = Light(renderer=self.renderer, intensity=1.0)
+        light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
 
     def on_pre_enter(self, *args):
