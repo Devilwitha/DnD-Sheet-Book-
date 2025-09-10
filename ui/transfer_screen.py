@@ -1,11 +1,14 @@
 from kivy.uix.screenmanager import Screen
 from kivy.properties import StringProperty, ListProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 from utils.helpers import apply_background, apply_styles_to_widget
 import os
 import socket
 import threading
 import time
+from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo
+import platform
 
 class FileCheckBox(BoxLayout):
     text = StringProperty('')
@@ -23,14 +26,27 @@ class TransferScreen(Screen):
     """Screen for sending and receiving character files."""
     status_message = StringProperty("Wähle eine Aktion")
     char_files = ListProperty([])
+    discovered_services = ListProperty([])
 
     def __init__(self, **kwargs):
         super(TransferScreen, self).__init__(**kwargs)
         self.selected_files = []
+        self.zeroconf = Zeroconf()
+        self.browser = None
+        self.service_info = None
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        self.bind(discovered_services=self.update_service_list)
+
+    def update_service_list(self, *args):
+        service_list_widget = self.ids.service_list
+        service_list_widget.clear_widgets()
+        for info in self.discovered_services:
+            btn = Button(text=info.name, size_hint_y=None, height=80, font_size='20sp')
+            btn.bind(on_press=lambda x, info=info: self.connect_to_sender(info))
+            service_list_widget.add_widget(btn)
 
     def list_char_files(self):
         self.char_files = [f for f in os.listdir('.') if f.endswith('.char')]
@@ -56,40 +72,54 @@ class TransferScreen(Screen):
     def _start_server(self):
         host = '0.0.0.0'
         port = 65432
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((host, port))
-            s.listen()
-            self.status_message = f"Server lauscht auf {socket.gethostbyname(socket.gethostname())}:{port}"
-            conn, addr = s.accept()
-            with conn:
-                self.status_message = f"Verbunden mit {addr}"
-                # Send number of files
-                num_files = len(self.selected_files)
-                conn.sendall(str(num_files).encode('utf-8'))
-                time.sleep(0.1) # Give client time to process
 
-                for file_path in self.selected_files:
-                    # Send filename
-                    conn.sendall(file_path.encode('utf-8'))
+        # Register Zeroconf service
+        service_name = f"{platform.node()}._dndchar._tcp.local."
+        self.service_info = ServiceInfo(
+            "_dndchar._tcp.local.",
+            service_name,
+            addresses=[socket.inet_aton(socket.gethostbyname(socket.gethostname()))],
+            port=port,
+            properties={'user': platform.node()}
+        )
+        self.zeroconf.register_service(self.service_info)
+        self.status_message = f"Server gestartet, sichtbar als '{platform.node()}'"
+
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind((host, port))
+                s.listen()
+                conn, addr = s.accept()
+                with conn:
+                    self.status_message = f"Verbunden mit {addr}"
+                    # Send number of files
+                    num_files = len(self.selected_files)
+                    conn.sendall(str(num_files).encode('utf-8'))
                     time.sleep(0.1)
 
-                    # Send file content
-                    with open(file_path, 'rb') as f:
-                        data = f.read()
-                        conn.sendall(str(len(data)).encode('utf-8')) # Send file size
+                    for file_path in self.selected_files:
+                        conn.sendall(file_path.encode('utf-8'))
                         time.sleep(0.1)
-                        conn.sendall(data)
-                self.status_message = f"{num_files} Dateien erfolgreich gesendet."
+                        with open(file_path, 'rb') as f:
+                            data = f.read()
+                            conn.sendall(str(len(data)).encode('utf-8'))
+                            time.sleep(0.1)
+                            conn.sendall(data)
+                    self.status_message = f"{num_files} Dateien erfolgreich gesendet."
+        finally:
+            self.zeroconf.unregister_service(self.service_info)
+            self.service_info = None
+            self.status_message = "Übertragung beendet."
 
-    def receive_files(self, server_ip):
-        if not server_ip:
-            self.status_message = "Bitte gib eine IP-Adresse ein."
-            return
 
-        self.status_message = f"Verbinde mit {server_ip}..."
-        threading.Thread(target=self._start_client, args=(server_ip,)).start()
+    def connect_to_sender(self, service_info):
+        host = socket.inet_ntoa(service_info.addresses[0])
+        port = service_info.port
+        self.status_message = f"Verbinde mit {service_info.name}..."
+        threading.Thread(target=self._start_client, args=(host, port)).start()
+        self.stop_service_browser()
 
-    def _start_client(self, host):
+    def _start_client(self, host, port):
         port = 65432
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -124,27 +154,52 @@ class TransferScreen(Screen):
                 self.status_message = f"Fehler beim Empfangen: {e}"
 
     def go_to_send_view(self):
-        self.ids.send_receive_buttons.opacity = 0
-        self.ids.send_receive_buttons.size_hint_y = 0
-        self.ids.file_list_view.opacity = 1
-        self.ids.file_list_view.size_hint_y = 1
         self.list_char_files()
+        # Populate the file list
+        file_list_widget = self.ids.file_list
+        file_list_widget.clear_widgets()
+        for f in self.char_files:
+            cb = FileCheckBox(text=f, on_active=self.toggle_file_selection)
+            file_list_widget.add_widget(cb)
+        self.ids.transfer_sm.current = 'send'
 
     def go_to_receive_view(self):
-        self.ids.send_receive_buttons.opacity = 0
-        self.ids.send_receive_buttons.size_hint_y = 0
-        self.ids.file_list_view.opacity = 0
-        self.ids.file_list_view.size_hint_y = 0
-        self.ids.receive_view.opacity = 1
-        self.ids.receive_view.size_hint_y = 1
-        self.status_message = "Bereit zum Empfangen. Gib die IP des Senders ein."
-
+        self.status_message = "Suche nach Sendern..."
+        self.ids.transfer_sm.current = 'receive'
+        self.start_service_browser()
 
     def back_to_main_transfer(self):
-        self.ids.send_receive_buttons.opacity = 1
-        self.ids.send_receive_buttons.size_hint_y = 1
-        self.ids.file_list_view.opacity = 0
-        self.ids.file_list_view.size_hint_y = 0
-        self.ids.receive_view.opacity = 0
-        self.ids.receive_view.size_hint_y = 0
+        self.stop_service_browser()
+        self.ids.transfer_sm.current = 'main'
         self.status_message = "Wähle eine Aktion"
+
+    def start_service_browser(self):
+        if self.browser is None:
+            self.discovered_services.clear()
+            listener = ServiceListener(self)
+            self.browser = ServiceBrowser(self.zeroconf, "_dndchar._tcp.local.", listener)
+
+    def stop_service_browser(self):
+        if self.browser:
+            self.browser.cancel()
+            self.browser = None
+
+class ServiceListener:
+    def __init__(self, screen):
+        self.screen = screen
+
+    def add_service(self, zeroconf, type, name):
+        info = zeroconf.get_service_info(type, name)
+        if info:
+            self.screen.discovered_services.append(info)
+            self.screen.status_message = f"{len(self.screen.discovered_services)} Sender gefunden."
+
+    def remove_service(self, zeroconf, type, name):
+        info = zeroconf.get_service_info(type, name)
+        if info in self.screen.discovered_services:
+            self.screen.discovered_services.remove(info)
+            self.screen.status_message = f"{len(self.screen.discovered_services)} Sender gefunden."
+
+    def update_service(self, zeroconf, type, name):
+        # For now, we don't need to handle updates
+        pass
