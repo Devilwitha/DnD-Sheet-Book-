@@ -1,0 +1,77 @@
+<SettingsScreen>:
+    BoxLayout:
+        id: settings_layout
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Einstellungen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Label:
+            id: transparency_label
+            size_hint_y: None
+            height: 40
+
+        Slider:
+            id: transparency_slider
+            min: 0.1
+            max: 1.0
+            size_hint_y: None
+            height: 40
+            on_value: root.on_transparency_change(self.value)
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "Transparenz an/aus"
+            Switch:
+                id: transparency_switch
+                on_active: root.on_transparency_toggle(self.active)
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "Hintergrund anzeigen"
+            Switch:
+                id: background_switch
+                on_active: root.on_background_toggle(self.active)
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "Bildschirmtastatur an/aus"
+            Switch:
+                id: keyboard_switch
+                on_active: root.on_keyboard_toggle(self.active)
+
+        Button:
+            text: "Hintergründe"
+            on_press: root.show_background_options_popup()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            id: wifi_button
+            text: "Wifi"
+            on_press: root.show_wifi_popup()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        BoxLayout:
+            size_hint_y: 1.0 # Spacer
+
+        Button:
+            text: "Zurück zu den Optionen"
+            on_press: root.manager.current = 'options'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
