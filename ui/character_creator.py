@@ -197,8 +197,8 @@ class CharacterCreator(Screen):
         character.flaws = self.inputs["Makel"].text
 
         character.stl_file_path = self.stl_path
-        character.camera_position = self.camera.position.xyz
-        character.camera_rotation = self.camera.rotation.xyz
+        character.camera_position = (self.camera.position.x, self.camera.position.y, self.camera.position.z)
+        character.camera_rotation = (self.camera.rotation.x, self.camera.rotation.y, self.camera.rotation.z)
         character.camera_zoom = self.camera.zoom
 
         class_data = CLASS_DATA.get(character.char_class, {})

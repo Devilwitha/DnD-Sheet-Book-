@@ -52,9 +52,13 @@ class CharacterSheet(Screen):
             if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path:
                 self.load_model(self.character.stl_file_path)
                 if self.character.camera_position:
-                    self.camera.position.xyz = self.character.camera_position
+                    self.camera.position.x = self.character.camera_position[0]
+                    self.camera.position.y = self.character.camera_position[1]
+                    self.camera.position.z = self.character.camera_position[2]
                 if self.character.camera_rotation:
-                    self.camera.rotation.xyz = self.character.camera_rotation
+                    self.camera.rotation.x = self.character.camera_rotation[0]
+                    self.camera.rotation.y = self.character.camera_rotation[1]
+                    self.camera.rotation.z = self.character.camera_rotation[2]
                 if self.character.camera_zoom:
                     self.camera.zoom = self.character.camera_zoom
         self.update_sheet()
