@@ -1,0 +1,12 @@
+Version 1.2.0 (Current)
+- Added a new splash screen on startup.
+- Refactored the Options screen into "Gui Einstellungen" and "System Einstellungen".
+- Added a new Changelog screen.
+- Application window size is now saved and restored.
+
+Version 1.1.0
+- Added configurable backgrounds for character creation and character sheet screens.
+- Default background for these screens is now csbg.png.
+
+Version 1.0.0
+- Initial release.

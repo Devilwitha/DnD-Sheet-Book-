@@ -1,0 +1,52 @@
+<SystemScreen>:
+    BoxLayout:
+        id: system_layout
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "System Einstellungen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Button:
+            id: update_button
+            text: "Nach Updates suchen"
+            on_press: root.update_app()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "Changelog"
+            on_press: root.manager.current = 'changelog'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "Anwendung neustarten"
+            on_press: root.restart_app_popup()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            id: shutdown_button
+            text: "System herunterfahren"
+            on_press: root.shutdown_system()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        BoxLayout:
+            size_hint_y: 1.0 # Spacer
+
+        Button:
+            text: "Zurück zu den Optionen"
+            on_press: root.manager.current = 'options'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

@@ -11,16 +11,15 @@
             height: 80
 
         Button:
-            text: "Einstellungen"
+            text: "Gui Einstellungen"
             on_press: root.manager.current = 'settings'
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
-            id: update_button
-            text: "Nach Updates suchen"
-            on_press: root.update_app()
+            text: "System Einstellungen"
+            on_press: root.manager.current = 'system'
             size_hint_y: None
             height: 80
             font_size: '20sp'
@@ -28,21 +27,6 @@
         Button:
             text: "Info"
             on_press: root.switch_to_info()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            text: "Anwendung neustarten"
-            on_press: root.restart_app_popup()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            id: shutdown_button
-            text: "System herunterfahren"
-            on_press: root.shutdown_system()
             size_hint_y: None
             height: 80
             font_size: '20sp'

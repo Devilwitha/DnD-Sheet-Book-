@@ -1,0 +1,26 @@
+<ChangelogScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Changelog"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        ScrollView:
+            Label:
+                text: root.changelog_text
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: self.width, None
+                padding: 10, 10
+
+        Button:
+            text: "Zurück zu den System Einstellungen"
+            on_press: root.manager.current = 'system'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
