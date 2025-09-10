@@ -72,7 +72,7 @@ class SystemScreen(Screen):
             if sys.platform == "win32":
                 os.system("shutdown /s /t 1")
             elif sys.platform.startswith('linux'):
-                os.system("shutdown now")
+                os.system("sudo shutdown now")
             else:
                 self.show_popup("Nicht unterstützt", f"Herunterfahren wird auf '{sys.platform}' nicht unterstützt.")
         except Exception as e:
@@ -130,7 +130,7 @@ class SystemScreen(Screen):
         self.confirmation_popup.dismiss()
         try:
             if sys.platform.startswith('linux'):
-                os.system("reboot now")
+                os.system("sudo reboot")
             else:
                 self.show_popup("Nicht unterstützt", f"Neustart wird auf '{sys.platform}' nicht unterstützt.")
         except Exception as e:
