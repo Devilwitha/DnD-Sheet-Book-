@@ -2,7 +2,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.properties import StringProperty, ListProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, get_local_ip
 import os
 import socket
 import threading
@@ -75,10 +75,11 @@ class TransferScreen(Screen):
 
         # Register Zeroconf service
         service_name = f"{platform.node()}._dndchar._tcp.local."
+        local_ip = get_local_ip()
         self.service_info = ServiceInfo(
             "_dndchar._tcp.local.",
             service_name,
-            addresses=[socket.inet_aton(socket.gethostbyname(socket.gethostname()))],
+            addresses=[socket.inet_aton(local_ip)],
             port=port,
             properties={'user': platform.node()}
         )

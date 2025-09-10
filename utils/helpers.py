@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import socket
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.graphics import Color, RoundedRectangle
@@ -104,3 +105,24 @@ def apply_background(screen):
                 screen.add_widget(background, index=len(screen.children))
             except Exception as e:
                 print(f"Fehler beim Laden des Hintergrundbildes: {e}")
+
+def get_local_ip():
+    """
+    Ermittelt die lokale IP-Adresse des Rechners auf eine betriebssystemunabhängige Weise.
+    """
+    s = None
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Muss keine erreichbare Adresse sein, der Socket wird nicht wirklich senden
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        # Fallback, falls die obige Methode fehlschlägt
+        try:
+            IP = socket.gethostbyname(socket.gethostname())
+        except Exception:
+            IP = '127.0.0.1' # Letzter Ausweg
+    finally:
+        if s:
+            s.close()
+    return IP
