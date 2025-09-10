@@ -14,7 +14,7 @@ from kivy.clock import Clock
 from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
 from kivy.uix.filechooser import FileChooserListView
-from kivy3 import Scene, Renderer, PerspectiveCamera
+from kivy3 import Scene, Renderer, PerspectiveCamera, DirectionalLight
 from .stl_loader import STLLoader
 from data_manager import (
     RACE_DATA, CLASS_DATA, ALIGNMENT_DATA, BACKGROUND_DATA,
@@ -30,6 +30,9 @@ class CharacterCreator(Screen):
         self.inputs = {}
         self.ability_scores_labels = {}
         self.scene = Scene()
+        light = DirectionalLight(color=(1, 1, 1), intensity=0.7)
+        light.pos.z = 1
+        self.scene.add(light)
         self.renderer = Renderer()
         self.renderer.scene = self.scene
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
@@ -546,6 +549,10 @@ class CharacterCreator(Screen):
         loader = STLLoader()
         obj = loader.load(self.stl_path)
         self.scene.add(obj)
+
+        # Set initial camera position
+        self.camera.position.z = 40 # Move camera back
+        self.camera.look_at([0,0,0])
 
         placeholder = self.ids.stl_viewer_placeholder
         if not self.renderer.parent:
