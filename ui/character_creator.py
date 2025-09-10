@@ -107,7 +107,7 @@ class CharacterCreator(Screen):
         # Add the 3D viewer and button
         container = GridLayout(cols=1, size_hint_y=None, height=400)
         viewer_layout = BoxLayout(orientation='vertical')
-        stl_viewer_placeholder = BoxLayout(id='stl_viewer_placeholder')
+        stl_viewer_placeholder = BoxLayout()
         self.ids.stl_viewer_placeholder = stl_viewer_placeholder
         viewer_layout.add_widget(stl_viewer_placeholder)
         file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
