@@ -1,3 +1,4 @@
+import sys
 from kivy.config import Config
 from utils.helpers import load_settings
 
@@ -37,7 +38,12 @@ class DnDApp(App):
         Builder.load_file('ui/optionsscreen.kv')
         Builder.load_file('ui/infoscreen.kv')
 
-        Window.fullscreen = 'auto'
+        if sys.platform.startswith('linux'):
+            Window.fullscreen = 'auto'
+        else:
+            Window.fullscreen = False
+            Window.size = (1280, 720) # Eine gängige Fenstergröße
+
         Window.clearcolor = (0.1, 0.1, 0.1, 1)
         
         root = FloatLayout()

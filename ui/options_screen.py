@@ -28,17 +28,27 @@ class OptionsScreen(Screen):
         apply_background(self)
         apply_styles_to_widget(self)
 
-        # Show shutdown button only on Linux
         if not sys.platform.startswith('linux'):
+            # Hide shutdown button
             self.ids.shutdown_button.size_hint_y = None
             self.ids.shutdown_button.height = 0
+            self.ids.shutdown_button.opacity = 0
             self.ids.shutdown_button.disabled = True
-            self.ids.shutdown_button.text = ''
+            # Hide update button
+            self.ids.update_button.size_hint_y = None
+            self.ids.update_button.height = 0
+            self.ids.update_button.opacity = 0
+            self.ids.update_button.disabled = True
         else:
+            # Ensure buttons are visible on Linux
             self.ids.shutdown_button.size_hint_y = None
             self.ids.shutdown_button.height = 80
+            self.ids.shutdown_button.opacity = 1
             self.ids.shutdown_button.disabled = False
-            self.ids.shutdown_button.text = 'System herunterfahren'
+            self.ids.update_button.size_hint_y = None
+            self.ids.update_button.height = 80
+            self.ids.update_button.opacity = 1
+            self.ids.update_button.disabled = False
 
 
     def load_and_apply_settings(self):
@@ -175,14 +185,3 @@ class OptionsScreen(Screen):
         self.confirmation_popup.dismiss()
         # Nehmen wir an, die App wird mit "python main.py" gestartet
         os.execv(sys.executable, ['python'] + sys.argv)
-
-    def show_version_popup(self):
-        try:
-            with open("version.txt", "r", encoding="utf-8") as f:
-                version_info = f.read()
-        except FileNotFoundError:
-            version_info = "version.txt nicht gefunden."
-        except Exception as e:
-            version_info = f"Fehler beim Lesen der Version:\n{e}"
-        popup = Popup(title="Version", content=Label(text=version_info), size_hint=(0.7, 0.5))
-        popup.open()

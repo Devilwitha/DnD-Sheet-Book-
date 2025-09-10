@@ -57,13 +57,23 @@
                 size_hint_y: None
                 height: 50
 
+            Label:
+                id: version_info
+                text: "Version: "
+                font_size: '18sp'
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.width, None
+                size_hint_y: None
+                height: 50
+
         BoxLayout:
             size_hint_y: 0.5
 
 
         Button:
-            text: "Zurück zum Hauptmenü"
-            on_press: root.manager.current = 'main'
+            text: "Zurück zu den Optionen"
+            on_press: root.manager.current = 'options'
             size_hint_y: None
             height: 80
             font_size: '20sp'

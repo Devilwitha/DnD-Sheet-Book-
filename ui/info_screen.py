@@ -20,6 +20,17 @@ class InfoScreen(Screen):
         self.ids.os_version.text = f"Betriebssystem: {self.get_os_version()}"
         self.ids.resolution.text = f"Auflösung: {self.get_screen_resolution()}"
         self.ids.folder_size.text = f"Größe des App-Ordners: {self.get_folder_size()} MB"
+        self.ids.version_info.text = f"Version: {self.get_version_info()}"
+
+    def get_version_info(self):
+        """Liest die Versionsinformationen aus der version.txt-Datei."""
+        try:
+            with open("version.txt", "r", encoding="utf-8") as f:
+                return f.read().strip()
+        except FileNotFoundError:
+            return "version.txt nicht gefunden"
+        except Exception as e:
+            return f"Fehler: {e}"
 
     def get_raspberry_pi_model(self):
         """Liest das Raspberry Pi Modell aus /proc/cpuinfo."""
