@@ -19,7 +19,9 @@ def load_settings():
         'background_path': 'osbackground/hmbg.png',
         'cs_creator_background_path': 'osbackground/csbg.png',
         'cs_sheet_background_path': 'osbackground/csbg.png',
-        'keyboard_enabled': keyboard_default
+        'keyboard_enabled': keyboard_default,
+        'window_width': 1280,
+        'window_height': 720
     }
     if not os.path.exists(SETTINGS_FILE):
         return defaults
