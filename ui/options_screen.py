@@ -134,6 +134,46 @@ class OptionsScreen(Screen):
 
         popup.open()
 
+    def show_cs_creator_background_chooser_popup(self):
+        self._show_background_chooser('cs_creator_background_path')
+
+    def show_cs_sheet_background_chooser_popup(self):
+        self._show_background_chooser('cs_sheet_background_path')
+
+    def _show_background_chooser(self, setting_key):
+        content = BoxLayout(orientation='vertical', spacing=10)
+        initial_path = os.path.abspath(".")
+        filechooser = FileChooserListView(path=initial_path, filters=['*.png', '*.jpg', '*.jpeg', '*.bmp'])
+        content.add_widget(filechooser)
+
+        button_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
+        select_btn = Button(text="Auswählen")
+        cancel_btn = Button(text="Abbrechen")
+        button_layout.add_widget(select_btn)
+        button_layout.add_widget(cancel_btn)
+        content.add_widget(button_layout)
+
+        popup = Popup(title="Hintergrundbild auswählen", content=content, size_hint=(0.9, 0.9))
+
+        def select_file(instance):
+            if filechooser.selection:
+                selected_path = filechooser.selection[0]
+                if os.path.isfile(selected_path):
+                    settings = load_settings()
+                    settings[setting_key] = selected_path
+                    save_settings(settings)
+                    popup.dismiss()
+                    for screen in self.manager.screens:
+                        apply_background(screen)
+                else:
+                    self.show_popup("Fehler", "Bitte eine Datei auswählen.")
+            else:
+                self.show_popup("Fehler", "Keine Datei ausgewählt.")
+
+        select_btn.bind(on_press=select_file)
+        cancel_btn.bind(on_press=popup.dismiss)
+        popup.open()
+
     def shutdown_system(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         content.add_widget(Label(text='Möchten Sie das System wirklich herunterfahren?'))
