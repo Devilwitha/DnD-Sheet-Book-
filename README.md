@@ -56,7 +56,7 @@ Ein digitaler Charakterbogen und ein Zauberbuch für Dungeons & Dragons 5e.
     ```
     Installieren Sie nun Kivy und andere Abhängigkeiten. Ihre Terminal-Eingabeaufforderung sollte `(.venv)` anzeigen.
     ```bash
-    pip install kivy
+    pip install -r requirements.txt
     ```
     Um die App später auszuführen, müssen Sie die virtuelle Umgebung erneut mit `source .venv/bin/activate` aktivieren.
 
@@ -65,6 +65,11 @@ Ein digitaler Charakterbogen und ein Zauberbuch für Dungeons & Dragons 5e.
     Wenn Sie Probleme beim Erstellen einer virtuellen Umgebung haben, können Sie die Pakete systemweit installieren. Dies wird nicht empfohlen, da es andere Anwendungen stören kann.
     ```bash
     pip3 install --break-system-packages kivy
+
+    or
+
+    pip install -r --break-system-packages requirements.txt
+
     ```
 
 ### Manueller Start
