@@ -28,6 +28,11 @@ class SystemScreen(Screen):
             self.ids.shutdown_button.height = 0
             self.ids.shutdown_button.opacity = 0
             self.ids.shutdown_button.disabled = True
+            # Hide restart button
+            self.ids.restart_button.size_hint_y = None
+            self.ids.restart_button.height = 0
+            self.ids.restart_button.opacity = 0
+            self.ids.restart_button.disabled = True
             # Hide update button
             self.ids.update_button.size_hint_y = None
             self.ids.update_button.height = 0
@@ -39,6 +44,10 @@ class SystemScreen(Screen):
             self.ids.shutdown_button.height = 80
             self.ids.shutdown_button.opacity = 1
             self.ids.shutdown_button.disabled = False
+            self.ids.restart_button.size_hint_y = None
+            self.ids.restart_button.height = 80
+            self.ids.restart_button.opacity = 1
+            self.ids.restart_button.disabled = False
             self.ids.update_button.size_hint_y = None
             self.ids.update_button.height = 80
             self.ids.update_button.opacity = 1
@@ -103,3 +112,26 @@ class SystemScreen(Screen):
     def do_restart(self, instance):
         self.confirmation_popup.dismiss()
         os.execv(sys.executable, ['python'] + sys.argv)
+
+    def restart_system(self):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text='Möchten Sie das System wirklich neustarten?'))
+        btn_layout = BoxLayout(spacing=10)
+        yes_btn = Button(text="Ja", on_press=self.do_restart_system, height=80, font_size='20sp')
+        no_btn = Button(text="Nein", on_press=lambda x: self.confirmation_popup.dismiss(), height=80, font_size='20sp')
+        btn_layout.add_widget(yes_btn)
+        btn_layout.add_widget(no_btn)
+        content.add_widget(btn_layout)
+        apply_styles_to_widget(content)
+        self.confirmation_popup = Popup(title="Neustart bestätigen", content=content, size_hint=(0.6, 0.5))
+        self.confirmation_popup.open()
+
+    def do_restart_system(self, instance):
+        self.confirmation_popup.dismiss()
+        try:
+            if sys.platform.startswith('linux'):
+                os.system("reboot now")
+            else:
+                self.show_popup("Nicht unterstützt", f"Neustart wird auf '{sys.platform}' nicht unterstützt.")
+        except Exception as e:
+            self.show_popup("Fehler", f"Fehler beim Neustarten:\n{e}")

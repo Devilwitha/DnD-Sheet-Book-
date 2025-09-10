@@ -1,9 +1,15 @@
 ==========================================
 Build Version:                10.09.2025
 
-Gui Version:               0.5.14 Alpha
+Gui Version:               0.5.15 Alpha
 Firmware Version:          0.2.0 M33
 Updater Version:           1.0.0
+==========================================
+feat: Add System Restart Button
+
+- Added a "System Neustart" button to the System Settings screen.
+- This button is only visible on Linux systems (e.g., Raspberry Pi).
+- It triggers a system restart with a confirmation dialog.
 
 DnD E-Sheet & Book Version:   
 - DE: 1.4

@@ -1,6 +1,6 @@
 Build Version:                10.09.2025
 
-Gui Version:               0.5.14 Alpha
+Gui Version:               0.5.15 Alpha
 Firmware Version:          0.2.0 M33
 Updater Version:           1.0.0
 
