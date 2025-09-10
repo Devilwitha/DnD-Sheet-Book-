@@ -10,7 +10,12 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
+from kivy.clock import Clock
+from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
+from kivy.uix.filechooser import FileChooserListView
+from kivy3 import Scene, Renderer, PerspectiveCamera
+from .stl_loader import STLLoader
 from data_manager import (
     RACE_DATA, CLASS_DATA, ALIGNMENT_DATA, BACKGROUND_DATA,
     SKILL_LIST, FIGHTING_STYLE_DATA, SPELL_DATA
@@ -24,6 +29,12 @@ class CharacterCreator(Screen):
         super(CharacterCreator, self).__init__(**kwargs)
         self.inputs = {}
         self.ability_scores_labels = {}
+        self.scene = Scene()
+        self.renderer = Renderer(scene=self.scene)
+        self.camera = PerspectiveCamera(75, 1, 1, 1000)
+        self.stl_path = None
+        self.touches = []
+        self.last_touch_distance = 0
 
     def build_ui(self):
         # This check is to prevent rebuilding the UI every time the screen is entered
@@ -92,10 +103,68 @@ class CharacterCreator(Screen):
         layout.add_widget(roll_button)
         layout.add_widget(create_button)
 
+        # Add the 3D viewer and button
+        container = GridLayout(cols=1, size_hint_y=None, height=400)
+        viewer_layout = BoxLayout(orientation='vertical')
+        stl_viewer_placeholder = BoxLayout(id='stl_viewer_placeholder')
+        self.ids.stl_viewer_placeholder = stl_viewer_placeholder
+        viewer_layout.add_widget(stl_viewer_placeholder)
+        file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
+        viewer_layout.add_widget(file_chooser_button)
+        container.add_widget(viewer_layout)
+        layout.add_widget(container)
+        layout.add_widget(Label()) # Add an empty label to fill the second column
+
     def on_pre_enter(self, *args):
         self.build_ui()
         apply_background(self)
         apply_styles_to_widget(self)
+        Clock.schedule_interval(self._update_scene, 1.0 / 60.0)
+
+    def on_leave(self, *args):
+        Clock.unschedule(self._update_scene)
+
+    def _update_scene(self, dt):
+        self.renderer.render(self.scene, self.camera)
+
+    def on_touch_down(self, touch):
+        if self.renderer.collide_point(*touch.pos):
+            if touch.is_mouse_scrolling:
+                if touch.button == 'scrollup':
+                    self.camera.zoom = max(0.1, self.camera.zoom - 0.1)
+                elif touch.button == 'scrolldown':
+                    self.camera.zoom += 0.1
+                return True
+            touch.grab(self)
+            self.touches.append(touch)
+            return True
+        return super(CharacterCreator, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if touch.grab_current is self:
+            if len(self.touches) == 1:
+                if 'dx' in touch.profile:
+                    self.renderer.camera.rotation.y += touch.dx
+                if 'dy' in touch.profile:
+                    self.renderer.camera.rotation.x += touch.dy
+            elif len(self.touches) == 2:
+                t1, t2 = self.touches
+                dist = t1.distance(t2)
+                if self.last_touch_distance != 0:
+                    zoom_amount = (dist - self.last_touch_distance) * 0.01
+                    self.camera.zoom = max(0.1, self.camera.zoom - zoom_amount)
+                self.last_touch_distance = dist
+            return True
+        return super(CharacterCreator, self).on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            touch.ungrab(self)
+            self.touches.remove(touch)
+            if len(self.touches) < 2:
+                self.last_touch_distance = 0
+            return True
+        return super(CharacterCreator, self).on_touch_up(touch)
 
     def adjust_ability(self, ability, amount, instance):
         current_score = int(self.ability_scores_labels[ability].text)
@@ -125,6 +194,11 @@ class CharacterCreator(Screen):
         character.ideals = self.inputs["Ideale"].text
         character.bonds = self.inputs["Bindungen"].text
         character.flaws = self.inputs["Makel"].text
+
+        character.stl_file_path = self.stl_path
+        character.camera_position = self.camera.position.xyz
+        character.camera_rotation = self.camera.rotation.xyz
+        character.camera_zoom = self.camera.zoom
 
         class_data = CLASS_DATA.get(character.char_class, {})
 
@@ -438,3 +512,43 @@ class CharacterCreator(Screen):
         popup = Popup(title=title, content=content, size_hint=(0.8, 0.8))
         apply_styles_to_widget(popup.content)
         popup.open()
+
+    def show_file_chooser(self):
+        content = BoxLayout(orientation="vertical")
+        file_chooser = FileChooserListView(filters=["*.stl"])
+        content.add_widget(file_chooser)
+
+        btn_box = BoxLayout(size_hint_y=None, height=44)
+        load_button = Button(text="Laden")
+        cancel_button = Button(text="Abbrechen")
+        btn_box.add_widget(load_button)
+        btn_box.add_widget(cancel_button)
+        content.add_widget(btn_box)
+
+        popup = Popup(title="Wähle eine OBJ Datei", content=content, size_hint=(0.9, 0.9))
+
+        def load_selected_model(instance):
+            if file_chooser.selection:
+                self.load_model(file_chooser.selection[0])
+                popup.dismiss()
+
+        load_button.bind(on_press=load_selected_model)
+        cancel_button.bind(on_press=popup.dismiss)
+        popup.open()
+
+    def load_model(self, path):
+        self.stl_path = path
+
+        # Clear previous model
+        for child in self.scene.children:
+            self.scene.remove(child)
+
+        loader = STLLoader()
+        obj = loader.load(self.stl_path)
+        self.scene.add(obj)
+
+        placeholder = self.ids.stl_viewer_placeholder
+        if not self.renderer.parent:
+            placeholder.add_widget(self.renderer)
+
+        self.renderer.render(self.scene, self.camera)

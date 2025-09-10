@@ -13,6 +13,9 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 from kivy.properties import ObjectProperty
+from kivy.clock import Clock
+from kivy3 import Scene, Renderer, PerspectiveCamera
+from .stl_loader import STLLoader
 
 from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
 from utils.helpers import apply_background, apply_styles_to_widget
@@ -25,16 +28,34 @@ class CharacterSheet(Screen):
         super(CharacterSheet, self).__init__(**kwargs)
         self.character = None
         self.currency_labels = {}
+        self.scene = Scene()
+        self.renderer = Renderer(scene=self.scene)
+        self.camera = PerspectiveCamera(75, 1, 1, 1000)
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        Clock.schedule_interval(self._update_scene, 1.0 / 60.0)
+
+    def on_leave(self, *args):
+        Clock.unschedule(self._update_scene)
+
+    def _update_scene(self, dt):
+        self.renderer.render(self.scene, self.camera)
 
     def load_character(self, character):
         self.character = character
         if self.character:
             if hasattr(self.character, 'normalize_spells'):
                 self.character.normalize_spells()
+            if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path:
+                self.load_model(self.character.stl_file_path)
+                if self.character.camera_position:
+                    self.camera.position.xyz = self.character.camera_position
+                if self.character.camera_rotation:
+                    self.camera.rotation.xyz = self.character.camera_rotation
+                if self.character.camera_zoom:
+                    self.camera.zoom = self.character.camera_zoom
         self.update_sheet()
 
     def update_sheet(self):
@@ -85,6 +106,18 @@ class CharacterSheet(Screen):
         self.update_inventory_display()
         self.update_equipment_display()
 
+    def load_model(self, path):
+        # Clear previous model
+        for child in self.scene.children:
+            self.scene.remove(child)
+
+        loader = STLLoader()
+        obj = loader.load(path)
+        self.scene.add(obj)
+
+        placeholder = self.ids.stl_viewer_placeholder
+        if not self.renderer.parent:
+            placeholder.add_widget(self.renderer)
 
     def show_popup(self, title, message):
         content = ScrollView()
