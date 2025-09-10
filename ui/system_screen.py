@@ -130,7 +130,7 @@ class SystemScreen(Screen):
         self.confirmation_popup.dismiss()
         try:
             if sys.platform.startswith('linux'):
-                os.system("reboot now")
+                os.system("sudo reboot now")
             else:
                 self.show_popup("Nicht unterstützt", f"Neustart wird auf '{sys.platform}' nicht unterstützt.")
         except Exception as e:
