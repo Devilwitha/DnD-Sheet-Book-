@@ -17,6 +17,8 @@ def load_settings():
         'transparency_enabled': True,
         'background_enabled': True,
         'background_path': 'osbackground/hmbg.png',
+        'cs_creator_background_path': 'osbackground/csbg.png',
+        'cs_sheet_background_path': 'osbackground/csbg.png',
         'keyboard_enabled': keyboard_default
     }
     if not os.path.exists(SETTINGS_FILE):
@@ -87,7 +89,12 @@ def apply_background(screen):
         screen.remove_widget(old_bg)
 
     if settings.get('background_enabled', True):
-        bg_path = settings.get('background_path', 'osbackground/hmbg.png')
+        bg_path = settings.get('background_path', 'osbackground/hmbg.png') # Fallback
+        if screen.name == 'creator':
+            bg_path = settings.get('cs_creator_background_path', bg_path)
+        elif screen.name == 'sheet':
+            bg_path = settings.get('cs_sheet_background_path', bg_path)
+
         if os.path.exists(bg_path):
             try:
                 background = Image(source=bg_path, allow_stretch=True, keep_ratio=False)
