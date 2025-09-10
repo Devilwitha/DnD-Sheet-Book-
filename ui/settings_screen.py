@@ -49,6 +49,7 @@ class SettingsScreen(Screen):
         self.ids.transparency_switch.active = settings.get('transparency_enabled', True)
         self.ids.background_switch.active = settings.get('background_enabled', True)
         self.ids.keyboard_switch.active = settings.get('keyboard_enabled', sys.platform.startswith('linux'))
+        self.ids.stl_viewer_switch.active = settings.get('stl_viewer_enabled', True)
 
     def on_transparency_change(self, value):
         settings = load_settings()
@@ -75,6 +76,11 @@ class SettingsScreen(Screen):
         settings['keyboard_enabled'] = value
         save_settings(settings)
         self.show_popup("Neustart erforderlich", "Die Änderung an der Bildschirmtastatur\nwird nach einem Neustart der Anwendung wirksam.")
+
+    def on_stl_viewer_toggle(self, value):
+        settings = load_settings()
+        settings['stl_viewer_enabled'] = value
+        save_settings(settings)
 
     def show_popup(self, title, message):
         popup = Popup(title=title, content=Label(text=message), size_hint=(0.7, 0.5))

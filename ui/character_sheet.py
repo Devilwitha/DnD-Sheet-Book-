@@ -19,7 +19,7 @@ from kivy3.light import Light
 from .stl_loader import STLLoader
 
 from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, load_settings
 
 class CharacterSheet(Screen):
     """Finaler Charakterbogen mit allen neuen Features."""
@@ -32,38 +32,51 @@ class CharacterSheet(Screen):
         self.scene = Scene()
         self.renderer = Renderer()
         self.renderer.scene = self.scene
-        light = Light(renderer=self.renderer, intensity=0.4)
-        light.pos_z = 1
+        self.light = Light(renderer=self.renderer, intensity=0.8)
+        self.light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.loaded_obj = None
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
-        Clock.schedule_interval(self._update_scene, 1.0 / 60.0)
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            Clock.schedule_interval(self._update_scene, 1.0 / 60.0)
 
     def on_leave(self, *args):
         Clock.unschedule(self._update_scene)
 
     def _update_scene(self, dt):
-        self.renderer.render(self.scene, self.camera)
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True) and self.loaded_obj:
+            self.renderer.render(self.scene, self.camera)
 
     def load_character(self, character):
         self.character = character
-        if self.character:
-            if hasattr(self.character, 'normalize_spells'):
-                self.character.normalize_spells()
+        if not self.character:
+            return
 
+        if hasattr(self.character, 'normalize_spells'):
+            self.character.normalize_spells()
+
+        placeholder = self.ids.stl_viewer_placeholder
+        placeholder.clear_widgets()
+
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            placeholder.size_hint_y = 1
+            placeholder.height = 300 # A reasonable default height
             # Recreate scene to ensure it's clean
             self.scene = Scene()
             self.renderer.scene = self.scene
-            self.light = Light(renderer=self.renderer, intensity=0.4)
+            self.light = Light(renderer=self.renderer, intensity=0.8)
             if hasattr(self.character, 'light_intensity'):
                 self.light.intensity = self.character.light_intensity
             self.light.pos_z = 1
             self.loaded_obj = None
 
-            if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path:
+            if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path and os.path.exists(self.character.stl_file_path):
                 self.load_model(self.character.stl_file_path)
                 if self.character.camera_position:
                     self.camera.position.x = self.character.camera_position[0]
@@ -74,6 +87,11 @@ class CharacterSheet(Screen):
                     self.loaded_obj.rotation.y = self.character.object_rotation[1]
                     self.loaded_obj.rotation.z = self.character.object_rotation[2]
                 self.camera.look_at([0,0,0])
+        else:
+            # If viewer is disabled, hide the placeholder
+            placeholder.size_hint_y = None
+            placeholder.height = 0
+
         self.update_sheet()
 
     def update_sheet(self):

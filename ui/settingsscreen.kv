@@ -51,6 +51,15 @@
                 id: keyboard_switch
                 on_active: root.on_keyboard_toggle(self.active)
 
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "3D-Modell-Vorschau anzeigen"
+            Switch:
+                id: stl_viewer_switch
+                on_active: root.on_stl_viewer_toggle(self.active)
+
         Button:
             text: "Hintergründe"
             on_press: root.show_background_options_popup()

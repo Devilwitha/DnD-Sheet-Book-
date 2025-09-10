@@ -12,7 +12,6 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
 from kivy.clock import Clock
-from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
 from kivy.uix.filechooser import FileChooserListView
 from kivy3 import Scene, Renderer, PerspectiveCamera
@@ -23,7 +22,7 @@ from data_manager import (
     SKILL_LIST, FIGHTING_STYLE_DATA, SPELL_DATA
 )
 from core.character import Character
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, load_settings
 
 class CharacterCreator(Screen):
     """Creator mit +/- Buttons für Attribute."""
@@ -34,7 +33,7 @@ class CharacterCreator(Screen):
         self.scene = Scene()
         self.renderer = Renderer()
         self.renderer.scene = self.scene
-        self.light = Light(renderer=self.renderer, intensity=0.4)
+        self.light = Light(renderer=self.renderer, intensity=0.8)
         self.light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.stl_path = None
@@ -110,79 +109,95 @@ class CharacterCreator(Screen):
         layout.add_widget(roll_button)
         layout.add_widget(create_button)
 
-        # Add the 3D viewer and button
-        container = GridLayout(cols=1, size_hint_y=None, height=400)
-        viewer_layout = BoxLayout(orientation='vertical')
-        stl_viewer_placeholder = BoxLayout()
-        self.ids.stl_viewer_placeholder = stl_viewer_placeholder
-        viewer_layout.add_widget(stl_viewer_placeholder)
-        file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
-        viewer_layout.add_widget(file_chooser_button)
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            # Add the 3D viewer and button
+            container = GridLayout(cols=1, size_hint_y=None, height=400)
+            viewer_layout = BoxLayout(orientation='vertical')
+            stl_viewer_placeholder = BoxLayout()
+            self.ids.stl_viewer_placeholder = stl_viewer_placeholder
+            viewer_layout.add_widget(stl_viewer_placeholder)
+            file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
+            viewer_layout.add_widget(file_chooser_button)
 
-        brightness_slider = Slider(min=0, max=1, value=0.4, size_hint_y=0.1)
-        brightness_slider.bind(value=self.on_brightness_change)
-        self.ids.brightness_slider = brightness_slider
-        viewer_layout.add_widget(brightness_slider)
+            brightness_slider = Slider(min=0, max=1, value=0.8, size_hint_y=0.1)
+            brightness_slider.bind(value=self.on_brightness_change)
+            self.ids.brightness_slider = brightness_slider
+            viewer_layout.add_widget(brightness_slider)
 
-        container.add_widget(viewer_layout)
-        layout.add_widget(container)
-        layout.add_widget(Label()) # Add an empty label to fill the second column
+            container.add_widget(viewer_layout)
+            layout.add_widget(container)
+            layout.add_widget(Label()) # Add an empty label to fill the second column
 
     def on_pre_enter(self, *args):
-        self.build_ui()
+        # build_ui is now called from on_pre_enter to rebuild based on setting
+        if not self.ids.creator_layout.children:
+            self.build_ui()
+
         apply_background(self)
         apply_styles_to_widget(self)
-        Clock.schedule_interval(self._update_scene, 1.0 / 60.0)
+
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            Clock.schedule_interval(self._update_scene, 1.0 / 60.0)
 
     def on_leave(self, *args):
         Clock.unschedule(self._update_scene)
 
     def _update_scene(self, dt):
-        self.renderer.render(self.scene, self.camera)
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            self.renderer.render(self.scene, self.camera)
 
     def on_touch_down(self, touch):
-        if self.renderer.collide_point(*touch.pos):
-            if touch.is_mouse_scrolling:
-                if touch.button == 'scrollup':
-                    self.camera.position.z -= 1
-                elif touch.button == 'scrolldown':
-                    self.camera.position.z += 1
-                return True
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            if self.renderer.collide_point(*touch.pos):
+                if touch.is_mouse_scrolling:
+                    if touch.button == 'scrollup':
+                        self.camera.position.z -= 1
+                    elif touch.button == 'scrolldown':
+                        self.camera.position.z += 1
+                    return True
 
-            touch.grab(self)
-            self.touches.append(touch)
-            self.touch_mode = touch.button # 'left', 'right', etc.
-            return True
+                touch.grab(self)
+                self.touches.append(touch)
+                self.touch_mode = touch.button # 'left', 'right', etc.
+                return True
         return super(CharacterCreator, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
-        if touch.grab_current is self and self.loaded_obj:
-            if len(self.touches) == 1:
-                if self.touch_mode == 'left': # Rotate object
-                    self.loaded_obj.rotation.y += touch.dx
-                    self.loaded_obj.rotation.x += touch.dy
-                elif self.touch_mode == 'right': # Pan camera
-                    self.camera.position.x -= touch.dx * 0.1
-                    self.camera.position.y -= touch.dy * 0.1
-            elif len(self.touches) == 2: # Pinch to zoom
-                t1, t2 = self.touches
-                dist = t1.distance(t2)
-                if self.last_touch_distance != 0:
-                    zoom_amount = (dist - self.last_touch_distance) * 0.1
-                    self.camera.position.z -= zoom_amount
-                self.last_touch_distance = dist
-            return True
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            if touch.grab_current is self and self.loaded_obj:
+                if len(self.touches) == 1:
+                    if self.touch_mode == 'left': # Rotate object
+                        self.loaded_obj.rotation.y += touch.dx
+                        self.loaded_obj.rotation.x += touch.dy
+                    elif self.touch_mode == 'right': # Pan camera
+                        self.camera.position.x -= touch.dx * 0.1
+                        self.camera.position.y -= touch.dy * 0.1
+                elif len(self.touches) == 2: # Pinch to zoom
+                    t1, t2 = self.touches
+                    dist = t1.distance(t2)
+                    if self.last_touch_distance != 0:
+                        zoom_amount = (dist - self.last_touch_distance) * 0.1
+                        self.camera.position.z -= zoom_amount
+                    self.last_touch_distance = dist
+                return True
         return super(CharacterCreator, self).on_touch_move(touch)
 
     def on_touch_up(self, touch):
-        if touch.grab_current is self:
-            touch.ungrab(self)
-            self.touches.remove(touch)
-            if len(self.touches) == 0:
-                self.touch_mode = None
-            if len(self.touches) < 2:
-                self.last_touch_distance = 0
-            return True
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            if touch.grab_current is self:
+                touch.ungrab(self)
+                self.touches.remove(touch)
+                if len(self.touches) == 0:
+                    self.touch_mode = None
+                if len(self.touches) < 2:
+                    self.last_touch_distance = 0
+                return True
         return super(CharacterCreator, self).on_touch_up(touch)
 
     def on_brightness_change(self, instance, value):
@@ -218,13 +233,23 @@ class CharacterCreator(Screen):
         character.bonds = self.inputs["Bindungen"].text
         character.flaws = self.inputs["Makel"].text
 
-        character.stl_file_path = self.stl_path
-        character.camera_position = (self.camera.position.x, self.camera.position.y, self.camera.position.z)
-        if self.loaded_obj:
-            character.object_rotation = (self.loaded_obj.rotation.x, self.loaded_obj.rotation.y, self.loaded_obj.rotation.z)
+        settings = load_settings()
+        if settings.get('stl_viewer_enabled', True):
+            character.stl_file_path = self.stl_path
+            character.camera_position = (self.camera.position.x, self.camera.position.y, self.camera.position.z)
+            if self.loaded_obj:
+                character.object_rotation = (self.loaded_obj.rotation.x, self.loaded_obj.rotation.y, self.loaded_obj.rotation.z)
+            else:
+                character.object_rotation = (0, 0, 0)
+            if self.light:
+                character.light_intensity = self.light.intensity
+            else:
+                character.light_intensity = 0.8
         else:
-            character.object_rotation = (0, 0, 0)
-        character.light_intensity = self.light.intensity
+            character.stl_file_path = None
+            character.camera_position = None
+            character.object_rotation = None
+            character.light_intensity = 0.8
 
         class_data = CLASS_DATA.get(character.char_class, {})
 
@@ -581,7 +606,7 @@ class CharacterCreator(Screen):
         # Set initial camera position
         self.camera.position.x = 0
         self.camera.position.y = 0
-        self.camera.position.z = 40 # Move camera back
+        self.camera.position.z = 30 # Adjusted for auto-scaled models
         self.camera.look_at([0,0,0])
 
         # Add the renderer to the placeholder if it's not there
