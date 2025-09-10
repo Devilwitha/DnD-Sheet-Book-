@@ -38,6 +38,12 @@
                         font_size: '20sp'
                     BoxLayout: # Spacer
                         size_hint_y: 1
+                    Button:
+                        text: "Zurück zu den Optionen"
+                        on_press: root.manager.current = 'options'
+                        size_hint_y: None
+                        height: 80
+                        font_size: '20sp'
 
             Screen:
                 name: 'send'
@@ -85,19 +91,14 @@
                         height: 80
                         font_size: '20sp'
 
-        Button:
-            text: "Zurück zu den Optionen"
-            on_press: root.manager.current = 'options'
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
 <FileCheckBox>:
     active: checkbox.active
     size_hint_y: None
     height: 48
     CheckBox:
         id: checkbox
+        size_hint_x: None
+        width: 48
         on_active: root.on_checkbox_active(self, self.active)
     Label:
         text: root.text

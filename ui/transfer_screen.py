@@ -2,6 +2,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.properties import StringProperty, ListProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.clock import Clock
 from utils.helpers import apply_background, apply_styles_to_widget, get_local_ip
 import os
 import socket
@@ -38,15 +39,27 @@ class TransferScreen(Screen):
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
-        self.bind(discovered_services=self.update_service_list)
 
-    def update_service_list(self, *args):
+    def _update_service_list_ui(self):
         service_list_widget = self.ids.service_list
         service_list_widget.clear_widgets()
         for info in self.discovered_services:
             btn = Button(text=info.name, size_hint_y=None, height=80, font_size='20sp')
             btn.bind(on_press=lambda x, info=info: self.connect_to_sender(info))
             service_list_widget.add_widget(btn)
+        self.status_message = f"{len(self.discovered_services)} Sender gefunden."
+
+    def _add_service(self, info):
+        if info not in self.discovered_services:
+            self.discovered_services.append(info)
+        self._update_service_list_ui()
+
+    def _remove_service(self, name):
+        # Find service by name and remove
+        service_to_remove = next((s for s in self.discovered_services if s.name == name), None)
+        if service_to_remove:
+            self.discovered_services.remove(service_to_remove)
+        self._update_service_list_ui()
 
     def list_char_files(self):
         self.char_files = [f for f in os.listdir('.') if f.endswith('.char')]
@@ -83,7 +96,7 @@ class TransferScreen(Screen):
             port=port,
             properties={'user': platform.node()}
         )
-        self.zeroconf.register_service(self.service_info)
+        self.zeroconf.register_service(self.service_info, allow_name_change=True)
         self.status_message = f"Server gestartet, sichtbar als '{platform.node()}'"
 
         try:
@@ -121,7 +134,6 @@ class TransferScreen(Screen):
         self.stop_service_browser()
 
     def _start_client(self, host, port):
-        port = 65432
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.connect((host, port))
@@ -192,14 +204,11 @@ class ServiceListener:
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.screen.discovered_services.append(info)
-            self.screen.status_message = f"{len(self.screen.discovered_services)} Sender gefunden."
+            Clock.schedule_once(lambda dt: self.screen._add_service(info))
 
     def remove_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
-        if info in self.screen.discovered_services:
-            self.screen.discovered_services.remove(info)
-            self.screen.status_message = f"{len(self.screen.discovered_services)} Sender gefunden."
+        # Service has been removed, so info may not be available. Act on name.
+        Clock.schedule_once(lambda dt: self.screen._remove_service(name))
 
     def update_service(self, zeroconf, type, name):
         # For now, we don't need to handle updates
