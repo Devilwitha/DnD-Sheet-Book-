@@ -30,7 +30,8 @@ class CharacterCreator(Screen):
         self.inputs = {}
         self.ability_scores_labels = {}
         self.scene = Scene()
-        self.renderer = Renderer(scene=self.scene)
+        self.renderer = Renderer()
+        self.renderer.scene = self.scene
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.stl_path = None
         self.touches = []

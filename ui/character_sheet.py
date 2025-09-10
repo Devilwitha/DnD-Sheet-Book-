@@ -29,7 +29,8 @@ class CharacterSheet(Screen):
         self.character = None
         self.currency_labels = {}
         self.scene = Scene()
-        self.renderer = Renderer(scene=self.scene)
+        self.renderer = Renderer()
+        self.renderer.scene = self.scene
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
 
     def on_pre_enter(self, *args):
