@@ -1,0 +1,128 @@
+<TransferScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Datenübertragung"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Label:
+            id: status_label
+            text: root.status_message
+            font_size: '18sp'
+            size_hint_y: None
+            height: 40
+
+        # Initial view with Send and Receive buttons
+        BoxLayout:
+            id: send_receive_buttons
+            orientation: 'vertical'
+            spacing: 10
+            size_hint_y: 1
+            opacity: 1
+
+            Button:
+                text: "Senden"
+                on_press: root.go_to_send_view()
+                size_hint_y: None
+                height: 80
+                font_size: '20sp'
+
+            Button:
+                text: "Empfangen"
+                on_press: root.go_to_receive_view()
+                size_hint_y: None
+                height: 80
+                font_size: '20sp'
+
+            BoxLayout:
+                size_hint_y: 1.0
+
+
+        # View for receiving files
+        BoxLayout:
+            id: receive_view
+            orientation: 'vertical'
+            spacing: 10
+            size_hint_y: 0
+            opacity: 0
+
+            TextInput:
+                id: ip_input
+                hint_text: "IP-Adresse des Senders"
+                size_hint_y: None
+                height: 48
+                font_size: '20sp'
+
+            Button:
+                text: "Verbinden und Empfangen"
+                on_press: root.receive_files(ip_input.text)
+                size_hint_y: None
+                height: 80
+                font_size: '20sp'
+
+            Button:
+                text: "Zurück"
+                on_press: root.back_to_main_transfer()
+                size_hint_y: None
+                height: 80
+                font_size: '20sp'
+
+        # View for sending files
+        BoxLayout:
+            id: file_list_view
+            orientation: 'vertical'
+            spacing: 10
+            size_hint_y: 0
+            opacity: 0
+
+            ScrollView:
+                GridLayout:
+                    id: file_list
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+                    spacing: 5
+                    padding: 5
+                    on_parent:
+                        # Populate with checkboxes when the view is shown
+                        if root.char_files: self.clear_widgets(); [self.add_widget(FileCheckBox(text=f, on_active=root.toggle_file_selection)) for f in root.char_files]
+
+            Button:
+                text: "Ausgewählte Dateien Senden"
+                on_press: root.send_files()
+                size_hint_y: None
+                height: 80
+                font_size: '20sp'
+
+            Button:
+                text: "Zurück"
+                on_press: root.back_to_main_transfer()
+                size_hint_y: None
+                height: 80
+                font_size: '20sp'
+
+        BoxLayout:
+            size_hint_y: 0.1
+
+        Button:
+            text: "Zurück zu den Optionen"
+            on_press: root.manager.current = 'options'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+<FileCheckBox>:
+    text: root.text
+    active: checkbox.active
+    size_hint_y: None
+    height: 48
+    CheckBox:
+        id: checkbox
+        on_active: root.on_checkbox_active(self, self.active)
+    Label:
+        text: root.text
