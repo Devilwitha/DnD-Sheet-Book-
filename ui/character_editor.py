@@ -8,9 +8,15 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
+from kivy.uix.slider import Slider
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
+from kivy.clock import Clock
+from kivy.uix.filechooser import FileChooserListView
+from kivy3 import Scene, Renderer, PerspectiveCamera
+from kivy3.light import Light
+from .stl_loader import STLLoader
 
 from data_manager import (
     RACE_DATA, CLASS_DATA, ALIGNMENT_DATA, BACKGROUND_DATA
@@ -24,6 +30,17 @@ class CharacterEditor(Screen):
         self.character = None
         self.inputs = {}
         self.ability_scores_labels = {}
+        self.scene = Scene()
+        self.renderer = Renderer()
+        self.renderer.scene = self.scene
+        self.light = Light(renderer=self.renderer, intensity=0.4)
+        self.light.pos_z = 1
+        self.camera = PerspectiveCamera(75, 1, 1, 1000)
+        self.stl_path = None
+        self.touches = []
+        self.last_touch_distance = 0
+        self.loaded_obj = None
+        self.touch_mode = None
         self.build_ui()
 
     def build_ui(self):
@@ -86,6 +103,26 @@ class CharacterEditor(Screen):
         layout.add_widget(Label(size_hint_y=None, height=10))
 
         save_button = Button(text="Änderungen speichern", on_press=self.save_character, size_hint_y=None, height=default_height)
+
+        # Add the 3D viewer and button
+        container = GridLayout(cols=1, size_hint_y=None, height=400)
+        viewer_layout = BoxLayout(orientation='vertical')
+        stl_viewer_placeholder = BoxLayout()
+        self.ids.stl_viewer_placeholder = stl_viewer_placeholder
+        viewer_layout.add_widget(stl_viewer_placeholder)
+
+        file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
+        viewer_layout.add_widget(file_chooser_button)
+
+        brightness_slider = Slider(min=0, max=1, value=0.4, size_hint_y=0.1)
+        brightness_slider.bind(value=self.on_brightness_change)
+        self.ids.brightness_slider = brightness_slider
+        viewer_layout.add_widget(brightness_slider)
+
+        container.add_widget(viewer_layout)
+        layout.add_widget(container)
+        layout.add_widget(Label()) # Add an empty label to fill the second column
+
         layout.add_widget(save_button)
 
     def on_pre_enter(self, *args):
@@ -106,6 +143,21 @@ class CharacterEditor(Screen):
 
         for ability, label in self.ability_scores_labels.items():
             label.text = str(self.character.base_abilities.get(ability, 10))
+
+        if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path:
+            self.load_model(self.character.stl_file_path)
+            if self.character.camera_position:
+                self.camera.position.x = self.character.camera_position[0]
+                self.camera.position.y = self.character.camera_position[1]
+                self.camera.position.z = self.character.camera_position[2]
+            if hasattr(self.character, 'object_rotation') and self.character.object_rotation and self.loaded_obj:
+                self.loaded_obj.rotation.x = self.character.object_rotation[0]
+                self.loaded_obj.rotation.y = self.character.object_rotation[1]
+                self.loaded_obj.rotation.z = self.character.object_rotation[2]
+            if hasattr(self.character, 'light_intensity'):
+                self.ids.brightness_slider.value = self.character.light_intensity
+                self.light.intensity = self.character.light_intensity
+            self.camera.look_at([0,0,0])
 
     def adjust_ability(self, ability, amount, instance):
         current_score = int(self.ability_scores_labels[ability].text)
@@ -129,6 +181,13 @@ class CharacterEditor(Screen):
         for ability, label in self.ability_scores_labels.items():
             self.character.base_abilities[ability] = int(label.text)
 
+        self.character.stl_file_path = self.stl_path
+        self.character.camera_position = (self.camera.position.x, self.camera.position.y, self.camera.position.z)
+        if self.loaded_obj:
+            self.character.object_rotation = (self.loaded_obj.rotation.x, self.loaded_obj.rotation.y, self.loaded_obj.rotation.z)
+        if self.light:
+            self.character.light_intensity = self.light.intensity
+
         self.character.initialize_character()
 
         filename = f"{self.character.name.replace(' ', '_').lower()}.char"
@@ -142,3 +201,108 @@ class CharacterEditor(Screen):
 
     def show_popup(self, title, message):
         Popup(title=title, content=Label(text=message), size_hint=(0.6, 0.4)).open()
+
+    def on_leave(self, *args):
+        Clock.unschedule(self._update_scene)
+
+    def _update_scene(self, dt):
+        self.renderer.render(self.scene, self.camera)
+
+    def on_touch_down(self, touch):
+        if self.renderer.collide_point(*touch.pos):
+            if touch.is_mouse_scrolling:
+                if touch.button == 'scrollup':
+                    self.camera.position.z -= 1
+                elif touch.button == 'scrolldown':
+                    self.camera.position.z += 1
+                return True
+
+            touch.grab(self)
+            self.touches.append(touch)
+            self.touch_mode = touch.button # 'left', 'right', etc.
+            return True
+        return super(CharacterEditor, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if touch.grab_current is self and self.loaded_obj:
+            if len(self.touches) == 1:
+                if self.touch_mode == 'left': # Rotate object
+                    self.loaded_obj.rotation.y += touch.dx
+                    self.loaded_obj.rotation.x += touch.dy
+                elif self.touch_mode == 'right': # Pan camera
+                    self.camera.position.x -= touch.dx * 0.1
+                    self.camera.position.y -= touch.dy * 0.1
+            elif len(self.touches) == 2: # Pinch to zoom
+                t1, t2 = self.touches
+                dist = t1.distance(t2)
+                if self.last_touch_distance != 0:
+                    zoom_amount = (dist - self.last_touch_distance) * 0.1
+                    self.camera.position.z -= zoom_amount
+                self.last_touch_distance = dist
+            return True
+        return super(CharacterEditor, self).on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            touch.ungrab(self)
+            self.touches.remove(touch)
+            if len(self.touches) == 0:
+                self.touch_mode = None
+            if len(self.touches) < 2:
+                self.last_touch_distance = 0
+            return True
+        return super(CharacterEditor, self).on_touch_up(touch)
+
+    def on_brightness_change(self, instance, value):
+        if self.light:
+            self.light.intensity = value
+
+    def show_file_chooser(self):
+        content = BoxLayout(orientation="vertical")
+        file_chooser = FileChooserListView(filters=["*.stl"])
+        content.add_widget(file_chooser)
+
+        btn_box = BoxLayout(size_hint_y=None, height=44)
+        load_button = Button(text="Laden")
+        cancel_button = Button(text="Abbrechen")
+        btn_box.add_widget(load_button)
+        btn_box.add_widget(cancel_button)
+        content.add_widget(btn_box)
+
+        popup = Popup(title="Wähle eine STL Datei", content=content, size_hint=(0.9, 0.9))
+
+        def load_selected_model(instance):
+            if file_chooser.selection:
+                self.load_model(file_chooser.selection[0])
+                popup.dismiss()
+
+        load_button.bind(on_press=load_selected_model)
+        cancel_button.bind(on_press=popup.dismiss)
+        popup.open()
+
+    def load_model(self, path):
+        self.stl_path = path
+
+        # Create a new scene to ensure a clean state
+        self.scene = Scene()
+        self.renderer.scene = self.scene
+
+        # Add light to the new scene
+        self.light = Light(renderer=self.renderer, intensity=self.ids.brightness_slider.value)
+        self.light.pos_z = 1
+
+        # Load the object
+        loader = STLLoader()
+        self.loaded_obj = loader.load(self.stl_path)
+        self.scene.add(self.loaded_obj)
+
+        # Set initial camera position
+        self.camera.position.x = 0
+        self.camera.position.y = 0
+        self.camera.position.z = 40 # Move camera back
+        self.camera.look_at([0,0,0])
+
+        # Add the renderer to the placeholder if it's not there
+        placeholder = self.ids.stl_viewer_placeholder
+        if not self.renderer.parent:
+            placeholder.add_widget(self.renderer)

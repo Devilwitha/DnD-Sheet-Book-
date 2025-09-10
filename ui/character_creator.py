@@ -7,6 +7,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
+from kivy.uix.slider import Slider
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
@@ -33,14 +34,15 @@ class CharacterCreator(Screen):
         self.scene = Scene()
         self.renderer = Renderer()
         self.renderer.scene = self.scene
-        light = Light(renderer=self.renderer, intensity=0.4)
-        light.pos_z = 1
+        self.light = Light(renderer=self.renderer, intensity=0.4)
+        self.light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.stl_path = None
         self.touches = []
         self.last_touch_distance = 0
         self.loaded_obj = None
         self.touch_mode = None
+        self.light = None
 
     def build_ui(self):
         # This check is to prevent rebuilding the UI every time the screen is entered
@@ -117,6 +119,11 @@ class CharacterCreator(Screen):
         viewer_layout.add_widget(stl_viewer_placeholder)
         file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
         viewer_layout.add_widget(file_chooser_button)
+
+        brightness_slider = Slider(min=0, max=1, value=0.4, size_hint_y=0.1)
+        brightness_slider.bind(value=self.on_brightness_change)
+        viewer_layout.add_widget(brightness_slider)
+
         container.add_widget(viewer_layout)
         layout.add_widget(container)
         layout.add_widget(Label()) # Add an empty label to fill the second column
@@ -178,6 +185,10 @@ class CharacterCreator(Screen):
             return True
         return super(CharacterCreator, self).on_touch_up(touch)
 
+    def on_brightness_change(self, instance, value):
+        if self.light:
+            self.light.intensity = value
+
     def adjust_ability(self, ability, amount, instance):
         current_score = int(self.ability_scores_labels[ability].text)
         new_score = max(1, min(20, current_score + amount))
@@ -213,6 +224,7 @@ class CharacterCreator(Screen):
             character.object_rotation = (self.loaded_obj.rotation.x, self.loaded_obj.rotation.y, self.loaded_obj.rotation.z)
         else:
             character.object_rotation = (0, 0, 0)
+        character.light_intensity = self.light.intensity
 
         class_data = CLASS_DATA.get(character.char_class, {})
 

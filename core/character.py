@@ -36,6 +36,7 @@ class Character:
         self.stl_file_path = None
         self.camera_position = None
         self.object_rotation = None
+        self.light_intensity = 0.4
 
     def initialize_character(self):
         """Sammelt alle Daten bei der Erstellung oder beim Laden."""

@@ -57,8 +57,10 @@ class CharacterSheet(Screen):
             # Recreate scene to ensure it's clean
             self.scene = Scene()
             self.renderer.scene = self.scene
-            light = Light(renderer=self.renderer, intensity=0.4)
-            light.pos_z = 1
+            self.light = Light(renderer=self.renderer, intensity=0.4)
+            if hasattr(self.character, 'light_intensity'):
+                self.light.intensity = self.character.light_intensity
+            self.light.pos_z = 1
             self.loaded_obj = None
 
             if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path:
@@ -123,13 +125,10 @@ class CharacterSheet(Screen):
         self.update_equipment_display()
 
     def load_model(self, path):
-        # Clear previous model
-        for child in self.scene.children:
-            self.scene.remove(child)
-
+        # The scene is recreated in load_character, so we just load the object
         loader = STLLoader()
-        obj = loader.load(path)
-        self.scene.add(obj)
+        self.loaded_obj = loader.load(path)
+        self.scene.add(self.loaded_obj)
 
         placeholder = self.ids.stl_viewer_placeholder
         if not self.renderer.parent:
