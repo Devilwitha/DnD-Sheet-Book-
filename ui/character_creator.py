@@ -132,9 +132,9 @@ class CharacterCreator(Screen):
         if self.renderer.collide_point(*touch.pos):
             if touch.is_mouse_scrolling:
                 if touch.button == 'scrollup':
-                    self.camera.zoom = max(0.1, self.camera.zoom - 0.1)
+                    self.camera.position.z -= 1
                 elif touch.button == 'scrolldown':
-                    self.camera.zoom += 0.1
+                    self.camera.position.z += 1
                 return True
             touch.grab(self)
             self.touches.append(touch)
@@ -152,8 +152,8 @@ class CharacterCreator(Screen):
                 t1, t2 = self.touches
                 dist = t1.distance(t2)
                 if self.last_touch_distance != 0:
-                    zoom_amount = (dist - self.last_touch_distance) * 0.01
-                    self.camera.zoom = max(0.1, self.camera.zoom - zoom_amount)
+                    zoom_amount = (dist - self.last_touch_distance) * 0.1
+                    self.camera.position.z -= zoom_amount
                 self.last_touch_distance = dist
             return True
         return super(CharacterCreator, self).on_touch_move(touch)
@@ -199,7 +199,6 @@ class CharacterCreator(Screen):
         character.stl_file_path = self.stl_path
         character.camera_position = (self.camera.position.x, self.camera.position.y, self.camera.position.z)
         character.camera_rotation = (self.camera.rotation.x, self.camera.rotation.y, self.camera.rotation.z)
-        character.camera_zoom = self.camera.zoom
 
         class_data = CLASS_DATA.get(character.char_class, {})
 

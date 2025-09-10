@@ -59,8 +59,6 @@ class CharacterSheet(Screen):
                     self.camera.rotation.x = self.character.camera_rotation[0]
                     self.camera.rotation.y = self.character.camera_rotation[1]
                     self.camera.rotation.z = self.character.camera_rotation[2]
-                if self.character.camera_zoom:
-                    self.camera.zoom = self.character.camera_zoom
         self.update_sheet()
 
     def update_sheet(self):
