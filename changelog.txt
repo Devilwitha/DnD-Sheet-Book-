@@ -5,8 +5,20 @@ Gui Version:               0.5.14 Alpha
 Firmware Version:          0.2.0 M33
 Updater Version:           1.0.0
 
-DnD E-Sheet & Book Version:   
-- DE: 1.4
+------------------------------------------
+feat: Add System Restart Button
+
+- Added a "System Neustart" button to the System Settings screen.
+- This button is only visible on Linux systems (e.g., Raspberry Pi).
+- It triggers a system restart with a confirmation dialog.
+
+==========================================
+==========================================
+Build Version:                10.09.2025
+
+Gui Version:               0.5.14 Alpha
+Firmware Version:          0.2.0 M33
+Updater Version:           1.0.0
 
 ------------------------------------------
 feat: Add System/Changelog screens and refactor Options menu
@@ -21,6 +33,7 @@ This commit introduces a significant refactoring of the options menu into multip
   - A `changelog.txt` file has been added to the repository.
   - A new "Changelog" button on the `SystemScreen` leads to a new, dedicated `ChangelogScreen`.
   - This screen displays the contents of `changelog.txt` in a scrollable view.
+
 ===========================================
 ===========================================
 
@@ -36,3 +49,4 @@ Version 1.1.0
 
 Version 1.0.0
 - Initial release.
+- DnD E-Sheet & Book Version:   DE: 1.4
