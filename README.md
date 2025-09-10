@@ -41,7 +41,6 @@ Ein digitaler Charakterbogen und ein Zauberbuch für Dungeons & Dragons 5e.
     ```bash
     cd ~
     git clone https://github.com/Devilwitha/DnD-Sheet-Book-.git DnD-Sheet-Book
-    cd ~/DnD-Sheet-Book
     ```
 
 5.  **Python-Pakete installieren:**
