@@ -42,7 +42,6 @@ class CharacterCreator(Screen):
         self.last_touch_distance = 0
         self.loaded_obj = None
         self.touch_mode = None
-        self.light = None
 
     def build_ui(self):
         # This check is to prevent rebuilding the UI every time the screen is entered
@@ -122,6 +121,7 @@ class CharacterCreator(Screen):
 
         brightness_slider = Slider(min=0, max=1, value=0.4, size_hint_y=0.1)
         brightness_slider.bind(value=self.on_brightness_change)
+        self.ids.brightness_slider = brightness_slider
         viewer_layout.add_widget(brightness_slider)
 
         container.add_widget(viewer_layout)
@@ -570,8 +570,8 @@ class CharacterCreator(Screen):
         self.renderer.scene = self.scene
 
         # Add light to the new scene
-        light = Light(renderer=self.renderer, intensity=0.4)
-        light.pos_z = 1
+        self.light = Light(renderer=self.renderer, intensity=self.ids.brightness_slider.value)
+        self.light.pos_z = 1
 
         # Load the object
         loader = STLLoader()
