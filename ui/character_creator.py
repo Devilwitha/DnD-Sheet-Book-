@@ -33,12 +33,14 @@ class CharacterCreator(Screen):
         self.scene = Scene()
         self.renderer = Renderer()
         self.renderer.scene = self.scene
-        light = Light(renderer=self.renderer, intensity=1.0)
+        light = Light(renderer=self.renderer, intensity=0.4)
         light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.stl_path = None
         self.touches = []
         self.last_touch_distance = 0
+        self.loaded_obj = None
+        self.touch_mode = None
 
     def build_ui(self):
         # This check is to prevent rebuilding the UI every time the screen is entered
@@ -139,19 +141,23 @@ class CharacterCreator(Screen):
                 elif touch.button == 'scrolldown':
                     self.camera.position.z += 1
                 return True
+
             touch.grab(self)
             self.touches.append(touch)
+            self.touch_mode = touch.button # 'left', 'right', etc.
             return True
         return super(CharacterCreator, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
-        if touch.grab_current is self:
+        if touch.grab_current is self and self.loaded_obj:
             if len(self.touches) == 1:
-                if 'dx' in touch.profile:
-                    self.renderer.camera.rotation.y += touch.dx
-                if 'dy' in touch.profile:
-                    self.renderer.camera.rotation.x += touch.dy
-            elif len(self.touches) == 2:
+                if self.touch_mode == 'left': # Rotate object
+                    self.loaded_obj.rotation.y += touch.dx
+                    self.loaded_obj.rotation.x += touch.dy
+                elif self.touch_mode == 'right': # Pan camera
+                    self.camera.position.x -= touch.dx * 0.1
+                    self.camera.position.y -= touch.dy * 0.1
+            elif len(self.touches) == 2: # Pinch to zoom
                 t1, t2 = self.touches
                 dist = t1.distance(t2)
                 if self.last_touch_distance != 0:
@@ -165,6 +171,8 @@ class CharacterCreator(Screen):
         if touch.grab_current is self:
             touch.ungrab(self)
             self.touches.remove(touch)
+            if len(self.touches) == 0:
+                self.touch_mode = None
             if len(self.touches) < 2:
                 self.last_touch_distance = 0
             return True
@@ -201,7 +209,10 @@ class CharacterCreator(Screen):
 
         character.stl_file_path = self.stl_path
         character.camera_position = (self.camera.position.x, self.camera.position.y, self.camera.position.z)
-        character.camera_rotation = (self.camera.rotation.x, self.camera.rotation.y, self.camera.rotation.z)
+        if self.loaded_obj:
+            character.object_rotation = (self.loaded_obj.rotation.x, self.loaded_obj.rotation.y, self.loaded_obj.rotation.z)
+        else:
+            character.object_rotation = (0, 0, 0)
 
         class_data = CLASS_DATA.get(character.char_class, {})
 
@@ -542,20 +553,26 @@ class CharacterCreator(Screen):
     def load_model(self, path):
         self.stl_path = path
 
-        # Clear previous model
-        for child in self.scene.children:
-            self.scene.remove(child)
+        # Create a new scene to ensure a clean state
+        self.scene = Scene()
+        self.renderer.scene = self.scene
 
+        # Add light to the new scene
+        light = Light(renderer=self.renderer, intensity=0.4)
+        light.pos_z = 1
+
+        # Load the object
         loader = STLLoader()
-        obj = loader.load(self.stl_path)
-        self.scene.add(obj)
+        self.loaded_obj = loader.load(self.stl_path)
+        self.scene.add(self.loaded_obj)
 
         # Set initial camera position
+        self.camera.position.x = 0
+        self.camera.position.y = 0
         self.camera.position.z = 40 # Move camera back
         self.camera.look_at([0,0,0])
 
+        # Add the renderer to the placeholder if it's not there
         placeholder = self.ids.stl_viewer_placeholder
         if not self.renderer.parent:
             placeholder.add_widget(self.renderer)
-
-        self.renderer.render(self.scene, self.camera)

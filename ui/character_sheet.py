@@ -32,9 +32,10 @@ class CharacterSheet(Screen):
         self.scene = Scene()
         self.renderer = Renderer()
         self.renderer.scene = self.scene
-        light = Light(renderer=self.renderer, intensity=1.0)
+        light = Light(renderer=self.renderer, intensity=0.4)
         light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
+        self.loaded_obj = None
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -52,16 +53,25 @@ class CharacterSheet(Screen):
         if self.character:
             if hasattr(self.character, 'normalize_spells'):
                 self.character.normalize_spells()
+
+            # Recreate scene to ensure it's clean
+            self.scene = Scene()
+            self.renderer.scene = self.scene
+            light = Light(renderer=self.renderer, intensity=0.4)
+            light.pos_z = 1
+            self.loaded_obj = None
+
             if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path:
                 self.load_model(self.character.stl_file_path)
                 if self.character.camera_position:
                     self.camera.position.x = self.character.camera_position[0]
                     self.camera.position.y = self.character.camera_position[1]
                     self.camera.position.z = self.character.camera_position[2]
-                if self.character.camera_rotation:
-                    self.camera.rotation.x = self.character.camera_rotation[0]
-                    self.camera.rotation.y = self.character.camera_rotation[1]
-                    self.camera.rotation.z = self.character.camera_rotation[2]
+                if hasattr(self.character, 'object_rotation') and self.character.object_rotation and self.loaded_obj:
+                    self.loaded_obj.rotation.x = self.character.object_rotation[0]
+                    self.loaded_obj.rotation.y = self.character.object_rotation[1]
+                    self.loaded_obj.rotation.z = self.character.object_rotation[2]
+                self.camera.look_at([0,0,0])
         self.update_sheet()
 
     def update_sheet(self):

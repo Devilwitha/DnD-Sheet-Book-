@@ -35,7 +35,7 @@ class Character:
         self.fighting_style = None
         self.stl_file_path = None
         self.camera_position = None
-        self.camera_rotation = None
+        self.object_rotation = None
 
     def initialize_character(self):
         """Sammelt alle Daten bei der Erstellung oder beim Laden."""
