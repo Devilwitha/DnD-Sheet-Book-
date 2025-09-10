@@ -1,6 +1,36 @@
 ==========================================
 Build Version:                10.09.2025
 
+Gui Version:               0.5.16 Alpha
+Firmware Version:          0.3.0 M33
+Updater Version:           1.0.0
+
+------------------------------------------
+feat: Add WLAN data transfer with automatic discovery
+
+This commit introduces a new feature that allows users to transfer character save files (.char) over a local network.
+
+The feature is accessible via a "SaveData übertragen" button on the options screen. The new transfer screen allows users to send or receive files.
+
+- Senders can select which .char files to send from a list with checkboxes.
+- Receivers can automatically discover available senders on the network without needing to enter an IP address. This is implemented using the Zeroconf library.
+- The file transfer is handled using sockets in separate threads to keep the UI responsive.
+
+fix: Resolve multiple UI and networking bugs
+
+This commit also includes several critical fixes to the implementation based on user feedback and testing:
+
+- **Checkbox Rendering:** Fixed a persistent bug where checkboxes were not visible by providing a fixed width in the Kivy layout, ensuring they are rendered correctly.
+- **UI Threading:** Fixed a `TypeError` crash by ensuring all UI updates from the network discovery thread are safely scheduled on the main Kivy thread using `Clock.schedule_once`.
+- **Network Stability:** Fixed a `NonUniqueNameException` crash by allowing Zeroconf to automatically handle service name conflicts.
+- **Connection Port:** Fixed a bug where the client used a hardcoded port instead of the one discovered by Zeroconf.
+- **UI Layout:** Corrected several layout issues in `transferscreen.kv`, including removing duplicated rules and ensuring buttons are placed in the correct views.
+- **Windows Compatibility:** Improved IP address detection to be more robust on Windows and other platforms.
+
+==========================================
+==========================================
+Build Version:                10.09.2025
+
 Gui Version:               0.5.15 Alpha
 Firmware Version:          0.2.0 M33
 Updater Version:           1.0.0

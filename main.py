@@ -36,6 +36,7 @@ from ui.settings_screen import SettingsScreen
 from ui.splash_screen import SplashScreen
 from ui.system_screen import SystemScreen
 from ui.changelog_screen import ChangelogScreen
+from ui.transfer_screen import TransferScreen
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
@@ -51,6 +52,7 @@ class DnDApp(App):
         Builder.load_file('ui/systemscreen.kv')
         Builder.load_file('ui/changelogscreen.kv')
         Builder.load_file('ui/infoscreen.kv')
+        Builder.load_file('ui/transferscreen.kv')
 
         if sys.platform.startswith('linux'):
             Window.fullscreen = 'auto'
@@ -74,6 +76,7 @@ class DnDApp(App):
         sm.add_widget(ChangelogScreen(name='changelog'))
         sm.add_widget(InfoScreen(name='info'))
         sm.add_widget(LevelUpScreen(name='level_up'))
+        sm.add_widget(TransferScreen(name='transfer'))
 
         root.add_widget(sm)
 

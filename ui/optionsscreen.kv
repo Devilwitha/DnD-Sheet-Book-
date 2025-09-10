@@ -18,6 +18,13 @@
             font_size: '20sp'
 
         Button:
+            text: "SaveData übertragen"
+            on_press: root.manager.current = 'transfer'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
             text: "System Einstellungen"
             on_press: root.manager.current = 'system'
             size_hint_y: None

@@ -1,0 +1,104 @@
+<TransferScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Datenübertragung"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Label:
+            id: status_label
+            text: root.status_message
+            font_size: '18sp'
+            size_hint_y: None
+            height: 40
+
+        ScreenManager:
+            id: transfer_sm
+            Screen:
+                name: 'main'
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    Button:
+                        text: "Senden"
+                        on_press: root.go_to_send_view()
+                        size_hint_y: None
+                        height: 80
+                        font_size: '20sp'
+                    Button:
+                        text: "Empfangen"
+                        on_press: root.go_to_receive_view()
+                        size_hint_y: None
+                        height: 80
+                        font_size: '20sp'
+                    BoxLayout: # Spacer
+                        size_hint_y: 1
+                    Button:
+                        text: "Zurück zu den Optionen"
+                        on_press: root.manager.current = 'options'
+                        size_hint_y: None
+                        height: 80
+                        font_size: '20sp'
+
+            Screen:
+                name: 'send'
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    ScrollView:
+                        GridLayout:
+                            id: file_list
+                            cols: 1
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: 5
+                            padding: 5
+                    Button:
+                        text: "Ausgewählte Dateien Senden"
+                        on_press: root.send_files()
+                        size_hint_y: None
+                        height: 80
+                        font_size: '20sp'
+                    Button:
+                        text: "Zurück"
+                        on_press: root.back_to_main_transfer()
+                        size_hint_y: None
+                        height: 80
+                        font_size: '20sp'
+
+            Screen:
+                name: 'receive'
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    ScrollView:
+                        GridLayout:
+                            id: service_list
+                            cols: 1
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: 5
+                            padding: 5
+                    Button:
+                        text: "Zurück"
+                        on_press: root.back_to_main_transfer()
+                        size_hint_y: None
+                        height: 80
+                        font_size: '20sp'
+
+<FileCheckBox>:
+    active: checkbox.active
+    size_hint_y: None
+    height: 48
+    CheckBox:
+        id: checkbox
+        size_hint_x: None
+        width: 48
+        on_active: root.on_checkbox_active(self, self.active)
+    Label:
+        text: root.text
