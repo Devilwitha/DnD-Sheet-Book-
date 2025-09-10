@@ -41,6 +41,6 @@ class STLLoader:
 
             geometry.faces.append(face)
 
-        mesh = Mesh(geometry, material)
-        obj.add(mesh)
+        kivy_mesh = Mesh(geometry, material)
+        obj.add(kivy_mesh)
         return obj
