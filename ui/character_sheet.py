@@ -13,27 +13,30 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
-from kivy.properties import ObjectProperty, BooleanProperty
+from kivy.properties import ObjectProperty
 
 from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
-class CharacterSheetWidget(BoxLayout):
-    """Finaler Charakterbogen als wiederverwendbares Widget."""
-    character = ObjectProperty(None)
-    manager = ObjectProperty(None)
-    is_player_view = BooleanProperty(False)
+class CharacterSheet(Screen):
+    """Finaler Charakterbogen mit allen neuen Features."""
+    main_layout = ObjectProperty(None)
 
     def __init__(self, **kwargs):
-        super(CharacterSheetWidget, self).__init__(**kwargs)
+        super(CharacterSheet, self).__init__(**kwargs)
+        self.character = None
         self.currency_labels = {}
+
+    def on_pre_enter(self, *args):
+        apply_background(self)
+        apply_styles_to_widget(self)
 
     def load_character(self, character):
         self.character = character
         if self.character:
             if hasattr(self.character, 'normalize_spells'):
                 self.character.normalize_spells()
-            self.update_sheet()
+        self.update_sheet()
 
     def update_sheet(self):
         if not self.character:
@@ -88,7 +91,7 @@ class CharacterSheetWidget(BoxLayout):
         for feature in self.character.features:
             btn = Button(text=feature['name'], size_hint_y=None, height=40, halign='left', valign='middle', padding=(10, 0))
             btn.bind(on_press=partial(self.show_feature_popup, feature))
-            apply_styles_to_widget(btn)
+            apply_styles_to_widget(btn)  # Stil anwenden
             self.ids.features_layout.add_widget(btn)
 
         self.update_inventory_display()
@@ -122,15 +125,20 @@ class CharacterSheetWidget(BoxLayout):
         self.ids.inventory_layout.clear_widgets()
         for index, item in enumerate(self.character.inventory):
             item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
+
+            # Item Name and Quantity
             text = f"{item['name']} ({item['quantity']})"
             if 'healing' in item:
                 text += f" (Heilung: {item['healing']['count']}d{item['healing']['dice']})"
             item_row.add_widget(Label(text=text, halign='left', valign='middle'))
+
+            # Buttons
             btn_box = BoxLayout(size_hint_x=0.5)
             if 'healing' in item:
                 btn_box.add_widget(Button(text="Benutzen", on_press=partial(self.use_healing_item, index)))
             btn_box.add_widget(Button(text="-", on_press=partial(self.adjust_item_quantity, index, -1)))
             btn_box.add_widget(Button(text="+", on_press=partial(self.adjust_item_quantity, index, 1)))
+
             item_row.add_widget(btn_box)
             self.ids.inventory_layout.add_widget(item_row)
 
@@ -148,9 +156,14 @@ class CharacterSheetWidget(BoxLayout):
             if healing_info:
                 num_dice = healing_info['count']
                 dice_type = healing_info['dice']
-                total_healed = sum(random.randint(1, dice_type) for _ in range(num_dice))
+
+                total_healed = 0
+                for _ in range(num_dice):
+                    total_healed += random.randint(1, dice_type)
+
                 self.character.hit_points = min(self.character.max_hit_points, self.character.hit_points + total_healed)
                 self.show_popup("Gegenstand benutzt", f"{total_healed} HP wiederhergestellt mit {item['name']}.")
+
                 self.adjust_item_quantity(item_index, -1, None)
                 self.update_sheet()
 
@@ -159,8 +172,10 @@ class CharacterSheetWidget(BoxLayout):
         for item_name, ac_bonus in self.character.equipment.items():
             item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
             item_row.add_widget(Label(text=f"{item_name} (AC: +{ac_bonus})", halign='left', valign='middle'))
+
             remove_btn = Button(text="-", size_hint_x=0.2)
             remove_btn.bind(on_press=partial(self.remove_equipment, item_name))
+
             item_row.add_widget(remove_btn)
             self.ids.equipment_layout.add_widget(item_row)
 
@@ -171,36 +186,239 @@ class CharacterSheetWidget(BoxLayout):
             self.update_sheet()
 
     def show_add_equipment_popup(self):
-        # Implementation omitted for brevity, it's the same as before
-        pass
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        name_input = TextInput(hint_text="Ausrüstungsname", multiline=False)
+        ac_input = TextInput(hint_text="AC Bonus", multiline=False)
+        content.add_widget(name_input)
+        content.add_widget(ac_input)
+
+        add_btn = Button(text="Hinzufügen")
+        content.add_widget(add_btn)
+
+        popup = create_styled_popup(title="Ausrüstung hinzufügen", content=content, size_hint=(0.8, 0.5))
+
+        def add_action(instance):
+            name = name_input.text.strip()
+            try:
+                ac_bonus = int(ac_input.text.strip())
+                if name:
+                    self.character.equipment[name] = ac_bonus
+                    self.character.calculate_armor_class()
+                    self.update_sheet()
+                    popup.dismiss()
+                else:
+                    self.show_popup("Fehler", "Bitte einen Namen eingeben.")
+            except ValueError:
+                self.show_popup("Fehler", "AC Bonus muss eine Zahl sein.")
+
+        add_btn.bind(on_press=add_action)
+        apply_styles_to_widget(content)
+        popup.open()
 
     def show_add_item_popup(self):
-        # Implementation omitted for brevity, it's the same as before
-        pass
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        item_input = TextInput(hint_text="Gegenstandname", multiline=False)
+        content.add_widget(item_input)
+
+        # Heilitem Optionen
+        healing_box = BoxLayout(size_hint_y=None, height=44)
+        healing_box.add_widget(Label(text="Heilitem:"))
+        is_healing_checkbox = CheckBox()
+        healing_box.add_widget(is_healing_checkbox)
+        content.add_widget(healing_box)
+
+        dice_count_input = TextInput(hint_text="Anzahl Würfel (z.B. 2)", multiline=False, disabled=True)
+        dice_type_input = TextInput(hint_text="Würfelart (z.B. 4 für d4)", multiline=False, disabled=True)
+
+        def on_checkbox_active(checkbox, value):
+            dice_count_input.disabled = not value
+            dice_type_input.disabled = not value
+        is_healing_checkbox.bind(active=on_checkbox_active)
+
+        content.add_widget(dice_count_input)
+        content.add_widget(dice_type_input)
+
+        add_btn = Button(text="Hinzufügen")
+        content.add_widget(add_btn)
+
+        popup = create_styled_popup(title="Item hinzufügen", content=content, size_hint=(0.8, 0.7))
+
+        def add_action(instance):
+            item_name = item_input.text.strip()
+            if not item_name:
+                self.show_popup("Fehler", "Bitte einen Namen für den Gegenstand eingeben.")
+                return
+
+            is_healing = is_healing_checkbox.active
+            healing_details = None
+            if is_healing:
+                try:
+                    count = int(dice_count_input.text)
+                    dice = int(dice_type_input.text)
+                    healing_details = {"count": count, "dice": dice}
+                except ValueError:
+                    self.show_popup("Fehler", "Ungültige Würfel-Eingabe für Heilitem.")
+                    return
+
+            # Find a matching item to stack
+            found_item = None
+            for item in self.character.inventory:
+                if item['name'] == item_name:
+                    item_is_healing = 'healing' in item
+                    # Compare healing details dicts content-wise
+                    if is_healing and item_is_healing and item.get('healing') and healing_details and \
+                       item['healing']['count'] == healing_details['count'] and \
+                       item['healing']['dice'] == healing_details['dice']:
+                        found_item = item
+                        break
+                    elif not is_healing and not item_is_healing:
+                        found_item = item
+                        break
+
+            if found_item:
+                found_item['quantity'] += 1
+            else:
+                new_item = {"name": item_name, "quantity": 1}
+                if is_healing:
+                    new_item['healing'] = healing_details
+                self.character.inventory.append(new_item)
+
+            self.update_inventory_display()
+            popup.dismiss()
+
+        add_btn.bind(on_press=add_action)
+        apply_styles_to_widget(content)
+        popup.open()
 
     def roll_damage(self):
-        # Implementation omitted for brevity, it's the same as before
-        pass
+        weapon_name = self.character.equipped_weapon
+        weapon_info = WEAPON_DATA.get(weapon_name, WEAPON_DATA["Unbewaffneter Schlag"])
+        ability_name = weapon_info["ability"]
+        modifier = (self.character.abilities[ability_name] - 10) // 2
+
+        parts = weapon_info["damage"].split('d')
+        num_dice = int(parts[0])
+        dice_type = int(parts[1])
+
+        roll_total = sum(random.randint(1, dice_type) for _ in range(num_dice))
+        total_damage = roll_total + modifier
+
+        self.show_popup(
+            "Schadenswurf",
+            f"{weapon_info['damage']} ({roll_total}) + {ability_name[:3]}-Mod ({modifier}) = {max(1, total_damage)} Schaden"
+        )
 
     def show_feature_popup(self, feature, instance):
         self.show_popup(feature['name'], feature['desc'])
 
     def show_info_popup(self):
-        # Implementation omitted for brevity, it's the same as before
-        pass
+        prof_text = ", ".join(self.character.proficiencies)
+        lang_text = ", ".join(self.character.languages)
+
+        features_text = ""
+        if self.character.features:
+            features_text = "\n\n[b]Klassenmerkmale:[/b]\n"
+            for feature in self.character.features:
+                features_text += f"- {feature['name']}\n"
+
+        skills_text = "\n\n[b]Fähigkeiten:[/b]\n"
+        for skill, ability in SKILL_LIST.items():
+            modifier = (self.character.abilities[ability] - 10) // 2
+            if skill in self.character.proficiencies:
+                modifier += self.character.get_proficiency_bonus()
+            sign = "+" if modifier >= 0 else ""
+            skills_text += f"- {skill}: {sign}{modifier}\n"
+
+        text = (
+            f"[b]Gesinnung:[/b] {self.character.alignment}\n\n"
+            f"[b]Hintergrund:[/b] {self.character.background}\n\n"
+            f"[b]Kompetenzen:[/b]\n{prof_text}\n\n"
+            f"[b]Sprachen:[/b]\n{lang_text}\n\n"
+            f"{skills_text}"
+            f"[b]Persönliche Merkmale:[/b]\n{self.character.personality_traits}\n\n"
+            f"[b]Ideale:[/b]\n{self.character.ideals}\n\n"
+            f"[b]Bindungen:[/b]\n{self.character.bonds}\n\n"
+            f"[b]Makel:[/b]\n{self.character.flaws}"
+            f"{features_text}"
+        )
+        self.show_popup("Charakter-Informationen", text)
 
     def show_spells_popup(self):
-        # Implementation omitted for brevity, it's the same as before
-        pass
+        content = ScrollView()
+        grid = GridLayout(cols=1, size_hint_y=None, spacing=5, padding=10)
+        grid.bind(minimum_height=grid.setter('height'))
+
+        if not self.character.spells:
+            grid.add_widget(Label(text="Dieser Charakter kann nicht zaubern.", size_hint_y=None, height=40))
+        else:
+            for spell_level in sorted(self.character.spells.keys()):
+                spell_list = self.character.spells[spell_level]
+                if not spell_list: continue
+
+                level_name = "Zaubertricks" if spell_level == 0 else f"Level {spell_level} Zauber"
+
+                # Zauberplätze anzeigen
+                if spell_level > 0:
+                    max_slots = self.character.max_spell_slots.get(str(spell_level), 0)
+                    current_slots = self.character.current_spell_slots.get(str(spell_level), 0)
+                    level_name += f" ({current_slots}/{max_slots})"
+
+                grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=40))
+                for spell_name in sorted(spell_list):
+                    btn = Button(text=spell_name, size_hint_y=None, height=40)
+                    btn.bind(on_press=partial(self.show_spell_details_popup, spell_name))
+                    grid.add_widget(btn)
+
+        content.add_widget(grid)
+        apply_styles_to_widget(content)
+        create_styled_popup(title="Zauberbuch", content=content, size_hint=(0.8, 0.9)).open()
+
+    def show_spell_details_popup(self, spell_name, instance):
+        spell_info = SPELL_DATA.get(spell_name, {})
+        text = (
+            f"[b]Level:[/b] {spell_info.get('level', 'N/A')}\n"
+            f"[b]Schule:[/b] {spell_info.get('school', 'N/A')}\n\n"
+            f"{spell_info.get('desc', 'Keine Beschreibung verfügbar.')}"
+        )
+
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        scroll_view = ScrollView()
+        label = Label(text=text, markup=True, size_hint_y=None, padding=(10, 10))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
+        scroll_view.add_widget(label)
+        content.add_widget(scroll_view)
+
+        popup = create_styled_popup(title=spell_name, content=content, size_hint=(0.8, 0.9))
+
+        if spell_info.get("level", 0) > 0:
+            cast_btn = Button(text="Wirken", size_hint_y=None, height=44)
+            # Pass the popup to be dismissed
+            cast_btn.bind(on_press=lambda x: (self.cast_spell(spell_name, spell_info.get('level'), popup)))
+            content.add_widget(cast_btn)
+
+        apply_styles_to_widget(content)
+        popup.open()
 
     def cast_spell(self, spell_name, spell_level, spell_details_popup):
-        # Implementation omitted for brevity, it's the same as before
-        pass
+        """Versucht, einen Zauber zu wirken und verbraucht einen Zauberplatz."""
+        spell_level_str = str(spell_level)
+        if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
+            self.character.current_spell_slots[spell_level_str] -= 1
+            self.show_popup("Zauber gewirkt", f"Du hast '{spell_name}' gewirkt.")
+            spell_details_popup.dismiss()
+            # Re-open the spellbook to show updated slots
+            self.show_spells_popup()
+        else:
+            self.show_popup("Keine Zauberplätze", f"Keine Zauberplätze für Level {spell_level} mehr übrig.")
 
     def open_level_up_screen(self):
-        if self.manager:
-            self.manager.get_screen('level_up').set_character(self.character)
-            self.manager.current = 'level_up'
+        self.manager.get_screen('level_up').set_character(self.character)
+        self.manager.current = 'level_up'
 
     def save_character(self):
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
@@ -213,15 +431,7 @@ class CharacterSheetWidget(BoxLayout):
 
     def roll_d20(self):
         roll = random.randint(1, 20)
-        # Simplified popup for testing
-        try:
-            popup = Popup(title='d20 Wurf',
-                          content=Label(text=f'Du hast eine {roll} gewürfelt.'),
-                          size_hint=(None, None), size=(400, 200))
-            popup.open()
-            print("Popup open called")
-        except Exception as e:
-            print(f"Error opening popup: {e}")
+        self.show_popup("d20 Wurf", f"Du hast eine {roll} gewürfelt.")
 
     def roll_initiative(self):
         roll = random.randint(1, 20)
@@ -229,8 +439,21 @@ class CharacterSheetWidget(BoxLayout):
         self.show_popup("Initiativewurf", f"Wurf: {roll} + {self.character.initiative} = {total}")
 
     def show_rest_popup(self):
-        # Implementation omitted for brevity, it's the same as before
-        pass
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        long_rest_btn = Button(text="Grosse Rast")
+        content.add_widget(long_rest_btn)
+
+        short_rest_btn = Button(text="Kleine Rast")
+        content.add_widget(short_rest_btn)
+
+        popup = create_styled_popup(title="Rasten", content=content, size_hint=(0.6, 0.4))
+
+        long_rest_btn.bind(on_press=lambda x: (self.do_long_rest(), popup.dismiss()))
+        short_rest_btn.bind(on_press=lambda x: (self.show_short_rest_popup(), popup.dismiss()))
+
+        apply_styles_to_widget(content)
+        popup.open()
 
     def do_long_rest(self):
         self.character.long_rest()
@@ -238,29 +461,35 @@ class CharacterSheetWidget(BoxLayout):
         self.show_popup("Grosse Rast", "Du bist vollständig ausgeruht. HP und Zauberplätze wurden wiederhergestellt.")
 
     def show_short_rest_popup(self):
-        # Implementation omitted for brevity, it's the same as before
-        pass
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
 
-class CharacterSheetScreen(Screen):
-    """A screen that displays the CharacterSheetWidget."""
-    character = ObjectProperty(None)
+        if self.character.hit_dice == 0:
+            content.add_widget(Label(text="Du hast keine Trefferwürfel mehr übrig."))
+        else:
+            content.add_widget(Label(text=f"Verfügbare Trefferwürfel: {self.character.hit_dice}/{self.character.max_hit_dice}"))
 
-    def __init__(self, **kwargs):
-        super(CharacterSheetScreen, self).__init__(**kwargs)
-        self.character_sheet_widget = None
+            dice_input = TextInput(hint_text="Anzahl der zu verwendenden Würfel", input_filter='int', multiline=False)
+            content.add_widget(dice_input)
 
-    def on_pre_enter(self, *args):
-        apply_background(self)
-        apply_styles_to_widget(self)
+            heal_btn = Button(text="Heilen")
+            content.add_widget(heal_btn)
 
-    def on_enter(self, *args):
-        if not self.character_sheet_widget:
-            self.character_sheet_widget = self.ids.sheet_widget
-        if self.character:
-            self.character_sheet_widget.load_character(self.character)
+            popup = create_styled_popup(title="Kleine Rast", content=content, size_hint=(0.8, 0.5))
 
-    def load_character(self, character):
-        self.character = character
-        # If the screen is already active, load the character into the widget
-        if self.character_sheet_widget:
-            self.character_sheet_widget.load_character(character)
+            def heal_action(instance, p):
+                try:
+                    dice_to_spend = int(dice_input.text)
+                    if 0 < dice_to_spend <= self.character.hit_dice:
+                        healed_amount = self.character.short_rest(dice_to_spend)
+                        self.update_sheet()
+                        self.show_popup("Heilung", f"Du hast {healed_amount} HP wiederhergestellt.")
+                        p.dismiss()
+                    else:
+                        self.show_popup("Fehler", "Ungültige Anzahl an Würfeln.")
+                except ValueError:
+                    self.show_popup("Fehler", "Bitte eine gültige Zahl eingeben.")
+
+            heal_btn.bind(on_press=lambda x: heal_action(x, popup))
+
+        apply_styles_to_widget(content)
+        popup.open()

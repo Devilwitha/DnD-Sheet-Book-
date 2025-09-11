@@ -1,9 +1,13 @@
-from kivy.uix.screenmanager import Screen
-from kivy.uix.label import Label
-from kivy.clock import Clock
 import socket
 import threading
-from utils.helpers import apply_background, apply_styles_to_widget
+import json
+import random
+from kivy.uix.screenmanager import Screen
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
+from kivy.clock import Clock
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from data_manager import WEAPON_DATA
 
 class PlayerMainScreen(Screen):
     """The main screen for the player during a game session."""
@@ -12,6 +16,7 @@ class PlayerMainScreen(Screen):
         self.character = None
         self.client_socket = None
         self.listener_thread = None
+        self.summary = ""
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -36,10 +41,9 @@ class PlayerMainScreen(Screen):
             self.ids.summary_label.text = ""
 
     def update_character_sheet(self):
-        """Loads the character into the embedded character sheet widget."""
+        """Loads the character into the embedded character display widget."""
         if self.character:
-            self.ids.character_sheet_widget.is_player_view = True
-            self.ids.character_sheet_widget.load_character(self.character)
+            self.ids.character_display.character = self.character
 
     def start_listening(self):
         """Starts a thread to listen for messages from the DM."""
@@ -89,11 +93,10 @@ class PlayerMainScreen(Screen):
         self.ids.log_output.text += f"\n{message}"
 
     def handle_disconnect(self):
-        self.update_log("DM has disconnected. Returning to main menu.")
+        self.update_log("DM hat die Verbindung getrennt. Kehre zum Hauptmenü zurück.")
         if self.client_socket:
             self.client_socket.close()
             self.client_socket = None
-        # After a delay, go back to the main menu
         Clock.schedule_once(lambda dt: self.go_to_main_menu(), 3)
 
     def go_to_main_menu(self):
@@ -104,3 +107,33 @@ class PlayerMainScreen(Screen):
         if self.client_socket:
             self.client_socket.close()
             self.client_socket = None
+
+    def roll_d20(self):
+        roll = random.randint(1, 20)
+        popup = create_styled_popup(title='d20 Wurf',
+                                    content=Label(text=f'Du hast eine {roll} gewürfelt.'),
+                                    size_hint=(0.6, 0.4))
+        popup.open()
+        # Also send to DM
+        if self.client_socket:
+            # This needs a proper message protocol, but for now, just send a string
+            pass
+
+    def roll_damage(self):
+        if not self.character: return
+        weapon_name = self.character.equipped_weapon
+        weapon_info = WEAPON_DATA.get(weapon_name, WEAPON_DATA["Unbewaffneter Schlag"])
+        ability_name = weapon_info["ability"]
+        modifier = (self.character.abilities[ability_name] - 10) // 2
+        parts = weapon_info["damage"].split('d')
+        num_dice = int(parts[0])
+        dice_type = int(parts[1])
+        roll_total = sum(random.randint(1, dice_type) for _ in range(num_dice))
+        total_damage = roll_total + modifier
+
+        popup = create_styled_popup(
+            title="Schadenswurf",
+            content=Label(text=f"{weapon_info['damage']} ({roll_total}) + {ability_name[:3]}-Mod ({modifier}) = {max(1, total_damage)} Schaden"),
+            size_hint=(0.8, 0.4)
+        )
+        popup.open()
