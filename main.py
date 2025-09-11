@@ -345,9 +345,9 @@ class DnDApp(App):
         Builder.load_file('ui/playercharactersheet.kv')
 
         if sys.platform.startswith('win'):
-            Window.fullscreen = 'auto'
-        else:
             Window.fullscreen = False
+        else:
+            Window.fullscreen = 'auto'
 
         Window.clearcolor = (0.1, 0.1, 0.1, 1)
         
