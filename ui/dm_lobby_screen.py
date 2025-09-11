@@ -197,8 +197,9 @@ class DMLobbyScreen(Screen):
             self.server_socket = None
             print("[*] Server socket closed.")
 
-        for client_socket in self.clients.values():
-            client_socket.close()
+        for client_info in self.clients.values():
+            if 'socket' in client_info and client_info['socket']:
+                client_info['socket'].close()
         self.clients.clear()
 
         # Clear the player list on the UI
