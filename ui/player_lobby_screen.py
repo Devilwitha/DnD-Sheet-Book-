@@ -110,12 +110,14 @@ class PlayerLobbyScreen(Screen):
             self.char_popup.dismiss()
             self.char_popup = None
 
+from kivy.uix.label import Label
+
     def connect_to_dm(self):
         if not self.selected_char_file:
-            print("[!] No character selected.")
+            create_styled_popup(title="Fehler", content=Label(text="Bitte wähle zuerst einen Charakter aus."), size_hint=(0.6, 0.4)).open()
             return
         if not self.selected_dm:
-            print("[!] No DM selected.")
+            create_styled_popup(title="Fehler", content=Label(text="Bitte wähle zuerst einen DM aus der Liste aus."), size_hint=(0.6, 0.4)).open()
             return
 
         try:
