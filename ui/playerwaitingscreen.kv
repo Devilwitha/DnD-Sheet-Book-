@@ -7,8 +7,12 @@
             id: waiting_label
             text: "Verbindung wird hergestellt..."
             font_size: '24sp'
+        Label:
+            id: summary_label
+            font_size: '16sp'
+            text: ""
         Button:
             text: "Verbindung abbrechen"
-            on_press: root.handle_disconnect()
+            on_press: root.network_manager.shutdown()
             size_hint_y: None
             height: 60

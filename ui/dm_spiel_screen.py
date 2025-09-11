@@ -19,8 +19,7 @@ class DMSpielScreen(Screen):
     def on_pre_enter(self, *args):
         # Clear any previously loaded session data when re-entering this screen
         app = App.get_running_app()
-        if hasattr(app, 'loaded_session_data'):
-            del app.loaded_session_data
+        app.loaded_session_data = None
         apply_background(self)
         apply_styles_to_widget(self)
 
