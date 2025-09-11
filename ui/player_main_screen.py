@@ -12,7 +12,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.clock import Clock
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
-from data_manager import WEAPON_DATA, SPELL_DATA
+from data_manager import WEAPON_DATA, SPELL_DATA, SKILL_LIST
 
 class PlayerMainScreen(Screen):
     """The main screen for the player during a game session."""
@@ -81,7 +81,6 @@ class PlayerMainScreen(Screen):
                     Clock.schedule_once(lambda dt: self.handle_disconnect())
                     break
                 elif msg_type == 'UPDATE_CHAR':
-                    # DM is pushing a change to our character
                     attr = payload.get('attribute')
                     value = payload.get('value')
                     if hasattr(self.character, attr):
@@ -151,6 +150,8 @@ class PlayerMainScreen(Screen):
         self.send_message_to_dm("LOG", log_msg)
 
     def show_spells_popup(self):
+        # This method now only opens the list of spells.
+        # The confirmation and casting logic is handled by show_spell_confirmation_popup.
         content = ScrollView()
         grid = GridLayout(cols=1, size_hint_y=None, spacing=5, padding=10)
         grid.bind(minimum_height=grid.setter('height'))
@@ -169,14 +170,46 @@ class PlayerMainScreen(Screen):
                 grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=40))
                 for spell_name in sorted(spell_list):
                     btn = Button(text=spell_name, size_hint_y=None, height=40)
-                    btn.bind(on_press=partial(self.cast_spell, spell_name))
+                    btn.bind(on_press=partial(self.show_spell_confirmation_popup, spell_name))
                     grid.add_widget(btn)
 
         content.add_widget(grid)
         apply_styles_to_widget(content)
-        create_styled_popup(title="Zauberbuch", content=content, size_hint=(0.8, 0.9)).open()
+        self.spells_popup = create_styled_popup(title="Zauberbuch", content=content, size_hint=(0.8, 0.9))
+        self.spells_popup.open()
 
-    def cast_spell(self, spell_name, instance):
+    def show_spell_confirmation_popup(self, spell_name, instance):
+        """Shows spell details and asks for confirmation to cast."""
+        spell_info = SPELL_DATA.get(spell_name, {})
+        text = (
+            f"[b]Level:[/b] {spell_info.get('level', 'N/A')}\n"
+            f"[b]Schule:[/b] {spell_info.get('school', 'N/A')}\n\n"
+            f"{spell_info.get('desc', 'Keine Beschreibung verfügbar.')}"
+        )
+
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        scroll = ScrollView()
+        label = Label(text=text, markup=True, size_hint_y=None)
+        label.bind(width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+                   texture_size=lambda *x: label.setter('height')(label, label.texture_size[1]))
+        scroll.add_widget(label)
+        content.add_widget(scroll)
+
+        button_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
+        cast_button = Button(text="Wirken")
+        cancel_button = Button(text="Abbrechen")
+        button_layout.add_widget(cast_button)
+        button_layout.add_widget(cancel_button)
+        content.add_widget(button_layout)
+
+        popup = create_styled_popup(title=spell_name, content=content, size_hint=(0.8, 0.8))
+
+        cast_button.bind(on_press=lambda x: (self.cast_spell(spell_name), popup.dismiss(), self.spells_popup.dismiss()))
+        cancel_button.bind(on_press=popup.dismiss)
+
+        popup.open()
+
+    def cast_spell(self, spell_name):
         spell_info = SPELL_DATA.get(spell_name, {})
         spell_level = spell_info.get("level", 0)
         spell_level_str = str(spell_level)
@@ -239,7 +272,6 @@ class PlayerMainScreen(Screen):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         long_rest_btn = Button(text="Grosse Rast")
         content.add_widget(long_rest_btn)
-        # Short rest is more complex, so we'll just implement long rest for now.
         popup = create_styled_popup(title="Rasten", content=content, size_hint=(0.6, 0.4))
         long_rest_btn.bind(on_press=lambda x: (self.do_long_rest(), popup.dismiss()))
         apply_styles_to_widget(content)

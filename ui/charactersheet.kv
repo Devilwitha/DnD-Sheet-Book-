@@ -153,5 +153,14 @@
                 text: "Speichern"
                 on_press: root.save_character()
             Button:
+            id: dm_back_button
+            text: "Zurück zum DM Screen"
+            on_press: root.manager.current = 'dm_main'
+            size_hint_y: None
+            height: 0
+            opacity: 0
+            disabled: True
+        Button:
+            id: main_menu_button
                 text: "Hauptmenü"
                 on_press: root.manager.current = 'main'

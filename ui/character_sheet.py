@@ -27,9 +27,29 @@ class CharacterSheet(Screen):
         self.character = None
         self.currency_labels = {}
 
+from kivy.app import App
+
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+
+        app = App.get_running_app()
+        if hasattr(app, 'source_screen') and app.source_screen == 'dm_main':
+            self.ids.dm_back_button.height = 50
+            self.ids.dm_back_button.opacity = 1
+            self.ids.dm_back_button.disabled = False
+            self.ids.main_menu_button.height = 0
+            self.ids.main_menu_button.opacity = 0
+            self.ids.main_menu_button.disabled = True
+            # Make sure to reset the flag
+            del app.source_screen
+        else:
+            self.ids.dm_back_button.height = 0
+            self.ids.dm_back_button.opacity = 0
+            self.ids.dm_back_button.disabled = True
+            self.ids.main_menu_button.height = 50
+            self.ids.main_menu_button.opacity = 1
+            self.ids.main_menu_button.disabled = False
 
     def load_character(self, character):
         self.character = character
