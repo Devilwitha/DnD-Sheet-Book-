@@ -1,4 +1,5 @@
 import json
+import random
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
@@ -129,8 +130,40 @@ class DMMainScreen(Screen):
     def log_message(self, message):
         self.ids.log_output.text += f"{message}\n"
 
-    def roll_initiative_for_all(self): pass
-    def update_initiative_ui(self): pass
+    def roll_initiative_for_all(self):
+        """Rolls initiative for all players and enemies."""
+        self.initiative_order = []
+
+        # Roll for online players
+        with self.network_manager.lock:
+            for client_info in self.network_manager.clients.values():
+                char = client_info['character']
+                roll = random.randint(1, 20) + char.initiative
+                self.initiative_order.append((roll, char.name))
+
+        # Roll for enemies
+        for enemy in self.enemies:
+            # Assuming enemies have no initiative modifier for simplicity
+            roll = random.randint(1, 20)
+            self.initiative_order.append((roll, enemy.name))
+
+        # Sort by initiative roll, descending
+        self.initiative_order.sort(key=lambda x: x[0], reverse=True)
+
+        self.update_initiative_ui()
+
+        # Log and broadcast the result
+        log_msg = "Initiativereihenfolge:\n" + "\n".join([f"{roll}: {name}" for roll, name in self.initiative_order])
+        self.log_message(log_msg)
+        self.network_manager.broadcast_message("LOG", log_msg)
+
+    def update_initiative_ui(self):
+        """Updates the UI with the current initiative order."""
+        initiative_list_widget = self.ids.initiative_list
+        initiative_list_widget.clear_widgets()
+        for roll, name in self.initiative_order:
+            label = Label(text=f"{roll}: {name}", size_hint_y=None, height=30)
+            initiative_list_widget.add_widget(label)
 
     def add_offline_player(self):
         """Opens a popup to add a new offline player."""

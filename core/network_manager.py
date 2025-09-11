@@ -70,12 +70,15 @@ class NetworkManager:
 
     def sender_loop(self):
         """Monitors the outgoing queue and sends messages."""
+        print("[SENDER_THREAD] Sender loop started.")
         while self.running:
             try:
                 recipient_socket, message = self.outgoing_messages.get(timeout=1)
                 if recipient_socket is None: # Shutdown signal
                     break
+                print(f"[SENDER_THREAD] Dequeued message to send: {message[:50]}...")
                 recipient_socket.sendall(message)
+                print(f"[SENDER_THREAD] Message sent successfully.")
             except Empty:
                 continue
             except (OSError, BrokenPipeError) as e:
@@ -184,10 +187,12 @@ class NetworkManager:
                 self.outgoing_messages.put((client_info['socket'], message))
 
     def broadcast_message(self, msg_type, payload):
+        print(f"[DM] Broadcasting message: Type={msg_type}, Payload={payload}")
         with self.lock:
             data = json.dumps({'type': msg_type, 'payload': payload})
             message = f"{len(data):<10}{data}".encode('utf-8')
             for client_info in self.clients.values():
+                print(f"[DM] Queuing broadcast for client {client_info['character'].name}")
                 self.outgoing_messages.put((client_info['socket'], message))
 
     def kick_player(self, client_address):
@@ -229,12 +234,15 @@ class NetworkManager:
             return False, str(e)
 
     def listen_as_client(self):
+        print("[CLIENT_THREAD] Listener loop started.")
         while self.running:
             try:
                 header = self.client_socket.recv(10)
                 if not header:
+                    print("[CLIENT_THREAD] Disconnected (no header).")
                     break
 
+                print(f"[CLIENT_THREAD] Received header: {header.strip()}")
                 msg_len = int(header.strip())
                 data = b''
                 while len(data) < msg_len:
@@ -242,11 +250,14 @@ class NetworkManager:
                     if not chunk: break
                     data += chunk
 
+                print(f"[CLIENT_THREAD] Received data: {data.decode('utf-8')}")
                 if data:
                     message = json.loads(data.decode('utf-8'))
+                    print(f"[CLIENT_THREAD] Queuing incoming message: {message}")
                     self.incoming_messages.put(('DM', message))
 
-            except (socket.error, OSError, ConnectionResetError):
+            except (socket.error, OSError, ConnectionResetError) as e:
+                print(f"[CLIENT_THREAD] Connection error: {e}")
                 break
 
         self.shutdown()

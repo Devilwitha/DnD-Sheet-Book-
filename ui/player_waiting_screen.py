@@ -25,12 +25,15 @@ class PlayerWaitingScreen(Screen):
     def check_for_updates(self, dt):
         # Check if the connection was dropped
         if not self.network_manager.running and self.network_manager.mode == 'idle':
+            print("[WAITING_SCREEN] Disconnected, handling.")
             self.handle_disconnect("Verbindung zum DM verloren.")
             return
 
         try:
             while True:
+                # print("[WAITING_SCREEN] Polling for messages...")
                 source, message = self.network_manager.incoming_messages.get_nowait()
+                print(f"[WAITING_SCREEN] Dequeued message: {message}")
                 if source != 'DM': continue # Should not happen in client mode
 
                 msg_type = message.get('type')
