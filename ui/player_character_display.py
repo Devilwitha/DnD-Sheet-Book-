@@ -14,25 +14,21 @@ class PlayerCharacterDisplay(BoxLayout):
         if not self.character:
             return
 
-        # Clear previous widgets to prevent duplicates
-        self.ids.stats_box.clear_widgets()
-
         # Basic Info
         self.ids.name_label.text = self.character.name
         self.ids.class_label.text = f"{self.character.race} {self.character.char_class} {self.character.level}"
         self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
 
         # Abilities
-        for ability, score in self.character.abilities.items():
-            modifier = (score - 10) // 2
-            sign = "+" if modifier >= 0 else ""
-            self.ids.stats_box.add_widget(Label(text=f"{ability}:"))
-            self.ids.stats_box.add_widget(Label(text=f"{score} ({sign}{modifier})"))
+        abilities = self.character.abilities
+        self.ids.strength_label.text = f"{abilities['Stärke']} ({(abilities['Stärke'] - 10) // 2:+})"
+        self.ids.dexterity_label.text = f"{abilities['Geschicklichkeit']} ({(abilities['Geschicklichkeit'] - 10) // 2:+})"
+        self.ids.constitution_label.text = f"{abilities['Konstitution']} ({(abilities['Konstitution'] - 10) // 2:+})"
+        self.ids.intelligence_label.text = f"{abilities['Intelligenz']} ({(abilities['Intelligenz'] - 10) // 2:+})"
+        self.ids.wisdom_label.text = f"{abilities['Weisheit']} ({(abilities['Weisheit'] - 10) // 2:+})"
+        self.ids.charisma_label.text = f"{abilities['Charisma']} ({(abilities['Charisma'] - 10) // 2:+})"
 
         # Combat Stats
-        self.ids.stats_box.add_widget(Label(text="Rüstungsklasse:"))
-        self.ids.stats_box.add_widget(Label(text=f"{self.character.armor_class}"))
-        self.ids.stats_box.add_widget(Label(text="Initiative:"))
-        self.ids.stats_box.add_widget(Label(text=f"{self.character.initiative:+}"))
-        self.ids.stats_box.add_widget(Label(text="Bewegungsrate:"))
-        self.ids.stats_box.add_widget(Label(text=f"{self.character.speed}m"))
+        self.ids.ac_label.text = str(self.character.armor_class)
+        self.ids.initiative_label.text = f"{self.character.initiative:+}"
+        self.ids.speed_label.text = f"{self.character.speed}m"

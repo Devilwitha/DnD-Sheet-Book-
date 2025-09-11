@@ -25,8 +25,53 @@
 
     ScrollView:
         GridLayout:
-            id: stats_box
             cols: 2
             size_hint_y: None
             height: self.minimum_height
             spacing: 5
+
+            Label:
+                text: "Stärke:"
+            Label:
+                id: strength_label
+                text: "10 (+0)"
+            Label:
+                text: "Geschicklichkeit:"
+            Label:
+                id: dexterity_label
+                text: "10 (+0)"
+            Label:
+                text: "Konstitution:"
+            Label:
+                id: constitution_label
+                text: "10 (+0)"
+            Label:
+                text: "Intelligenz:"
+            Label:
+                id: intelligence_label
+                text: "10 (+0)"
+            Label:
+                text: "Weisheit:"
+            Label:
+                id: wisdom_label
+                text: "10 (+0)"
+            Label:
+                text: "Charisma:"
+            Label:
+                id: charisma_label
+                text: "10 (+0)"
+            Label:
+                text: "Rüstungsklasse:"
+            Label:
+                id: ac_label
+                text: "10"
+            Label:
+                text: "Initiative:"
+            Label:
+                id: initiative_label
+                text: "+0"
+            Label:
+                text: "Bewegungsrate:"
+            Label:
+                id: speed_label
+                text: "9m"
