@@ -33,7 +33,8 @@ class CharacterSheet(Screen):
         apply_styles_to_widget(self)
 
         app = App.get_running_app()
-        if hasattr(app, 'source_screen') and app.source_screen == 'dm_main':
+        if hasattr(app, 'source_screen') and app.source_screen:
+            self.ids.dm_back_button.text = f"Zurück zu {app.source_screen.replace('_', ' ').title()}"
             self.ids.dm_back_button.height = 50
             self.ids.dm_back_button.opacity = 1
             self.ids.dm_back_button.disabled = False
