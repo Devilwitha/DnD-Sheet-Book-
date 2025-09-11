@@ -1,0 +1,14 @@
+<PlayerWaitingScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 50
+        spacing: 20
+        Label:
+            id: waiting_label
+            text: "Verbindung wird hergestellt..."
+            font_size: '24sp'
+        Button:
+            text: "Verbindung abbrechen"
+            on_press: root.handle_disconnect()
+            size_hint_y: None
+            height: 60

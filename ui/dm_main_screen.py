@@ -34,9 +34,13 @@ class DMMainScreen(Screen):
 
         print(f"[*] Game data set. {len(self.online_players)} online players.")
 
-        # Start a listener thread for each player
+        # Start a listener thread for each player and send GAME_START
         for addr, player_info in self.online_players.items():
             if 'socket' in player_info and player_info['socket']:
+                # Send GAME_START signal
+                self.send_message_to_client(player_info['socket'], "GAME_START", "")
+
+                # Start listener thread
                 thread = threading.Thread(target=self.listen_to_client, args=(player_info['socket'], addr))
                 thread.daemon = True
                 thread.start()

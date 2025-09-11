@@ -48,6 +48,9 @@ class PlayerLobbyScreen(Screen):
         apply_styles_to_widget(self)
         self.ids.selected_char_label.text = "Kein Charakter ausgewählt"
         self.selected_char_file = None
+        self.client_socket = None
+        self.selected_dm = None
+
 
     def on_enter(self, *args):
         self.start_discovery()
@@ -202,14 +205,13 @@ class PlayerLobbyScreen(Screen):
                 self.client_socket.close()
 
     def proceed_to_game(self, character, summary):
-        self.manager.get_screen('player_main').set_player_data(character, self.client_socket, summary)
-        self.manager.current = 'player_main'
+        player_waiting_screen = self.manager.get_screen('player_waiting')
+        player_waiting_screen.set_data(character, self.client_socket, summary)
+        self.manager.current = 'player_waiting'
 
     def on_leave(self, *args):
         self.stop_discovery()
-        # The socket is now managed by the PlayerMainScreen, so we only close it
-        # if the player leaves this screen *without* successfully connecting.
-        if self.manager.current != 'player_main' and self.client_socket:
+        if self.manager.current not in ['player_waiting', 'player_main'] and self.client_socket:
             self.client_socket.close()
             self.client_socket = None
 
