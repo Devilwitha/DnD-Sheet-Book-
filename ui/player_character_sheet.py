@@ -129,7 +129,7 @@ class PlayerCharacterSheet(Screen):
         scroll = ScrollView(size_hint=(1, 1))
         scroll.add_widget(grid)
         content.add_widget(scroll)
-        create_styled_popup("Zauber", content).open()
+        create_styled_popup(title="Zauber", content=content, size_hint=(0.8, 0.9)).open()
 
     def show_spell_confirmation_popup(self, spell_name, instance):
         spell = SPELL_DATA.get(spell_name)
