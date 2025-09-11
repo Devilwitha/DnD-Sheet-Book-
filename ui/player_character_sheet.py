@@ -54,6 +54,10 @@ class PlayerCharacterSheet(Screen):
                 if msg_type == 'KICK':
                     self.handle_disconnect("Du wurdest vom DM gekickt.")
                     return
+                elif msg_type == 'GAME_STATE_UPDATE':
+                    self.update_player_list(payload.get('players', []))
+                    self.update_initiative_order(payload.get('initiative', []))
+
         except Empty:
             pass
 
@@ -99,6 +103,7 @@ class PlayerCharacterSheet(Screen):
 
                 log_msg = f"{self.character.name} benutzt {item['name']} und heilt {total_healed} HP."
                 self.send_log_to_dm(log_msg)
+                self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'hit_points', 'value': self.character.hit_points})
 
                 item['quantity'] -= 1
                 if item['quantity'] <= 0:
@@ -163,9 +168,11 @@ class PlayerCharacterSheet(Screen):
         popup.open()
 
     def cast_spell(self, spell_name, spell_level):
+        spell_level_str = str(spell_level)
         if spell_level > 0:
-            if self.character.spell_slots[spell_level-1] > 0:
-                self.character.spell_slots[spell_level-1] -= 1
+            if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
+                self.character.current_spell_slots[spell_level_str] -= 1
+                self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'current_spell_slots', 'value': self.character.current_spell_slots})
             else:
                 create_styled_popup(title="Fehler", content=Label(text="Keine Zauberplätze auf diesem Grad verfügbar.")).open()
                 return
@@ -233,3 +240,24 @@ class PlayerCharacterSheet(Screen):
         long_rest_btn.bind(on_press=do_long_rest)
 
         popup.open()
+
+    def update_player_list(self, players):
+        """Updates the player list UI."""
+        player_list_widget = self.ids.player_list_view
+        player_list_widget.clear_widgets()
+        for player_name in players:
+            player_list_widget.add_widget(Label(text=player_name, size_hint_y=None, height=30))
+
+    def update_initiative_order(self, initiative_order):
+        """Updates the initiative order UI."""
+        initiative_widget = self.ids.initiative_view
+        initiative_widget.clear_widgets()
+        for roll, name in initiative_order:
+            initiative_widget.add_widget(Label(text=f"{roll}: {name}", size_hint_y=None, height=30))
+
+    def show_full_character_sheet(self):
+        """Switches to the main character sheet view."""
+        self.app.source_screen = self.name # 'player_sheet'
+        sheet_screen = self.manager.get_screen('sheet')
+        sheet_screen.load_character(self.character)
+        self.manager.current = 'sheet'

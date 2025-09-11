@@ -75,11 +75,9 @@ def apply_styles_to_widget(widget):
                 transparency = settings.get('button_transparency', 1.0)
                 base_color = custom_button_bg_color if button_bg_color_enabled else [1, 1, 1, 1]
 
-                # Ensure base_color is a list of 4 elements (RGBA)
                 if len(base_color) == 3:
-                    base_color.append(1) # Add alpha if missing
+                    base_color.append(1)
 
-                # Combine custom color's alpha with global transparency
                 final_alpha = base_color[3] * transparency
 
                 normal_color = (base_color[0], base_color[1], base_color[2], final_alpha)
@@ -107,7 +105,7 @@ def apply_styles_to_widget(widget):
             if font_color_enabled:
                 w.color = custom_font_color
             else:
-                w.color = [1, 1, 1, 1]  # Standardfarbe
+                w.color = [1, 1, 1, 1]
 
         if hasattr(w, 'children'):
             for child in w.children:
@@ -116,7 +114,6 @@ def apply_styles_to_widget(widget):
     apply_to_children(widget)
 
 def create_styled_popup(title, content, size_hint):
-    """Erstellt ein Popup mit benutzerdefinierten Stilen."""
     settings = load_settings()
     popup_color_enabled = settings.get('popup_color_enabled', False)
     custom_popup_color = settings.get('custom_popup_color', [0.1, 0.1, 0.1, 0.9])
@@ -124,15 +121,13 @@ def create_styled_popup(title, content, size_hint):
     popup = Popup(title=title, content=content, size_hint=size_hint)
     if popup_color_enabled:
         popup.background_color = custom_popup_color
-        popup.background = '' # Erforderlich, damit background_color wirksam wird
+        popup.background = ''
 
-    # Anwenden von Stilen auf den Inhalt des Popups
     apply_styles_to_widget(content)
 
     return popup
 
 def apply_background(screen):
-    """Fügt den Hintergrund zu einem Bildschirm hinzu oder entfernt ihn, basierend auf den Einstellungen."""
     settings = load_settings()
 
     old_bg = getattr(screen, '_background_image', None)
@@ -140,7 +135,7 @@ def apply_background(screen):
         screen.remove_widget(old_bg)
 
     if settings.get('background_enabled', True):
-        bg_path = settings.get('background_path', 'osbackground/hmbg.png') # Fallback
+        bg_path = settings.get('background_path', 'osbackground/hmbg.png')
         if screen.name == 'creator':
             bg_path = settings.get('cs_creator_background_path', bg_path)
         elif screen.name == 'sheet':
@@ -155,21 +150,16 @@ def apply_background(screen):
                 print(f"Fehler beim Laden des Hintergrundbildes: {e}")
 
 def get_local_ip():
-    """
-    Ermittelt die lokale IP-Adresse des Rechners auf eine betriebssystemunabhängige Weise.
-    """
     s = None
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # Muss keine erreichbare Adresse sein, der Socket wird nicht wirklich senden
         s.connect(('10.255.255.255', 1))
         IP = s.getsockname()[0]
     except Exception:
-        # Fallback, falls die obige Methode fehlschlägt
         try:
             IP = socket.gethostbyname(socket.gethostname())
         except Exception:
-            IP = '127.0.0.1' # Letzter Ausweg
+            IP = '127.0.0.1'
     finally:
         if s:
             s.close()
@@ -179,9 +169,18 @@ def ensure_character_attributes(character):
     """Adds missing attributes to older character objects for forward compatibility."""
     if not hasattr(character, 'max_spell_slots'):
         character.max_spell_slots = {}
-    if not hasattr(character, 'current_spell_slots'):
-        character.current_spell_slots = {}
+
+    if isinstance(character.max_spell_slots, list):
+        new_slots = {str(i+1): val for i, val in enumerate(character.max_spell_slots)}
+        character.max_spell_slots = new_slots
+
+    if not hasattr(character, 'current_spell_slots') or isinstance(character.current_spell_slots, list):
+        character.current_spell_slots = {k: v for k, v in character.max_spell_slots.items()}
+
     if not hasattr(character, 'fighting_style'):
         character.fighting_style = None
-    # Add any other missing attributes here in the future
+
+    if hasattr(character, 'spell_slots'):
+        del character.spell_slots
+
     return character

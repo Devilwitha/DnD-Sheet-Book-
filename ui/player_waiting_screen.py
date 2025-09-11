@@ -52,6 +52,8 @@ class PlayerWaitingScreen(Screen):
                 elif msg_type == 'GAME_START':
                     self.proceed_to_game()
                     return # Stop checking for messages here
+                elif msg_type == 'GAME_STATE_UPDATE':
+                    self.update_player_list(payload.get('players', []))
 
         except Empty:
             pass
@@ -85,3 +87,10 @@ class PlayerWaitingScreen(Screen):
         # If we are not going to the game, manually shut down the connection
         if self.manager.current != 'player_sheet':
             self.network_manager.shutdown()
+
+    def update_player_list(self, players):
+        """Updates the player list UI."""
+        player_list_widget = self.ids.player_list
+        player_list_widget.clear_widgets()
+        for player_name in players:
+            player_list_widget.add_widget(Label(text=player_name, size_hint_y=None, height=30))

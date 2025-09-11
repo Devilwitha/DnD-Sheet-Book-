@@ -84,6 +84,29 @@
                         spacing: 5
                         size_hint_y: None
                         height: self.minimum_height
+
+                    Label:
+                        text: "Spieler"
+                        font_size: '20sp'
+                        size_hint_y: None
+                        height: 40
+                    GridLayout:
+                        id: player_list_view
+                        cols: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                    Label:
+                        text: "Initiative"
+                        font_size: '20sp'
+                        size_hint_y: None
+                        height: 40
+                    GridLayout:
+                        id: initiative_view
+                        cols: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+
         # Footer
         BoxLayout:
             size_hint_y: None
@@ -122,6 +145,9 @@
                 Button:
                     text: "Rasten"
                     on_press: root.show_rest_popup()
+                Button:
+                    text: "Charakterbogen"
+                    on_press: root.show_full_character_sheet()
                 Button:
                     text: "Verbindung trennen"
                     on_press: root.network_manager.shutdown()

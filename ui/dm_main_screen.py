@@ -76,6 +76,7 @@ class DMMainScreen(Screen):
                     if source in ['PLAYER_JOINED', 'PLAYER_LEFT']:
                         self.log_message(f"System: {source} - {message.get('name', message.get('char', 'Unknown'))}")
                         self.update_online_players_list()
+                        self.broadcast_game_state()
                         continue
 
                     # Handle in-game messages from clients
@@ -85,7 +86,15 @@ class DMMainScreen(Screen):
                     if msg_type == 'LOG':
                         player_name = self.network_manager.clients[source]['character'].name
                         self.log_message(f"{player_name}: {payload}")
-                    # Add other message types here (e.g., USE_SPELL, ATTACK, etc.)
+                    elif msg_type == 'UPDATE_STAT':
+                        with self.network_manager.lock:
+                            if source in self.network_manager.clients:
+                                character_to_update = self.network_manager.clients[source]['character']
+                                stat = payload.get('stat')
+                                value = payload.get('value')
+                                if hasattr(character_to_update, stat):
+                                    setattr(character_to_update, stat, value)
+                                    self.log_message(f"System: {character_to_update.name}'s {stat} wurde auf {value} aktualisiert.")
 
         except Empty:
             pass
@@ -155,7 +164,18 @@ class DMMainScreen(Screen):
         # Log and broadcast the result
         log_msg = "Initiativereihenfolge:\n" + "\n".join([f"{roll}: {name}" for roll, name in self.initiative_order])
         self.log_message(log_msg)
-        self.network_manager.broadcast_message("LOG", log_msg)
+        self.broadcast_game_state() # This will contain the initiative order
+
+    def broadcast_game_state(self):
+        """Broadcasts the current player list and initiative order to all clients."""
+        with self.network_manager.lock:
+            player_names = [c['character'].name for c in self.network_manager.clients.values()]
+
+        state = {
+            'players': player_names,
+            'initiative': self.initiative_order
+        }
+        self.network_manager.broadcast_message("GAME_STATE_UPDATE", state)
 
     def update_initiative_ui(self):
         """Updates the UI with the current initiative order."""

@@ -11,6 +11,16 @@
             id: summary_label
             font_size: '16sp'
             text: ""
+            size_hint_y: 0.2
+        Label:
+            text: "Verbundene Spieler:"
+            size_hint_y: 0.1
+        ScrollView:
+            GridLayout:
+                id: player_list
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
         Button:
             text: "Verbindung abbrechen"
             on_press: root.network_manager.shutdown()
