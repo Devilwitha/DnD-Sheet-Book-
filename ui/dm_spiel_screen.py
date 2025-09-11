@@ -1,9 +1,15 @@
 import json
+import os
+from functools import partial
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
-from utils.helpers import apply_background, apply_styles_to_widget
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
 class DMSpielScreen(Screen):
     """Screen for DM Spiel options."""
@@ -28,31 +34,41 @@ class DMSpielScreen(Screen):
         self.manager.current = 'dm_prep'
 
     def load_session(self):
-        """Loads a session file and stores it in the app for the lobby to use."""
-        # For now, load from a hardcoded file. Later, use a file chooser.
-        filename = "last_session.session"
+        """Opens a popup to select and load a session file."""
+        content = BoxLayout(orientation='vertical', spacing=10)
+        scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
+
+        session_files = [f for f in os.listdir('.') if f.endswith('.session')]
+        if not session_files:
+            create_styled_popup(title="Keine Sitzungen", content=Label(text="Keine gespeicherten Sitzungen gefunden."), size_hint=(0.6, 0.4)).open()
+            return
+
+        for filename in session_files:
+            btn = Button(text=filename, size_hint_y=None, height=44)
+            btn.bind(on_press=partial(self.do_load_file, filename))
+            scroll_content.add_widget(btn)
+
+        scroll_view = ScrollView()
+        scroll_view.add_widget(scroll_content)
+        content.add_widget(scroll_view)
+
+        self.load_popup = create_styled_popup(title="Sitzung laden", content=content, size_hint=(0.8, 0.8))
+        self.load_popup.open()
+
+    def do_load_file(self, filename, instance):
+        """Loads the selected file and transitions to the lobby."""
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 session_data = json.load(f)
 
-            # Store the loaded data in the main app instance
             app = App.get_running_app()
             app.loaded_session_data = session_data
 
-            popup = Popup(title='Geladen',
-                          content=Label(text=f"Sitzung '{filename}' geladen.\nStarte eine DM Lobby, um fortzufahren."),
-                          size_hint=(None, None), size=(400, 200))
-            popup.open()
-            print(f"[*] Session loaded from {filename}")
+            if hasattr(self, 'load_popup'):
+                self.load_popup.dismiss()
 
-        except FileNotFoundError:
-            popup = Popup(title='Fehler',
-                          content=Label(text=f"Sitzungsdatei nicht gefunden:\n{filename}"),
-                          size_hint=(None, None), size=(400, 200))
-            popup.open()
+            self.manager.current = 'dm_lobby'
+
         except Exception as e:
-            popup = Popup(title='Fehler',
-                          content=Label(text=f"Fehler beim Laden der Sitzung:\n{e}"),
-                          size_hint=(None, None), size=(400, 200))
-            popup.open()
-            print(f"[!] Error loading session: {e}")
+            create_styled_popup(title="Ladefehler", content=Label(text=f"Fehler beim Laden:\n{e}"), size_hint=(0.7, 0.5)).open()

@@ -1,0 +1,38 @@
+{
+    "Goblin": {
+        "hp": 7,
+        "ac": 15,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Scimitar",
+                "to_hit": 4,
+                "damage": "1d6+2"
+            }
+        ]
+    },
+    "Orc": {
+        "hp": 15,
+        "ac": 13,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Greataxe",
+                "to_hit": 5,
+                "damage": "1d12+3"
+            }
+        ]
+    },
+    "Skeleton": {
+        "hp": 13,
+        "ac": 13,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Shortsword",
+                "to_hit": 4,
+                "damage": "1d6+2"
+            }
+        ]
+    }
+}

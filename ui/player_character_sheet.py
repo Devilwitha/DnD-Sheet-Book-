@@ -1,0 +1,245 @@
+import random
+import json
+from functools import partial
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.spinner import Spinner
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.screenmanager import Screen
+from kivy.clock import Clock
+from kivy.app import App
+from queue import Empty
+
+from data_manager import WEAPON_DATA, SPELL_DATA
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+
+class PlayerCharacterSheet(Screen):
+    """A version of the character sheet for the online player."""
+
+    def __init__(self, **kwargs):
+        super(PlayerCharacterSheet, self).__init__(**kwargs)
+        self.app = App.get_running_app()
+        self.network_manager = self.app.network_manager
+        self.character = None
+        self.currency_labels = {}
+        self.update_event = None
+
+    def on_pre_enter(self, *args):
+        apply_background(self)
+        apply_styles_to_widget(self)
+
+    def on_enter(self, *args):
+        self.character = self.app.character
+        self.update_sheet()
+        self.update_event = Clock.schedule_interval(self.check_for_updates, 0.5)
+
+    def on_leave(self, *args):
+        if self.update_event:
+            self.update_event.cancel()
+            self.update_event = None
+        # Do not shut down the network manager here, as it's managed centrally
+        # It will shut down on its own if the connection is lost.
+
+    def check_for_updates(self, dt):
+        if not self.network_manager.running and self.network_manager.mode == 'idle':
+            self.handle_disconnect("Verbindung zum DM verloren.")
+            return
+
+        try:
+            while True:
+                source, message = self.network_manager.incoming_messages.get_nowait()
+                msg_type = message.get('type')
+                payload = message.get('payload')
+
+                if msg_type == 'KICK':
+                    self.handle_disconnect("Du wurdest vom DM gekickt.")
+                    return
+                # Handle other potential messages from DM, e.g., 'UPDATE_STATE'
+                # For now, we mainly care about being disconnected.
+
+        except Empty:
+            pass
+
+    def handle_disconnect(self, message):
+        if self.update_event:
+            self.update_event.cancel()
+            self.update_event = None
+
+            # The manager is already shut down or shutting down
+            create_styled_popup(title="Verbindung getrennt",
+                                content=Label(text=message),
+                                size_hint=(0.7, 0.4)).open()
+            self.manager.current = 'main'
+
+    def update_sheet(self):
+        if not self.character: return
+        self.ids.name_label.text = f"{self.character.name}"
+        # ... (rest of the UI update logic is largely the same)
+        self.ids.class_label.text = f"{self.character.race} {self.character.char_class} {self.character.level}"
+        self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
+        self.update_inventory_display()
+
+
+    def update_inventory_display(self):
+        self.ids.inventory_layout.clear_widgets()
+        for index, item in enumerate(self.character.inventory):
+            item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
+            text = f"{item['name']} ({item['quantity']})"
+            item_row.add_widget(Label(text=text, halign='left', valign='middle'))
+            btn_box = BoxLayout(size_hint_x=0.5)
+            if 'healing' in item:
+                btn = Button(text="Benutzen")
+                btn.bind(on_press=partial(self.use_healing_item, index))
+                btn_box.add_widget(btn)
+            item_row.add_widget(btn_box)
+            self.ids.inventory_layout.add_widget(item_row)
+
+    def use_healing_item(self, item_index, instance):
+        if 0 <= item_index < len(self.character.inventory):
+            item = self.character.inventory[item_index]
+            healing_info = item.get('healing')
+            if healing_info:
+                # Logic for healing...
+                total_healed = sum(random.randint(1, healing_info['dice']) for _ in range(healing_info['count']))
+                self.character.hit_points = min(self.character.max_hit_points, self.character.hit_points + total_healed)
+
+                # Send log message to DM
+                log_msg = f"{self.character.name} benutzt {item['name']} und heilt {total_healed} HP."
+                self.send_log_to_dm(log_msg)
+
+                # Update local state and UI
+                item['quantity'] -= 1
+                if item['quantity'] <= 0:
+                    self.character.inventory.pop(item_index)
+                self.update_sheet()
+
+    def show_spells_popup(self):
+        # This should now get spells from self.character
+        if not hasattr(self.character, 'spells') or not self.character.spells:
+            create_styled_popup("Zauber", Label(text="Keine Zauber bekannt.")).open()
+            return
+
+        content = BoxLayout(orientation='vertical', spacing=10)
+        grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        grid.bind(minimum_height=grid.setter('height'))
+
+        for spell_name in sorted(self.character.spells.keys()):
+            btn = Button(text=spell_name, size_hint_y=None, height=40)
+            btn.bind(on_press=partial(self.show_spell_confirmation_popup, spell_name))
+            grid.add_widget(btn)
+
+        scroll = ScrollView(size_hint=(1, 1))
+        scroll.add_widget(grid)
+        content.add_widget(scroll)
+        create_styled_popup("Zauber", content).open()
+
+    def show_spell_confirmation_popup(self, spell_name, instance):
+        spell = SPELL_DATA.get(spell_name)
+        if not spell: return
+
+        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+
+        title_label = Label(text=f"[b]{spell_name}[/b]", markup=True, font_size='18sp')
+        desc_label = Label(text=spell.get('desc', 'Keine Beschreibung verfügbar.'), text_size=(self.width*0.7, None))
+
+        button_box = BoxLayout(size_hint_y=None, height=44, spacing=10)
+        cast_button = Button(text="Wirken")
+        cancel_button = Button(text="Abbrechen")
+
+        button_box.add_widget(cast_button)
+        button_box.add_widget(cancel_button)
+
+        content.add_widget(title_label)
+        content.add_widget(desc_label)
+        content.add_widget(button_box)
+
+        popup = create_styled_popup(title="Zauber bestätigen", content=content, size_hint=(0.8, 0.6))
+
+        def do_cast(instance):
+            self.cast_spell(spell_name, spell.get('level', 0))
+            popup.dismiss()
+
+        cast_button.bind(on_press=do_cast)
+        cancel_button.bind(on_press=popup.dismiss)
+
+        popup.open()
+
+    def cast_spell(self, spell_name, spell_level):
+        if spell_level > 0:
+            if self.character.spell_slots[spell_level-1] > 0:
+                self.character.spell_slots[spell_level-1] -= 1
+            else:
+                create_styled_popup(title="Fehler", content=Label(text="Keine Zauberplätze auf diesem Grad verfügbar.")).open()
+                return
+
+        log_msg = f"{self.character.name} wirkt {spell_name}."
+        self.send_log_to_dm(log_msg)
+        # Here you could add logic for the spell's effect, e.g., damage roll
+        self.update_sheet() # To update spell slot display if you add one
+
+    def send_log_to_dm(self, log_message):
+        self.network_manager.send_to_dm("LOG", log_message)
+
+    def roll_d20(self, ability_name):
+        """Rolls a d20 with an ability modifier and shows a popup."""
+        modifier = (self.character.abilities.get(ability_name, 10) - 10) // 2
+        roll = random.randint(1, 20)
+        total = roll + modifier
+
+        result_text = f"Wurf: {roll} + {modifier} ({ability_name}) = {total}"
+        self.send_log_to_dm(f"führt einen {ability_name}-Wurf aus: {result_text}")
+        create_styled_popup(title=f"{ability_name} Wurf", content=Label(text=result_text), size_hint=(0.5, 0.3)).open()
+
+    def roll_damage(self):
+        """Rolls damage for the equipped weapon."""
+        weapon_name = self.character.equipped_weapon
+        weapon_info = WEAPON_DATA.get(weapon_name)
+        if not weapon_info: return
+
+        damage_str = weapon_info.get('damage', '1d4')
+        num_dice, dice_type = map(int, damage_str.split('d'))
+
+        ability_mod = (self.character.abilities.get(weapon_info.get('ability', 'Stärke'), 10) - 10) // 2
+
+        roll = sum(random.randint(1, dice_type) for _ in range(num_dice))
+        total_damage = roll + ability_mod
+
+        result_text = f"Schaden: {roll} + {ability_mod} = {total_damage}"
+        self.send_log_to_dm(f"verursacht {total_damage} Schaden mit {weapon_name}.")
+        create_styled_popup(title="Schadenswurf", content=Label(text=result_text), size_hint=(0.5, 0.3)).open()
+
+    def show_rest_popup(self):
+        """Shows a popup for short or long rest."""
+        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        short_rest_btn = Button(text="Kurze Rast")
+        long_rest_btn = Button(text="Lange Rast")
+
+        content.add_widget(short_rest_btn)
+        content.add_widget(long_rest_btn)
+
+        popup = create_styled_popup(title="Rasten", content=content, size_hint=(0.5, 0.4))
+
+        def do_short_rest(instance):
+            # Simple implementation: regain half hit dice
+            regain_amount = max(1, self.character.level // 2)
+            self.character.hit_dice = min(self.character.max_hit_dice, self.character.hit_dice + regain_amount)
+            self.send_log_to_dm(f"macht eine kurze Rast.")
+            self.update_sheet()
+            popup.dismiss()
+
+        def do_long_rest(instance):
+            # Full heal, regain all hit dice and spell slots
+            self.character.hit_points = self.character.max_hit_points
+            self.character.hit_dice = self.character.max_hit_dice
+            if hasattr(self.character, 'max_spell_slots'):
+                self.character.spell_slots = list(self.character.max_spell_slots)
+            self.send_log_to_dm(f"macht eine lange Rast.")
+            self.update_sheet()
+            popup.dismiss()
+
+        short_rest_btn.bind(on_press=do_short_rest)
+        long_rest_btn.bind(on_press=do_long_rest)
+
+        popup.open()

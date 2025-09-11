@@ -1,211 +1,126 @@
-import socket
-import threading
-import random
 import json
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.clock import Clock
-from zeroconf import ServiceInfo, Zeroconf
 from utils.helpers import apply_background, apply_styles_to_widget
-from core.character import Character
+from queue import Empty
 
 class DMLobbyScreen(Screen):
     """Screen for the DM lobby."""
     def __init__(self, **kwargs):
         super(DMLobbyScreen, self).__init__(**kwargs)
-        self.server_socket = None
-        self.zeroconf = None
-        self.service_info = None
-        self.clients = {}  # To store client sockets and addresses
-        self.server_thread = None
-        self.loaded_session = None
+        self.app = App.get_running_app()
+        self.network_manager = self.app.network_manager
+        self.update_event = None
+        self.player_widgets = {} # addr -> Label widget
+        self.is_starting_game = False
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
 
     def on_enter(self, *args):
-        app = App.get_running_app()
-        if hasattr(app, 'loaded_session_data'):
-            self.loaded_session = app.loaded_session_data
+        # Reset the flag when entering the screen
+        self.is_starting_game = False
+
+        # Start the server if it's not already running
+        self.network_manager.start_server()
+
+        self.ids.player_list.clear_widgets()
+        self.player_widgets.clear()
+
+        # Populate with already connected players
+        with self.network_manager.lock:
+            for addr, client_info in self.network_manager.clients.items():
+                self.add_player_to_list(addr, client_info['character'])
+
+        # Check for loaded session data from the app instance
+        if self.app.loaded_session_data:
             self.ids.lobby_title.text = "DM Lobby (Geladene Sitzung)"
-            # Populate the list with expected players from the session
-            for player_str, player_data in self.loaded_session['online_players'].items():
-                char_name = player_data['character']['name']
-                self.update_player_list(f"{char_name} (Erwartet)", player_str)
-            delattr(app, 'loaded_session_data') # Consume the data
+            # You could show expected players here if desired
         else:
-            self.loaded_session = None
             self.ids.lobby_title.text = "DM Lobby"
 
-        self.start_server()
+        # Start polling for network updates
+        self.update_event = Clock.schedule_interval(self.check_for_updates, 0.5)
 
-    def start_server(self):
-        # Setup server socket
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(("", 0))  # Bind to any address, OS chooses port
-        self.server_socket.listen(5)
-        host, port = self.server_socket.getsockname()
-
-        # Get local IP address
+    def check_for_updates(self, dt):
+        """Checks the incoming message queue for player join/leave events."""
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            ip_address = s.getsockname()[0]
-            s.close()
-        except Exception:
-            ip_address = "127.0.0.1"
+            while True:
+                # The queue holds tuples: (type, payload) or (addr, message)
+                item = self.network_manager.incoming_messages.get_nowait()
+                if isinstance(item, tuple) and len(item) == 2:
+                    message_type, payload = item
+                    if message_type == 'PLAYER_JOINED':
+                        self.add_player_to_list(payload['addr'], payload['char'])
+                        self.handle_new_player_connection(payload['addr'])
+                    elif message_type == 'PLAYER_LEFT':
+                        self.remove_player_from_list(payload['addr'])
+        except Empty:
+            pass # No new messages
 
-        print(f"[*] Listening on {ip_address}:{port}")
+    def add_player_to_list(self, addr, character):
+        if addr not in self.player_widgets:
+            player_name = f"{character.name} (Verbunden)"
+            player_label = Label(text=player_name, size_hint_y=None, height=40)
+            self.ids.player_list.add_widget(player_label)
+            self.player_widgets[addr] = player_label
 
-        # Setup Zeroconf service
-        service_name = f"DnD_DM_Server_{random.randint(1000, 9999)}._http._tcp.local."
-        self.service_info = ServiceInfo(
-            "_http._tcp.local.",
-            service_name,
-            addresses=[socket.inet_aton(ip_address)],
-            port=port,
-            properties={'name': 'DM_Lobby'},
-        )
-        self.zeroconf = Zeroconf()
-        self.zeroconf.register_service(self.service_info)
-        print(f"[*] Zeroconf service '{service_name}' registered.")
+    def remove_player_from_list(self, addr):
+        if addr in self.player_widgets:
+            widget = self.player_widgets.pop(addr)
+            self.ids.player_list.remove_widget(widget)
 
-        # Start listening for clients in a new thread
-        self.server_thread = threading.Thread(target=self.accept_clients)
-        self.server_thread.daemon = True
-        self.server_thread.start()
+    def handle_new_player_connection(self, addr):
+        """Handles logic when a new player connects, e.g., for loaded sessions."""
+        if self.app.loaded_session_data:
+            char_name = ""
+            with self.network_manager.lock:
+                if addr in self.network_manager.clients:
+                    char_name = self.network_manager.clients[addr]['character'].name
 
-    def accept_clients(self):
-        while self.server_socket:
-            try:
-                client_socket, client_address = self.server_socket.accept()
-                print(f"[*] Accepted connection from {client_address[0]}:{client_address[1]}")
+            if not char_name: return
 
-                # Start a new thread to handle this client
-                client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address))
-                client_thread.daemon = True
-                client_thread.start()
-
-            except (OSError, AttributeError):
-                break
-
-    def handle_client(self, client_socket, client_address):
-        try:
-            header = client_socket.recv(10)
-            if not header: return
-            msg_len = int(header.strip())
-            data = b''
-            while len(data) < msg_len:
-                chunk = client_socket.recv(msg_len - len(data))
-                if not chunk: break
-                data += chunk
-
-            char_data = json.loads(data.decode('utf-8'))
-            character = Character.from_dict(char_data)
-
-            self.clients[client_address] = {'socket': client_socket, 'character': character}
-
-            # If in a loaded session, find the saved data and send it back
-            if self.loaded_session:
-                found_player = False
-                for player_str, player_data in self.loaded_session['online_players'].items():
-                    if player_data['character']['name'] == character.name:
-                        # Send the saved character data back to the player
-                        saved_char_json = json.dumps(player_data['character'])
-                        self.send_message(client_socket, 'CHAR_DATA', saved_char_json)
-
-                        # Send the session summary
-                        summary = self.loaded_session.get('summary', 'Keine Zusammenfassung verfügbar.')
-                        self.send_message(client_socket, 'SUMMARY', summary)
-
-                        found_player = True
-                        break
-                if not found_player:
-                    self.send_message(client_socket, 'ERROR', 'Charakter nicht in dieser Sitzung gefunden.')
-            else:
-                # In a new session, just confirm the connection
-                self.send_message(client_socket, 'OK', 'Willkommen in der neuen Sitzung!')
-
-            Clock.schedule_once(lambda dt: self.update_player_list(f"{character.name} (Verbunden)", client_address))
-
-        except Exception as e:
-            print(f"[!] Error handling client {client_address}: {e}")
-            client_socket.close()
-
-    def send_message(self, client_socket, msg_type, payload):
-        """Sends a message with a type and payload."""
-        try:
-            data = json.dumps({'type': msg_type, 'payload': payload})
-            message = f"{len(data):<10}{data}"
-            client_socket.sendall(message.encode('utf-8'))
-        except Exception as e:
-            print(f"[!] Failed to send message of type {msg_type}: {e}")
-
-    def update_player_list(self, player_name, client_address):
-        # We can use the address to uniquely identify the label if we need to remove it later
-        player_label = Label(text=player_name, size_hint_y=None, height=40)
-        self.ids.player_list.add_widget(player_label)
+            found_player = False
+            for p_str, p_data in self.app.loaded_session_data['online_players'].items():
+                if p_data['character']['name'] == char_name:
+                    saved_char_json = json.dumps(p_data['character'])
+                    summary = self.app.loaded_session_data.get('summary', 'Keine Zusammenfassung.')
+                    self.network_manager.send_message(addr, 'CHAR_DATA', saved_char_json)
+                    self.network_manager.send_message(addr, 'SUMMARY', summary)
+                    found_player = True
+                    break
+            if not found_player:
+                self.network_manager.send_message(addr, 'ERROR', 'Charakter nicht in dieser Sitzung gefunden.')
+                # Consider kicking the player
+        else:
+            self.network_manager.send_message(addr, 'OK', 'Willkommen in der neuen Sitzung!')
 
     def start_game(self):
-        """Passes the client data to the main DM screen and switches to it."""
-        dm_main_screen = self.manager.get_screen('dm_main')
-        session_data_to_pass = {}
-
-        if self.loaded_session:
-            # Use the loaded session as the base
-            session_data_to_pass = self.loaded_session
-            # Merge live sockets into the loaded data
-            for addr, client_info in self.clients.items():
-                for player_str, player_data in session_data_to_pass['online_players'].items():
-                    if client_info['character'].name == player_data['character']['name']:
-                        player_data['socket'] = client_info['socket']
-                        break
-        else:
-            # Create a new session structure for a new game
-            if not self.clients:
+        """Switches to the main DM screen."""
+        with self.network_manager.lock:
+            if not self.network_manager.clients:
                 print("[!] No players have joined yet!")
+                # Optionally show a popup
                 return
-            session_data_to_pass = {
-                'online_players': self.clients,
-                'offline_players': [],
-                'enemies': [],
-                'log': "Sitzung gestartet.\n",
-                'summary': ""
-            }
 
-        dm_main_screen.set_game_data(session_data_to_pass)
-
-        # Stop listening for new players, but keep existing connections alive.
-        self.stop_server(close_client_sockets=False)
+        self.is_starting_game = True
         self.manager.current = 'dm_main'
 
+    def go_back(self):
+        self.manager.current = 'dm_spiel'
+
     def on_leave(self, *args):
-        # This is called when we leave the screen for any reason.
-        # If we are NOT going to the main game, we should close all sockets.
-        if self.manager.current != 'dm_main':
-            self.stop_server(close_client_sockets=True)
+        # Stop polling for updates when leaving the screen
+        if self.update_event:
+            self.update_event.cancel()
+            self.update_event = None
 
-    def stop_server(self, close_client_sockets=True):
-        if self.zeroconf and self.service_info:
-            self.zeroconf.unregister_service(self.service_info)
-            self.zeroconf.close()
-            self.zeroconf = None
-            self.service_info = None
-            print("[*] Zeroconf service unregistered.")
-
-        if self.server_socket:
-            self.server_socket.close()
-            self.server_socket = None
-            print("[*] Server socket closed.")
-
-        if close_client_sockets:
-            for client_info in self.clients.values():
-                if 'socket' in client_info and client_info['socket']:
-                    client_info['socket'].close()
-            self.clients.clear()
-
-        # Clear the player list on the UI
-        if self.ids.player_list:
-            self.ids.player_list.clear_widgets()
+        # If we are not starting the game, it means we are going back,
+        # so shut down the server.
+        if not self.is_starting_game:
+            self.network_manager.shutdown() # Use the generic shutdown
+            if self.app.loaded_session_data:
+                self.app.loaded_session_data = None # Clear session data

@@ -65,6 +65,14 @@ def create_tables(conn):
         spell_list TEXT,
         features TEXT NOT NULL
     )''')
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS enemies (
+        name TEXT PRIMARY KEY,
+        hp INTEGER NOT NULL,
+        ac INTEGER NOT NULL,
+        speed REAL NOT NULL,
+        attacks TEXT NOT NULL
+    )''')
 
     conn.commit()
 
@@ -84,6 +92,7 @@ def populate_db_from_json(conn):
     SPELL_DATA = load_json('spells_translated.json')
     RACE_DATA = load_json('races.json')
     CLASS_DATA = load_json('classes.json')
+    ENEMY_DATA = load_json('enemies.json')
 
     cursor.executemany("INSERT INTO alignments (name, description) VALUES (?, ?)", ALIGNMENT_DATA.items())
     cursor.executemany("INSERT INTO backgrounds (name, description) VALUES (?, ?)", BACKGROUND_DATA.items())
@@ -101,6 +110,9 @@ def populate_db_from_json(conn):
 
     class_list = [(name, data['hit_die'], json.dumps(data.get('proficiencies', [])), json.dumps(data.get('progression', {})), json.dumps(data.get('spell_list', {})), json.dumps(data.get('features', {}))) for name, data in CLASS_DATA.items()]
     cursor.executemany("INSERT INTO classes (name, hit_die, proficiencies, progression, spell_list, features) VALUES (?, ?, ?, ?, ?, ?)", class_list)
+
+    enemy_list = [(name, data['hp'], data['ac'], data['speed'], json.dumps(data['attacks'])) for name, data in ENEMY_DATA.items()]
+    cursor.executemany("INSERT INTO enemies (name, hp, ac, speed, attacks) VALUES (?, ?, ?, ?, ?)", enemy_list)
 
     conn.commit()
 
@@ -146,6 +158,17 @@ def get_data_from_db():
 
     conn.close()
 
+    ENEMY_DATA = {}
+    for row in fetch_all_as_dict('enemies', 'name').values():
+        ENEMY_DATA[row['name']] = {
+            'hp': row['hp'],
+            'ac': row['ac'],
+            'speed': row['speed'],
+            'attacks': json.loads(row['attacks'])
+        }
+
+    conn.close()
+
     return {
         "ALIGNMENT_DATA": ALIGNMENT_DATA,
         "BACKGROUND_DATA": BACKGROUND_DATA,
@@ -154,7 +177,8 @@ def get_data_from_db():
         "WEAPON_DATA": WEAPON_DATA,
         "SPELL_DATA": SPELL_DATA,
         "RACE_DATA": RACE_DATA,
-        "CLASS_DATA": CLASS_DATA
+        "CLASS_DATA": CLASS_DATA,
+        "ENEMY_DATA": ENEMY_DATA
     }
 
 def init_db():
