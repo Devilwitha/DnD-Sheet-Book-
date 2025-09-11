@@ -246,7 +246,7 @@ class NetworkManager:
                 msg_len = int(header.strip())
                 data = b''
                 while len(data) < msg_len:
-                    chunk = client_socket.recv(msg_len - len(data))
+                    chunk = self.client_socket.recv(msg_len - len(data))
                     if not chunk: break
                     data += chunk
 
