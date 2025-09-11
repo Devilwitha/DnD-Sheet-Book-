@@ -1,4 +1,4 @@
-#:import PlayerCharacterDisplay ui.player_character_display.PlayerCharacterDisplay
+#:import PlayerCharacterWidget ui.player_character_widget.PlayerCharacterWidget
 
 <PlayerMainScreen>:
     BoxLayout:
@@ -6,15 +6,18 @@
         padding: 10
         spacing: 10
 
-        # Left side: Character Display
-        PlayerCharacterDisplay:
+        # Left side: Character Sheet
+        PlayerCharacterWidget:
             id: character_display
-            size_hint_x: 0.4
+            size_hint_x: 0.5
+            on_show_spells: root.show_spells_popup()
+            on_roll_damage: root.roll_damage()
+            on_use_item: root.use_item(*args)
 
         # Right side: Log, Summary, and Actions
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.6
+            size_hint_x: 0.5
             spacing: 10
 
             Label:
@@ -40,19 +43,14 @@
                     text_size: self.width, None
                     markup: True
 
-            GridLayout:
-                cols: 2
+            Button:
+                text: "d20 Wurf"
+                on_press: root.roll_d20()
                 size_hint_y: None
                 height: 50
-                Button:
-                    text: "d20 Wurf"
-                    on_press: root.roll_d20()
-                Button:
-                    text: "Schaden würfeln"
-                    on_press: root.roll_damage()
 
             Button:
                 text: "Verbindung trennen"
                 on_press: root.handle_disconnect()
                 size_hint_y: None
-                height: 60
+                height: 50
