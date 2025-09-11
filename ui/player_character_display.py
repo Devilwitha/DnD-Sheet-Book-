@@ -14,6 +14,10 @@ class PlayerCharacterDisplay(BoxLayout):
         if not self.character:
             return
 
+        # Clear previous widgets to prevent duplicates
+        for layout_id in ['currency_box', 'features_layout', 'inventory_layout', 'equipment_layout']:
+            self.ids[layout_id].clear_widgets()
+
         # Basic Info
         self.ids.name_label.text = self.character.name
         self.ids.class_label.text = f"{self.character.race} {self.character.char_class} {self.character.level}"
@@ -32,3 +36,19 @@ class PlayerCharacterDisplay(BoxLayout):
         self.ids.ac_label.text = str(self.character.armor_class)
         self.ids.initiative_label.text = f"{self.character.initiative:+}"
         self.ids.speed_label.text = f"{self.character.speed}m"
+
+        # Currency
+        for curr, amount in self.character.currency.items():
+            self.ids.currency_box.add_widget(Label(text=f"{curr}: {amount}"))
+
+        # Features
+        for feature in self.character.features:
+            self.ids.features_layout.add_widget(Label(text=feature['name']))
+
+        # Inventory
+        for item in self.character.inventory:
+            self.ids.inventory_layout.add_widget(Label(text=f"{item['name']} (x{item['quantity']})"))
+
+        # Equipment
+        for item_name, ac_bonus in self.character.equipment.items():
+            self.ids.equipment_layout.add_widget(Label(text=f"{item_name} (AC: +{ac_bonus})"))
