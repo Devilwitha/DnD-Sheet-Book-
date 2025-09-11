@@ -28,7 +28,11 @@ def load_settings():
         'font_color_enabled': False,
         'custom_font_color': [1, 1, 1, 1],
         'popup_color_enabled': False,
-        'custom_popup_color': [0.1, 0.1, 0.1, 0.9]
+        'custom_popup_color': [0.1, 0.1, 0.1, 0.9],
+        'button_font_color_enabled': False,
+        'custom_button_font_color': [1, 1, 1, 1],
+        'button_bg_color_enabled': False,
+        'custom_button_bg_color': [1, 1, 1, 1]
     }
     if not os.path.exists(SETTINGS_FILE):
         return defaults
@@ -51,18 +55,35 @@ def apply_styles_to_widget(widget):
     use_transparency = settings.get('transparency_enabled', True)
     font_color_enabled = settings.get('font_color_enabled', False)
     custom_font_color = settings.get('custom_font_color', [1, 1, 1, 1])
+    button_font_color_enabled = settings.get('button_font_color_enabled', False)
+    custom_button_font_color = settings.get('custom_button_font_color', [1, 1, 1, 1])
+    button_bg_color_enabled = settings.get('button_bg_color_enabled', False)
+    custom_button_bg_color = settings.get('custom_button_bg_color', [1, 1, 1, 1])
 
     def apply_to_children(w):
         if isinstance(w, Button):
+            if button_font_color_enabled:
+                w.color = custom_button_font_color
+            else:
+                w.color = [1, 1, 1, 1]
+
             if hasattr(w, '_update_canvas_transparent'):
                 w.unbind(pos=w._update_canvas_transparent, size=w._update_canvas_transparent, state=w._update_canvas_transparent)
                 del w._update_canvas_transparent
 
             if use_transparency:
                 transparency = settings.get('button_transparency', 1.0)
-                base_color = (1, 1, 1)
-                normal_color = (*base_color, transparency)
-                down_color = (base_color[0] * 0.8, base_color[1] * 0.8, base_color[2] * 0.8, transparency)
+                base_color = custom_button_bg_color if button_bg_color_enabled else [1, 1, 1, 1]
+
+                # Ensure base_color is a list of 4 elements (RGBA)
+                if len(base_color) == 3:
+                    base_color.append(1) # Add alpha if missing
+
+                # Combine custom color's alpha with global transparency
+                final_alpha = base_color[3] * transparency
+
+                normal_color = (base_color[0], base_color[1], base_color[2], final_alpha)
+                down_color = (base_color[0] * 0.8, base_color[1] * 0.8, base_color[2] * 0.8, final_alpha)
                 w.background_normal = ''
                 w.background_down = ''
                 w.background_color = (0, 0, 0, 0)

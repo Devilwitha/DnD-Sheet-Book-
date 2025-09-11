@@ -53,6 +53,8 @@ class SettingsScreen(Screen):
         self.ids.keyboard_switch.active = settings.get('keyboard_enabled', sys.platform.startswith('linux'))
         self.ids.font_color_switch.active = settings.get('font_color_enabled', False)
         self.ids.popup_color_switch.active = settings.get('popup_color_enabled', False)
+        self.ids.button_font_color_switch.active = settings.get('button_font_color_enabled', False)
+        self.ids.button_bg_color_switch.active = settings.get('button_bg_color_enabled', False)
 
 
     def on_transparency_change(self, value):
@@ -97,6 +99,18 @@ class SettingsScreen(Screen):
         save_settings(settings)
         # No immediate visual update needed, will apply on next popup
 
+    def on_button_font_color_toggle(self, value):
+        settings = load_settings()
+        settings['button_font_color_enabled'] = value
+        save_settings(settings)
+        apply_styles_to_widget(self.manager)
+
+    def on_button_bg_color_toggle(self, value):
+        settings = load_settings()
+        settings['button_bg_color_enabled'] = value
+        save_settings(settings)
+        apply_styles_to_widget(self.manager)
+
     def show_color_picker(self, setting_type):
         settings = load_settings()
 
@@ -117,7 +131,7 @@ class SettingsScreen(Screen):
             new_color = color_picker.color
             settings[key] = new_color
             save_settings(settings)
-            if setting_type == 'font':
+            if setting_type in ['font', 'button_font', 'button_bg']:
                 apply_styles_to_widget(self.manager)
             popup.dismiss()
 
