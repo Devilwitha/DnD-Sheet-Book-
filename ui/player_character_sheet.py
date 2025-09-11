@@ -39,8 +39,6 @@ class PlayerCharacterSheet(Screen):
         if self.update_event:
             self.update_event.cancel()
             self.update_event = None
-        # Do not shut down the network manager here, as it's managed centrally
-        # It will shut down on its own if the connection is lost.
 
     def check_for_updates(self, dt):
         if not self.network_manager.running and self.network_manager.mode == 'idle':
@@ -56,9 +54,6 @@ class PlayerCharacterSheet(Screen):
                 if msg_type == 'KICK':
                     self.handle_disconnect("Du wurdest vom DM gekickt.")
                     return
-                # Handle other potential messages from DM, e.g., 'UPDATE_STATE'
-                # For now, we mainly care about being disconnected.
-
         except Empty:
             pass
 
@@ -67,7 +62,6 @@ class PlayerCharacterSheet(Screen):
             self.update_event.cancel()
             self.update_event = None
 
-            # The manager is already shut down or shutting down
             create_styled_popup(title="Verbindung getrennt",
                                 content=Label(text=message),
                                 size_hint=(0.7, 0.4)).open()
@@ -76,7 +70,6 @@ class PlayerCharacterSheet(Screen):
     def update_sheet(self):
         if not self.character: return
         self.ids.name_label.text = f"{self.character.name}"
-        # ... (rest of the UI update logic is largely the same)
         self.ids.class_label.text = f"{self.character.race} {self.character.char_class} {self.character.level}"
         self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
         self.update_inventory_display()
@@ -101,22 +94,18 @@ class PlayerCharacterSheet(Screen):
             item = self.character.inventory[item_index]
             healing_info = item.get('healing')
             if healing_info:
-                # Logic for healing...
                 total_healed = sum(random.randint(1, healing_info['dice']) for _ in range(healing_info['count']))
                 self.character.hit_points = min(self.character.max_hit_points, self.character.hit_points + total_healed)
 
-                # Send log message to DM
                 log_msg = f"{self.character.name} benutzt {item['name']} und heilt {total_healed} HP."
                 self.send_log_to_dm(log_msg)
 
-                # Update local state and UI
                 item['quantity'] -= 1
                 if item['quantity'] <= 0:
                     self.character.inventory.pop(item_index)
                 self.update_sheet()
 
     def show_spells_popup(self):
-        # This should now get spells from self.character
         if not hasattr(self.character, 'spells') or not self.character.spells:
             create_styled_popup("Zauber", Label(text="Keine Zauber bekannt.")).open()
             return
@@ -125,10 +114,17 @@ class PlayerCharacterSheet(Screen):
         grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
         grid.bind(minimum_height=grid.setter('height'))
 
-        for spell_name in sorted(self.character.spells.keys()):
-            btn = Button(text=spell_name, size_hint_y=None, height=40)
-            btn.bind(on_press=partial(self.show_spell_confirmation_popup, spell_name))
-            grid.add_widget(btn)
+        for spell_level in sorted(self.character.spells.keys()):
+            spell_list = self.character.spells[spell_level]
+            if not spell_list: continue
+
+            level_name = f"Level {spell_level}" if spell_level > 0 else "Zaubertricks"
+            grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=40))
+
+            for spell_name in sorted(spell_list):
+                btn = Button(text=spell_name, size_hint_y=None, height=40)
+                btn.bind(on_press=partial(self.show_spell_confirmation_popup, spell_name))
+                grid.add_widget(btn)
 
         scroll = ScrollView(size_hint=(1, 1))
         scroll.add_widget(grid)
@@ -176,14 +172,12 @@ class PlayerCharacterSheet(Screen):
 
         log_msg = f"{self.character.name} wirkt {spell_name}."
         self.send_log_to_dm(log_msg)
-        # Here you could add logic for the spell's effect, e.g., damage roll
-        self.update_sheet() # To update spell slot display if you add one
+        self.update_sheet()
 
     def send_log_to_dm(self, log_message):
         self.network_manager.send_to_dm("LOG", log_message)
 
     def roll_d20(self, ability_name):
-        """Rolls a d20 with an ability modifier and shows a popup."""
         modifier = (self.character.abilities.get(ability_name, 10) - 10) // 2
         roll = random.randint(1, 20)
         total = roll + modifier
@@ -193,7 +187,6 @@ class PlayerCharacterSheet(Screen):
         create_styled_popup(title=f"{ability_name} Wurf", content=Label(text=result_text), size_hint=(0.5, 0.3)).open()
 
     def roll_damage(self):
-        """Rolls damage for the equipped weapon."""
         weapon_name = self.character.equipped_weapon
         weapon_info = WEAPON_DATA.get(weapon_name)
         if not weapon_info: return
@@ -211,7 +204,6 @@ class PlayerCharacterSheet(Screen):
         create_styled_popup(title="Schadenswurf", content=Label(text=result_text), size_hint=(0.5, 0.3)).open()
 
     def show_rest_popup(self):
-        """Shows a popup for short or long rest."""
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
         short_rest_btn = Button(text="Kurze Rast")
         long_rest_btn = Button(text="Lange Rast")
@@ -222,7 +214,6 @@ class PlayerCharacterSheet(Screen):
         popup = create_styled_popup(title="Rasten", content=content, size_hint=(0.5, 0.4))
 
         def do_short_rest(instance):
-            # Simple implementation: regain half hit dice
             regain_amount = max(1, self.character.level // 2)
             self.character.hit_dice = min(self.character.max_hit_dice, self.character.hit_dice + regain_amount)
             self.send_log_to_dm(f"macht eine kurze Rast.")
@@ -230,7 +221,6 @@ class PlayerCharacterSheet(Screen):
             popup.dismiss()
 
         def do_long_rest(instance):
-            # Full heal, regain all hit dice and spell slots
             self.character.hit_points = self.character.max_hit_points
             self.character.hit_dice = self.character.max_hit_dice
             if hasattr(self.character, 'max_spell_slots'):

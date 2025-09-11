@@ -260,7 +260,10 @@ class NetworkManager:
                 print(f"[CLIENT_THREAD] Connection error: {e}")
                 break
 
-        self.shutdown()
+        # The listener thread should not shut down the whole manager.
+        # It should just stop, and the UI thread will detect it via self.running
+        self.running = False
+        print("[CLIENT_THREAD] Listener loop terminated.")
 
     def send_to_dm(self, msg_type, payload):
         if self.mode != 'client' or not self.client_socket:
