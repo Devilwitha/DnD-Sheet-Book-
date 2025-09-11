@@ -8,6 +8,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 from kivy.clock import Clock
 from zeroconf import ServiceBrowser, Zeroconf
 from kivy.uix.screenmanager import Screen
@@ -110,8 +111,6 @@ class PlayerLobbyScreen(Screen):
             self.char_popup.dismiss()
             self.char_popup = None
 
-from kivy.uix.label import Label
-
     def connect_to_dm(self):
         if not self.selected_char_file:
             create_styled_popup(title="Fehler", content=Label(text="Bitte wähle zuerst einen Charakter aus."), size_hint=(0.6, 0.4)).open()
@@ -208,7 +207,9 @@ from kivy.uix.label import Label
 
     def on_leave(self, *args):
         self.stop_discovery()
-        if self.client_socket:
+        # The socket is now managed by the PlayerMainScreen, so we only close it
+        # if the player leaves this screen *without* successfully connecting.
+        if self.manager.current != 'player_main' and self.client_socket:
             self.client_socket.close()
             self.client_socket = None
 

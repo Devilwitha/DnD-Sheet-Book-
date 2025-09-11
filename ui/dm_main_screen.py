@@ -1,8 +1,13 @@
 import json
 import random
+import socket
+import threading
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
 from core.enemy import Enemy
 from utils.helpers import apply_background, apply_styles_to_widget
 
@@ -21,14 +26,46 @@ class DMMainScreen(Screen):
         apply_styles_to_widget(self)
 
     def set_game_data(self, session_data):
-        """Receives the full session data from the lobby screen."""
+        """Receives the full session data and starts listener threads."""
         self.online_players = session_data.get('online_players', {})
         self.offline_players = session_data.get('offline_players', [])
         self.enemies = session_data.get('enemies', [])
         self.ids.log_output.text = session_data.get('log', '')
 
         print(f"[*] Game data set. {len(self.online_players)} online players.")
+
+        # Start a listener thread for each player
+        for addr, player_info in self.online_players.items():
+            if 'socket' in player_info and player_info['socket']:
+                thread = threading.Thread(target=self.listen_to_client, args=(player_info['socket'], addr))
+                thread.daemon = True
+                thread.start()
+
         self.update_ui()
+
+    def listen_to_client(self, client_socket, client_address):
+        """Listens for messages from a single client."""
+        while True:
+            try:
+                # This is a blocking call. It will wait for data.
+                data = client_socket.recv(1024)
+                if not data:
+                    # An empty response means the client has disconnected.
+                    self.handle_disconnect(client_address)
+                    break
+                # We can process other client messages here if needed in the future
+            except (socket.error, OSError):
+                self.handle_disconnect(client_address)
+                break
+
+    def handle_disconnect(self, client_address):
+        """Handles a client disconnecting."""
+        from kivy.clock import Clock
+        if client_address in self.online_players:
+            player_name = self.online_players[client_address]['character'].name
+            del self.online_players[client_address]
+            self.log_message(f"Spieler '{player_name}' hat die Verbindung getrennt.")
+            Clock.schedule_once(lambda dt: self.update_online_players_list())
 
     def update_ui(self):
         """Updates the entire UI based on the current game state."""
@@ -40,7 +77,6 @@ class DMMainScreen(Screen):
         player_list_widget = self.ids.online_players_list
         player_list_widget.clear_widgets()
         for addr, player_info in self.online_players.items():
-            # In a loaded session, the character object needs to be recreated
             if isinstance(player_info['character'], dict):
                 from core.character import Character
                 char = Character.from_dict(player_info['character'])
@@ -48,8 +84,27 @@ class DMMainScreen(Screen):
             else:
                 char = player_info['character']
 
-            # This is still a placeholder. A more detailed widget is needed.
-            player_list_widget.add_widget(Label(text=f"{char.name} ({char.char_class})"))
+            player_entry = BoxLayout(size_hint_y=None, height=40)
+            player_label = Label(text=f"{char.name} ({char.char_class})")
+            kick_button = Button(text="Kicken", size_hint_x=0.3)
+            kick_button.bind(on_press=lambda x, a=addr: self.kick_player(a))
+
+            player_entry.add_widget(player_label)
+            player_entry.add_widget(kick_button)
+            player_list_widget.add_widget(player_entry)
+
+    def kick_player(self, player_address):
+        """Kicks a player from the game."""
+        if player_address in self.online_players:
+            player_info = self.online_players[player_address]
+            player_name = player_info['character'].name
+
+            # Close the socket connection. This will cause the listener thread
+            # for this client to exit and call handle_disconnect.
+            if 'socket' in player_info and player_info['socket']:
+                player_info['socket'].close()
+
+            self.log_message(f"Spieler '{player_name}' wurde gekickt.")
 
     def roll_initiative_for_all(self):
         """Rolls initiative for all players and enemies."""
@@ -94,10 +149,6 @@ class DMMainScreen(Screen):
 
     def add_offline_player(self):
         """Opens a popup to add an offline player."""
-        from kivy.uix.boxlayout import BoxLayout
-        from kivy.uix.textinput import TextInput
-        from kivy.uix.button import Button
-
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         name_input = TextInput(hint_text="Name des Offline-Spielers")
         content.add_widget(name_input)
@@ -163,10 +214,6 @@ class DMMainScreen(Screen):
 
     def save_session(self):
         """Opens a popup to get a summary and then saves the session."""
-        from kivy.uix.boxlayout import BoxLayout
-        from kivy.uix.textinput import TextInput
-        from kivy.uix.button import Button
-
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         summary_input = TextInput(hint_text="Sitzungszusammenfassung eingeben...")
         content.add_widget(summary_input)
