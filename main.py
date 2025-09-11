@@ -1,5 +1,8 @@
 import sys
 from kivy.config import Config
+
+if sys.platform.startswith('win'):
+    Config.set('input', 'mouse', 'mouse,disable_multitouch')
 from utils.helpers import load_settings
 
 # Laden der Einstellungen, um die Tastaturkonfiguration zu bestimmen
