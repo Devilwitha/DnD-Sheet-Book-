@@ -177,14 +177,17 @@ class DMLobbyScreen(Screen):
 
         dm_main_screen.set_game_data(session_data_to_pass)
 
-        # Stop the server so no new players can join
-        self.stop_server()
+        # Stop listening for new players, but keep existing connections alive.
+        self.stop_server(close_client_sockets=False)
         self.manager.current = 'dm_main'
 
     def on_leave(self, *args):
-        self.stop_server()
+        # This is called when we leave the screen for any reason.
+        # If we are NOT going to the main game, we should close all sockets.
+        if self.manager.current != 'dm_main':
+            self.stop_server(close_client_sockets=True)
 
-    def stop_server(self):
+    def stop_server(self, close_client_sockets=True):
         if self.zeroconf and self.service_info:
             self.zeroconf.unregister_service(self.service_info)
             self.zeroconf.close()
@@ -197,10 +200,11 @@ class DMLobbyScreen(Screen):
             self.server_socket = None
             print("[*] Server socket closed.")
 
-        for client_info in self.clients.values():
-            if 'socket' in client_info and client_info['socket']:
-                client_info['socket'].close()
-        self.clients.clear()
+        if close_client_sockets:
+            for client_info in self.clients.values():
+                if 'socket' in client_info and client_info['socket']:
+                    client_info['socket'].close()
+            self.clients.clear()
 
         # Clear the player list on the UI
         if self.ids.player_list:
