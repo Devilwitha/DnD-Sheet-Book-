@@ -20,6 +20,7 @@ class DMMainScreen(Screen):
         self.enemies = []
         self.initiative_order = []
         self.game_log = []
+        self.player_lock = threading.Lock()
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -65,11 +66,12 @@ class DMMainScreen(Screen):
     def handle_disconnect(self, client_address):
         """Handles a client disconnecting."""
         from kivy.clock import Clock
-        if client_address in self.online_players:
-            player_name = self.online_players[client_address]['character'].name
-            del self.online_players[client_address]
-            self.log_message(f"Spieler '{player_name}' hat die Verbindung getrennt.")
-            Clock.schedule_once(lambda dt: self.update_online_players_list())
+        with self.player_lock:
+            if client_address in self.online_players:
+                player_name = self.online_players[client_address]['character'].name
+                del self.online_players[client_address]
+                self.log_message(f"Spieler '{player_name}' hat die Verbindung getrennt.")
+                Clock.schedule_once(lambda dt: self.update_online_players_list())
 
     def update_ui(self):
         """Updates the entire UI based on the current game state."""
@@ -99,16 +101,17 @@ class DMMainScreen(Screen):
 
     def kick_player(self, player_address):
         """Kicks a player from the game."""
-        if player_address in self.online_players:
-            player_info = self.online_players[player_address]
-            player_name = player_info['character'].name
+        with self.player_lock:
+            if player_address in self.online_players:
+                player_info = self.online_players[player_address]
+                player_name = player_info['character'].name
 
-            # Close the socket connection. This will cause the listener thread
-            # for this client to exit and call handle_disconnect.
-            if 'socket' in player_info and player_info['socket']:
-                player_info['socket'].close()
+                # Close the socket connection. This will cause the listener thread
+                # for this client to exit and call handle_disconnect.
+                if 'socket' in player_info and player_info['socket']:
+                    player_info['socket'].close()
 
-            self.log_message(f"Spieler '{player_name}' wurde gekickt.")
+                self.log_message(f"Spieler '{player_name}' wurde gekickt.")
 
     def roll_initiative_for_all(self):
         """Rolls initiative for all players and enemies and sends results to clients."""
