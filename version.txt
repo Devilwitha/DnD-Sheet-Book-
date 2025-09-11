@@ -2,6 +2,8 @@ Build Version:                11.09.2025
 
 Gui Version:               0.5.17 Alpha
 Firmware Version:          0.3.0 M33
+- Spieler:   0.6.0
+- DM:  0.0.1 
 Updater Version:           1.0.0
 
 DnD E-Sheet & Book Version:   
