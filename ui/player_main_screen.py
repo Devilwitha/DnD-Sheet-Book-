@@ -42,24 +42,30 @@ class PlayerMainScreen(Screen):
 
     def start_listening(self):
         """Starts a thread to listen for messages from the DM."""
-        self.listener_thread = threading.Thread(target=self.listen_for_dm_messages)
-        self.listener_thread.daemon = True
-        self.listener_thread.start()
+        if self.client_socket:
+            self.listener_thread = threading.Thread(target=self.listen_for_dm_messages)
+            self.listener_thread.daemon = True
+            self.listener_thread.start()
+            print("[*] Player listener thread started.")
 
     def listen_for_dm_messages(self):
         """The actual listener loop."""
         while self.client_socket:
             try:
-                message = self.client_socket.recv(1024).decode('utf-8')
-                if message:
-                    Clock.schedule_once(lambda dt: self.update_log(message))
+                message_bytes = self.client_socket.recv(1024)
+                if message_bytes:
+                    message = message_bytes.decode('utf-8')
+                    print(f"[*] Player received message: {message}")
+                    Clock.schedule_once(lambda dt, m=message: self.update_log(m))
                 else:
-                    # DM disconnected
+                    print("[*] DM disconnected (received empty message).")
                     Clock.schedule_once(lambda dt: self.handle_disconnect())
                     break
-            except (socket.error, OSError):
+            except (socket.error, OSError) as e:
+                print(f"[!] Player listener thread error: {e}")
                 Clock.schedule_once(lambda dt: self.handle_disconnect())
                 break
+        print("[*] Player listener thread finished.")
 
     def update_log(self, message):
         self.ids.log_output.text += f"\n{message}"

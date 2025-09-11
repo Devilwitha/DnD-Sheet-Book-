@@ -21,12 +21,11 @@ from utils.helpers import apply_background, apply_styles_to_widget, create_style
 class CharacterSheetWidget(BoxLayout):
     """Finaler Charakterbogen als wiederverwendbares Widget."""
     character = ObjectProperty(None)
+    manager = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(CharacterSheetWidget, self).__init__(**kwargs)
         self.currency_labels = {}
-        # We can't bind here because the character is not set yet.
-        # The parent screen will be responsible for calling load_character.
 
     def load_character(self, character):
         self.character = character
@@ -34,16 +33,6 @@ class CharacterSheetWidget(BoxLayout):
             if hasattr(self.character, 'normalize_spells'):
                 self.character.normalize_spells()
             self.update_sheet()
-
-    def get_manager(self):
-        """Helper to get the screen manager from the widget's parent screen."""
-        # Find the root of the widget tree, which should be the ScreenManager's parent
-        widget = self
-        while widget.parent:
-            widget = widget.parent
-            if isinstance(widget, Screen):
-                return widget.manager
-        return None
 
     def update_sheet(self):
         if not self.character:
@@ -208,10 +197,9 @@ class CharacterSheetWidget(BoxLayout):
         pass
 
     def open_level_up_screen(self):
-        manager = self.get_manager()
-        if manager:
-            manager.get_screen('level_up').set_character(self.character)
-            manager.current = 'level_up'
+        if self.manager:
+            self.manager.get_screen('level_up').set_character(self.character)
+            self.manager.current = 'level_up'
 
     def save_character(self):
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"

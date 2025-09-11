@@ -151,10 +151,11 @@
             on_press: root.save_character()
         Button:
             text: "Hauptmenü"
-            on_press: root.get_manager().current = 'main'
+            on_press: root.manager.current = 'main'
 
 <CharacterSheetScreen>:
     id: screen_sheet
     CharacterSheetWidget:
         id: sheet_widget
         character: screen_sheet.character
+        manager: root.manager
