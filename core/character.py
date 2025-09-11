@@ -18,7 +18,7 @@ class Character:
         self.speed = 0
         self.initiative = 0
         self.armor_class = 10
-        self.inventory = {}  # Geändert zu Dictionary für die Anzahl
+        self.inventory = []  # Geändert zu einer Liste von Dictionaries
         self.equipment = {}  # Ausrüstung mit AC-Bonus
         self.currency = {"KP": 0, "SP": 0, "EP": 0, "GM": 0, "PP": 0}
         self.equipped_weapon = "Unbewaffneter Schlag"
@@ -32,6 +32,10 @@ class Character:
         self.proficiencies = []
         self.languages = []
         self.spells = {}  # Für bekannte Zauber
+        self.max_spell_slots = {}
+        self.current_spell_slots = {}
+        self.max_hit_dice = 0
+        self.hit_dice = 0
         self.fighting_style = None
 
     def initialize_character(self):
@@ -39,8 +43,10 @@ class Character:
         self.update_race_bonuses_and_speed()
         self.collect_proficiencies_and_languages()
         self.calculate_initial_hp()
+        self.initialize_hit_dice()
         self.update_features()
         self.prepare_spellbook()
+        self.initialize_spell_slots()
         self.calculate_initiative()
         self.calculate_armor_class()
 
@@ -72,6 +78,46 @@ class Character:
         self.max_hit_points = hit_die + con_modifier
         self.hit_points = self.max_hit_points
 
+    def initialize_hit_dice(self):
+        """Initialisiert die Trefferwürfel des Charakters."""
+        self.max_hit_dice = self.level
+        self.hit_dice = self.level
+
+    def initialize_spell_slots(self):
+        """Initialisiert die Zauberplätze basierend auf Klasse und Level."""
+        class_info = CLASS_DATA.get(self.char_class, {})
+        progression = class_info.get("progression", {})
+        level_progression = progression.get(self.level, {})
+        self.max_spell_slots = level_progression.get("spell_slots", {})
+        self.current_spell_slots = self.max_spell_slots.copy()
+
+    def long_rest(self):
+        """Führt eine lange Rast aus."""
+        self.hit_points = self.max_hit_points
+        self.current_spell_slots = self.max_spell_slots.copy()
+        # Man erhält die Hälfte der maximalen Trefferwürfel zurück (mindestens 1)
+        recovered_dice = max(1, self.max_hit_dice // 2)
+        self.hit_dice = min(self.max_hit_dice, self.hit_dice + recovered_dice)
+        # Hier könnten weitere Dinge zurückgesetzt werden, z.B. bestimmte Klassen-Features
+
+    def short_rest(self, dice_to_spend):
+        """Führt eine kurze Rast aus und gibt die Menge der geheilten HP zurück."""
+        if self.hit_dice <= 0:
+            return 0
+
+        dice_to_spend = min(dice_to_spend, self.hit_dice)
+        healed_amount = 0
+        hit_die_type = CLASS_DATA.get(self.char_class, {}).get("hit_die", 8)
+        con_modifier = (self.abilities["Konstitution"] - 10) // 2
+
+        for _ in range(dice_to_spend):
+            roll = random.randint(1, hit_die_type)
+            healed_amount += max(0, roll + con_modifier) # Heilung kann nicht negativ sein
+
+        self.hit_points = min(self.max_hit_points, self.hit_points + healed_amount)
+        self.hit_dice -= dice_to_spend
+        return healed_amount
+
     def update_features(self):
         self.features = []
         class_features = CLASS_DATA.get(self.char_class, {}).get("features", {})
@@ -91,6 +137,8 @@ class Character:
         hp_increase = random.randint(1, hit_die) + con_modifier
         self.max_hit_points += max(1, hp_increase)
         self.hit_points = self.max_hit_points
+        self.max_hit_dice = self.level
+        self.hit_dice = self.max_hit_dice # Volle Trefferwürfel bei Levelaufstieg
 
         if "ability_increase" in choices:
             for ability in choices["ability_increase"]:
@@ -134,6 +182,7 @@ class Character:
 
         self.update_race_bonuses_and_speed()
         self.update_features()
+        self.initialize_spell_slots()
         self.calculate_initiative()
         self.calculate_armor_class()
 
