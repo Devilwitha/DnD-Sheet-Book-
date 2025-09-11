@@ -8,12 +8,12 @@
             source: 'logo/logo.png'
 
         Button:
-            text: "Neuen Charakter erstellen"
-            on_press: root.switch_to_creator()
+            text: "Charakter"
+            on_press: root.manager.current = 'character_menu'
 
         Button:
-            text: "Charakter laden"
-            on_press: root.show_load_popup()
+            text: "DM Spiel"
+            on_press: root.manager.current = 'dm_spiel'
 
         Button:
             text: "Optionen"

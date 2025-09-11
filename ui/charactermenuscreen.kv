@@ -1,39 +1,25 @@
-<OptionsScreen>:
+<CharacterMenuScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
         spacing: 10
 
         Label:
-            text: "Optionen"
+            text: "Charakter"
             font_size: '30sp'
             size_hint_y: None
             height: 80
 
         Button:
-            text: "Gui Einstellungen"
-            on_press: root.manager.current = 'settings'
+            text: "Neuen Charakter erstellen"
+            on_press: root.switch_to_creator()
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
-            text: "SaveData übertragen"
-            on_press: root.manager.current = 'transfer'
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            text: "System Einstellungen"
-            on_press: root.manager.current = 'system'
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            text: "Info"
-            on_press: root.switch_to_info()
+            text: "Charakter laden"
+            on_press: root.show_load_popup()
             size_hint_y: None
             height: 80
             font_size: '20sp'

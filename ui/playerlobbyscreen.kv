@@ -11,12 +11,23 @@
             height: 80
 
         Label:
+            id: selected_char_label
+            text: "Kein Charakter ausgewählt"
+            size_hint_y: None
+            height: 40
+
+        Button:
+            text: "Charakter auswählen"
+            on_press: root.show_char_selection_popup()
+            size_hint_y: None
+            height: 60
+
+        Label:
             text: "Verfügbare DM's:"
             font_size: '20sp'
             size_hint_y: None
             height: 40
 
-        # This will be populated with available DMs later
         ScrollView:
             size_hint_y: 2.0
             GridLayout:

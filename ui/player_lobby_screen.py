@@ -1,11 +1,16 @@
-import socket
+import os
 import pickle
 import json
+import socket
 from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.popup import Popup
 from kivy.clock import Clock
 from zeroconf import ServiceBrowser, Zeroconf
 from kivy.uix.screenmanager import Screen
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, ensure_character_attributes, create_styled_popup
 from core.character import Character
 
 class DMListener:
@@ -21,7 +26,6 @@ class DMListener:
             Clock.schedule_once(lambda dt: self.screen.add_dm_service(info))
 
     def update_service(self, zeroconf, type, name):
-        # For now, we'll just treat update as add
         self.add_service(zeroconf, type, name)
 
 
@@ -31,13 +35,17 @@ class PlayerLobbyScreen(Screen):
         super(PlayerLobbyScreen, self).__init__(**kwargs)
         self.zeroconf = None
         self.browser = None
-        self.available_dms = {} # Store service info by name
+        self.available_dms = {}
         self.selected_dm = None
         self.client_socket = None
+        self.selected_char_file = None
+        self.char_popup = None
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        self.ids.selected_char_label.text = "Kein Charakter ausgewählt"
+        self.selected_char_file = None
 
     def on_enter(self, *args):
         self.start_discovery()
@@ -51,10 +59,8 @@ class PlayerLobbyScreen(Screen):
         print("[*] Started Zeroconf discovery.")
 
     def add_dm_service(self, info):
-        # Avoid adding duplicates
         if info.name in self.available_dms:
             return
-
         self.available_dms[info.name] = info
         dm_button = Button(
             text=f"{info.properties.get(b'name', b'Unknown DM').decode()} at {socket.inet_ntoa(info.addresses[0])}",
@@ -68,19 +74,45 @@ class PlayerLobbyScreen(Screen):
     def remove_dm_service(self, name):
         if name in self.available_dms:
             del self.available_dms[name]
-            # Rebuild the list of buttons
             self.ids.dm_list.clear_widgets()
             for info in self.available_dms.values():
                 self.add_dm_service(info)
             print(f"[*] Lost DM: {name}")
 
     def select_dm(self, name):
-        # Simple visual feedback for selection could be added here
         self.selected_dm = self.available_dms.get(name)
         print(f"[*] Selected DM: {self.selected_dm.name if self.selected_dm else 'None'}")
 
+    def show_char_selection_popup(self):
+        content = BoxLayout(orientation='vertical', spacing=10)
+        popup_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        popup_layout.bind(minimum_height=popup_layout.setter('height'))
+
+        files = [f for f in os.listdir('.') if f.endswith('.char')]
+        for filename in files:
+            load_btn = Button(text=filename)
+            load_btn.bind(on_release=lambda btn, fn=filename: self.select_character(fn))
+            popup_layout.add_widget(load_btn)
+
+        scroll_view = ScrollView(size_hint=(1, 1))
+        scroll_view.add_widget(popup_layout)
+        content.add_widget(scroll_view)
+
+        apply_styles_to_widget(content)
+        self.char_popup = create_styled_popup(title="Charakter auswählen", content=content, size_hint=(0.8, 0.8))
+        self.char_popup.open()
+
+    def select_character(self, filename):
+        self.selected_char_file = filename
+        self.ids.selected_char_label.text = f"Ausgewählt: {filename}"
+        if self.char_popup:
+            self.char_popup.dismiss()
+            self.char_popup = None
 
     def connect_to_dm(self):
+        if not self.selected_char_file:
+            print("[!] No character selected.")
+            return
         if not self.selected_dm:
             print("[!] No DM selected.")
             return
@@ -93,8 +125,7 @@ class PlayerLobbyScreen(Screen):
             self.client_socket.connect((ip_address, port))
             print(f"[*] Connected to DM at {ip_address}:{port}")
 
-            # For now, we hardcode the character file. Later, we'll use a file chooser.
-            self.send_character_data("thul'zaran.char")
+            self.send_character_data(self.selected_char_file)
 
         except Exception as e:
             print(f"[!] Failed to connect to DM: {e}")
@@ -104,6 +135,7 @@ class PlayerLobbyScreen(Screen):
             with open(char_file, 'rb') as f:
                 character = pickle.load(f)
 
+            character = ensure_character_attributes(character)
             char_dict = character.to_dict()
             char_json = json.dumps(char_dict)
 
@@ -111,7 +143,6 @@ class PlayerLobbyScreen(Screen):
             self.client_socket.sendall(message.encode('utf-8'))
             print(f"[*] Sent initial character data for {character.name}. Waiting for DM response...")
 
-            # Start a thread to listen for the DM's response
             response_thread = threading.Thread(target=self.listen_for_dm_response, args=(character,))
             response_thread.daemon = True
             response_thread.start()
@@ -128,11 +159,10 @@ class PlayerLobbyScreen(Screen):
                 self.client_socket = None
 
     def listen_for_dm_response(self, initial_character):
-        """Waits for the DM to send back session info (or an OK)."""
         final_character = initial_character
         summary = ""
         try:
-            while True: # Loop to process multiple messages like CHAR_DATA and SUMMARY
+            while True:
                 header = self.client_socket.recv(10)
                 if not header: break
                 msg_len = int(header.strip())
@@ -154,31 +184,23 @@ class PlayerLobbyScreen(Screen):
                     summary = payload
                 elif msg_type == 'OK':
                     print("[*] New session confirmed by DM.")
-                    # We've received the confirmation, we can stop listening for setup messages
                     Clock.schedule_once(lambda dt: self.proceed_to_game(final_character, summary))
                     return
                 elif msg_type == 'ERROR':
                     print(f"[!] Error from DM: {payload}")
-                    # Handle error, maybe show a popup
                     self.client_socket.close()
                     return
 
-                # In a loaded session, we expect CHAR_DATA and SUMMARY, then we proceed.
-                # We can assume for now the server sends them back-to-back.
                 if final_character != initial_character and summary:
                      Clock.schedule_once(lambda dt: self.proceed_to_game(final_character, summary))
                      return
-
-
         except Exception as e:
             print(f"[!] Error while waiting for DM response: {e}")
             if self.client_socket:
                 self.client_socket.close()
 
     def proceed_to_game(self, character, summary):
-        """Transitions to the main game screen."""
-        player_main_screen = self.manager.get_screen('player_main')
-        player_main_screen.set_player_data(character, self.client_socket, summary)
+        self.manager.get_screen('player_main').set_player_data(character, self.client_socket, summary)
         self.manager.current = 'player_main'
 
     def on_leave(self, *args):

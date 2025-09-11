@@ -174,3 +174,14 @@ def get_local_ip():
         if s:
             s.close()
     return IP
+
+def ensure_character_attributes(character):
+    """Adds missing attributes to older character objects for forward compatibility."""
+    if not hasattr(character, 'max_spell_slots'):
+        character.max_spell_slots = {}
+    if not hasattr(character, 'current_spell_slots'):
+        character.current_spell_slots = {}
+    if not hasattr(character, 'fighting_style'):
+        character.fighting_style = None
+    # Add any other missing attributes here in the future
+    return character

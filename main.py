@@ -32,6 +32,7 @@ from ui.main_menu import MainMenu
 from ui.character_creator import CharacterCreator
 from ui.character_sheet import CharacterSheet
 from ui.options_screen import OptionsScreen
+from ui.character_menu_screen import CharacterMenuScreen
 from ui.level_up_screen import LevelUpScreen
 from ui.character_editor import CharacterEditor
 from ui.info_screen import InfoScreen
@@ -55,6 +56,7 @@ class DnDApp(App):
         Builder.load_file('ui/charactercreator.kv')
         Builder.load_file('ui/charactereditor.kv')
         Builder.load_file('ui/charactersheet.kv')
+        Builder.load_file('ui/charactermenuscreen.kv')
         Builder.load_file('ui/levelupscreen.kv')
         Builder.load_file('ui/optionsscreen.kv')
         Builder.load_file('ui/settingsscreen.kv')
@@ -82,7 +84,7 @@ class DnDApp(App):
         sm = ScreenManager()
         sm.add_widget(SplashScreen(name='splash'))
         sm.add_widget(MainMenu(name='main'))
-        sm.add_widget(CharacterCreator(name='creator'))
+        sm.add_widget(CharacterMenuScreen(name='character_menu'))
         sm.add_widget(CharacterEditor(name='editor'))
         sm.add_widget(CharacterSheet(name='sheet'))
         sm.add_widget(OptionsScreen(name='options'))
