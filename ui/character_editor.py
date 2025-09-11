@@ -35,7 +35,7 @@ class CharacterEditor(Screen):
         self.renderer = Renderer()
         self.renderer.scene = self.scene
         self.light = Light(renderer=self.renderer, intensity=0.5)
-        self.light.pos_z = 1
+        self.light.pos_z = 10
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.stl_path = None
         self.touches = []
@@ -115,9 +115,25 @@ class CharacterEditor(Screen):
             file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
             viewer_layout.add_widget(file_chooser_button)
 
+            viewer_layout.add_widget(Label(text="Helligkeit", size_hint_y=0.05))
             brightness_slider = Slider(min=0, max=1.5, value=0.5, size_hint_y=0.1)
             self.ids.brightness_slider = brightness_slider
             viewer_layout.add_widget(brightness_slider)
+
+            viewer_layout.add_widget(Label(text="Licht Position X", size_hint_y=0.05))
+            light_x_slider = Slider(min=-30, max=30, value=0, size_hint_y=0.1)
+            self.ids.light_x_slider = light_x_slider
+            viewer_layout.add_widget(light_x_slider)
+
+            viewer_layout.add_widget(Label(text="Licht Position Y", size_hint_y=0.05))
+            light_y_slider = Slider(min=-30, max=30, value=0, size_hint_y=0.1)
+            self.ids.light_y_slider = light_y_slider
+            viewer_layout.add_widget(light_y_slider)
+
+            viewer_layout.add_widget(Label(text="Licht Position Z", size_hint_y=0.05))
+            light_z_slider = Slider(min=-30, max=30, value=10, size_hint_y=0.1)
+            self.ids.light_z_slider = light_z_slider
+            viewer_layout.add_widget(light_z_slider)
 
             container.add_widget(viewer_layout)
             layout.add_widget(container)
@@ -166,6 +182,13 @@ class CharacterEditor(Screen):
                     self.loaded_obj.rotation.z = self.character.object_rotation[2]
                 if hasattr(self.character, 'light_intensity') and 'brightness_slider' in self.ids:
                     self.ids.brightness_slider.value = self.character.light_intensity
+                if hasattr(self.character, 'light_position') and self.character.light_position:
+                    if 'light_x_slider' in self.ids:
+                        self.ids.light_x_slider.value = self.character.light_position[0]
+                    if 'light_y_slider' in self.ids:
+                        self.ids.light_y_slider.value = self.character.light_position[1]
+                    if 'light_z_slider' in self.ids:
+                        self.ids.light_z_slider.value = self.character.light_position[2]
                 self.camera.look_at([0,0,0])
 
     def adjust_ability(self, ability, amount, instance):
@@ -199,11 +222,18 @@ class CharacterEditor(Screen):
                 self.character.object_rotation = (self.loaded_obj.rotation.x, self.loaded_obj.rotation.y, self.loaded_obj.rotation.z)
             if self.light:
                 self.character.light_intensity = self.light.intensity
+                if 'light_x_slider' in self.ids:
+                    self.character.light_position = (
+                        self.ids.light_x_slider.value,
+                        self.ids.light_y_slider.value,
+                        self.ids.light_z_slider.value
+                    )
         else:
             self.character.stl_file_path = None
             self.character.camera_position = None
             self.character.object_rotation = None
             self.character.light_intensity = 0.5
+            self.character.light_position = (0, 0, 10)
 
         self.character.initialize_character()
 
@@ -228,7 +258,9 @@ class CharacterEditor(Screen):
             # Recreate the light every frame to ensure slider value is used
             if 'brightness_slider' in self.ids:
                 self.light = Light(renderer=self.renderer, intensity=self.ids.brightness_slider.value)
-                self.light.pos_z = 1
+                self.light.pos_x = self.ids.light_x_slider.value
+                self.light.pos_y = self.ids.light_y_slider.value
+                self.light.pos_z = self.ids.light_z_slider.value
             self.renderer.render(self.scene, self.camera)
 
     def on_touch_down(self, touch):

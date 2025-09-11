@@ -37,6 +37,7 @@ class Character:
         self.camera_position = None
         self.object_rotation = None
         self.light_intensity = 0.5
+        self.light_position = (0, 0, 10)
 
     def initialize_character(self):
         """Sammelt alle Daten bei der Erstellung oder beim Laden."""

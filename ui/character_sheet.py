@@ -33,7 +33,7 @@ class CharacterSheet(Screen):
         self.renderer = Renderer()
         self.renderer.scene = self.scene
         self.light = Light(renderer=self.renderer, intensity=0.5)
-        self.light.pos_z = 1
+        self.light.pos_z = 10
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.loaded_obj = None
 
@@ -73,7 +73,12 @@ class CharacterSheet(Screen):
             # Use the saved light intensity, with a sensible default
             saved_intensity = getattr(self.character, 'light_intensity', 0.5)
             self.light = Light(renderer=self.renderer, intensity=saved_intensity)
-            self.light.pos_z = 1
+            if hasattr(self.character, 'light_position') and self.character.light_position:
+                self.light.pos_x = self.character.light_position[0]
+                self.light.pos_y = self.character.light_position[1]
+                self.light.pos_z = self.character.light_position[2]
+            else:
+                self.light.pos_z = 10  # Fallback for older characters
             self.loaded_obj = None
 
             if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path and os.path.exists(self.character.stl_file_path):
