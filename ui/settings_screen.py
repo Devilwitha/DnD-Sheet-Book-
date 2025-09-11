@@ -14,10 +14,12 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
+from kivy.uix.colorpicker import ColorPicker
 from kivy.clock import Clock
 
 from utils.helpers import (
-    load_settings, save_settings, apply_styles_to_widget, apply_background
+    load_settings, save_settings, apply_styles_to_widget, apply_background,
+    create_styled_popup
 )
 
 class SettingsScreen(Screen):
@@ -49,6 +51,11 @@ class SettingsScreen(Screen):
         self.ids.transparency_switch.active = settings.get('transparency_enabled', True)
         self.ids.background_switch.active = settings.get('background_enabled', True)
         self.ids.keyboard_switch.active = settings.get('keyboard_enabled', sys.platform.startswith('linux'))
+        self.ids.font_color_switch.active = settings.get('font_color_enabled', False)
+        self.ids.popup_color_switch.active = settings.get('popup_color_enabled', False)
+        self.ids.button_font_color_switch.active = settings.get('button_font_color_enabled', False)
+        self.ids.button_bg_color_switch.active = settings.get('button_bg_color_enabled', False)
+
 
     def on_transparency_change(self, value):
         settings = load_settings()
@@ -77,7 +84,58 @@ class SettingsScreen(Screen):
         self.show_popup("Neustart erforderlich", "Die Änderung an der Bildschirmtastatur\nwird nach einem Neustart der Anwendung wirksam.")
 
     def show_popup(self, title, message):
-        popup = Popup(title=title, content=Label(text=message), size_hint=(0.7, 0.5))
+        popup = create_styled_popup(title=title, content=Label(text=message), size_hint=(0.7, 0.5))
+        popup.open()
+
+    def on_font_color_toggle(self, value):
+        settings = load_settings()
+        settings['font_color_enabled'] = value
+        save_settings(settings)
+        apply_styles_to_widget(self.manager)
+
+    def on_popup_color_toggle(self, value):
+        settings = load_settings()
+        settings['popup_color_enabled'] = value
+        save_settings(settings)
+        # No immediate visual update needed, will apply on next popup
+
+    def on_button_font_color_toggle(self, value):
+        settings = load_settings()
+        settings['button_font_color_enabled'] = value
+        save_settings(settings)
+        apply_styles_to_widget(self.manager)
+
+    def on_button_bg_color_toggle(self, value):
+        settings = load_settings()
+        settings['button_bg_color_enabled'] = value
+        save_settings(settings)
+        apply_styles_to_widget(self.manager)
+
+    def show_color_picker(self, setting_type):
+        settings = load_settings()
+
+        key = f'custom_{setting_type}_color'
+        initial_color = settings.get(key, [1, 1, 1, 1])
+
+        color_picker = ColorPicker(color=initial_color)
+
+        content = BoxLayout(orientation='vertical', spacing=10)
+        content.add_widget(color_picker)
+
+        save_btn = Button(text="Speichern", size_hint_y=None, height=44)
+        content.add_widget(save_btn)
+
+        popup = create_styled_popup(title="Farbe auswählen", content=content, size_hint=(0.8, 0.8))
+
+        def save_color(instance):
+            new_color = color_picker.color
+            settings[key] = new_color
+            save_settings(settings)
+            if setting_type in ['font', 'button_font', 'button_bg']:
+                apply_styles_to_widget(self.manager)
+            popup.dismiss()
+
+        save_btn.bind(on_press=save_color)
         popup.open()
 
     def _get_wifi_status(self):
@@ -134,7 +192,7 @@ class SettingsScreen(Screen):
 
         close_button = Button(text="Close", size_hint_y=None, height=50)
 
-        self.wifi_popup = Popup(title="Wifi Settings", content=content, size_hint=(0.8, 0.8))
+        self.wifi_popup = create_styled_popup(title="Wifi Settings", content=content, size_hint=(0.8, 0.8))
         close_button.bind(on_press=self.wifi_popup.dismiss)
         content.add_widget(close_button)
 
@@ -172,7 +230,7 @@ class SettingsScreen(Screen):
 
         close_button = Button(text="Close", size_hint_y=None, height=50)
 
-        scan_popup = Popup(title="Available Networks", content=content, size_hint=(0.8, 0.8))
+        scan_popup = create_styled_popup(title="Available Networks", content=content, size_hint=(0.8, 0.8))
         close_button.bind(on_press=scan_popup.dismiss)
         content.add_widget(close_button)
         scan_popup.open()
@@ -191,7 +249,7 @@ class SettingsScreen(Screen):
         button_layout.add_widget(cancel_button)
         content.add_widget(button_layout)
 
-        password_popup = Popup(title="Password", content=content, size_hint=(0.7, 0.5))
+        password_popup = create_styled_popup(title="Password", content=content, size_hint=(0.7, 0.5))
 
         def connect(instance):
             password = password_input.text
@@ -228,7 +286,7 @@ class SettingsScreen(Screen):
         content.add_widget(creator_bg_btn)
         content.add_widget(sheet_bg_btn)
 
-        popup = Popup(title="Hintergrund auswählen", content=content, size_hint=(0.8, 0.5))
+        popup = create_styled_popup(title="Hintergrund auswählen", content=content, size_hint=(0.8, 0.5))
 
         main_bg_btn.bind(on_press=lambda x: [self._show_background_chooser('background_path'), popup.dismiss()])
         creator_bg_btn.bind(on_press=lambda x: [self._show_background_chooser('cs_creator_background_path'), popup.dismiss()])
@@ -249,7 +307,7 @@ class SettingsScreen(Screen):
         button_layout.add_widget(cancel_btn)
         content.add_widget(button_layout)
 
-        popup = Popup(title="Hintergrundbild auswählen", content=content, size_hint=(0.9, 0.9))
+        popup = create_styled_popup(title="Hintergrundbild auswählen", content=content, size_hint=(0.9, 0.9))
 
         def select_file(instance):
             if filechooser.selection:

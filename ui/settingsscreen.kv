@@ -67,6 +67,54 @@
             font_size: '20sp'
 
         BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "Benutzerdefinierte Schriftfarbe"
+            Switch:
+                id: font_color_switch
+                on_active: root.on_font_color_toggle(self.active)
+            Button:
+                text: "Farbe wählen"
+                on_press: root.show_color_picker('font')
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "Benutzerdefinierter Popup-Hintergrund"
+            Switch:
+                id: popup_color_switch
+                on_active: root.on_popup_color_toggle(self.active)
+            Button:
+                text: "Farbe wählen"
+                on_press: root.show_color_picker('popup')
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "Button Schriftfarbe"
+            Switch:
+                id: button_font_color_switch
+                on_active: root.on_button_font_color_toggle(self.active)
+            Button:
+                text: "Farbe wählen"
+                on_press: root.show_color_picker('button_font')
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                text: "Button Hintergrundfarbe"
+            Switch:
+                id: button_bg_color_switch
+                on_active: root.on_button_bg_color_toggle(self.active)
+            Button:
+                text: "Farbe wählen"
+                on_press: root.show_color_picker('button_bg')
+
+        BoxLayout:
             size_hint_y: 1.0 # Spacer
 
         Button:

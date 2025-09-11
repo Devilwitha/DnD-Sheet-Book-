@@ -3,7 +3,9 @@ import sys
 import json
 import socket
 from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.uix.image import Image
+from kivy.uix.popup import Popup
 from kivy.graphics import Color, RoundedRectangle
 
 SETTINGS_FILE = 'settings.json'
@@ -22,7 +24,15 @@ def load_settings():
         'cs_sheet_background_path': 'osbackground/csbg.png',
         'keyboard_enabled': keyboard_default,
         'window_width': 1280,
-        'window_height': 720
+        'window_height': 720,
+        'font_color_enabled': False,
+        'custom_font_color': [1, 1, 1, 1],
+        'popup_color_enabled': False,
+        'custom_popup_color': [0.1, 0.1, 0.1, 0.9],
+        'button_font_color_enabled': False,
+        'custom_button_font_color': [1, 1, 1, 1],
+        'button_bg_color_enabled': False,
+        'custom_button_bg_color': [1, 1, 1, 1]
     }
     if not os.path.exists(SETTINGS_FILE):
         return defaults
@@ -40,23 +50,40 @@ def save_settings(settings):
         json.dump(settings, f, indent=4)
 
 def apply_styles_to_widget(widget):
-    """Durchläuft ein Widget und seine Kinder und wendet Transparenz und abgerundete Ecken auf Buttons an."""
+    """Durchläuft ein Widget und seine Kinder und wendet Stile an."""
     settings = load_settings()
     use_transparency = settings.get('transparency_enabled', True)
+    font_color_enabled = settings.get('font_color_enabled', False)
+    custom_font_color = settings.get('custom_font_color', [1, 1, 1, 1])
+    button_font_color_enabled = settings.get('button_font_color_enabled', False)
+    custom_button_font_color = settings.get('custom_button_font_color', [1, 1, 1, 1])
+    button_bg_color_enabled = settings.get('button_bg_color_enabled', False)
+    custom_button_bg_color = settings.get('custom_button_bg_color', [1, 1, 1, 1])
 
     def apply_to_children(w):
         if isinstance(w, Button):
-            # Unbind any previously bound canvas update functions to prevent conflicts
+            if button_font_color_enabled:
+                w.color = custom_button_font_color
+            else:
+                w.color = [1, 1, 1, 1]
+
             if hasattr(w, '_update_canvas_transparent'):
                 w.unbind(pos=w._update_canvas_transparent, size=w._update_canvas_transparent, state=w._update_canvas_transparent)
                 del w._update_canvas_transparent
 
             if use_transparency:
                 transparency = settings.get('button_transparency', 1.0)
-                base_color = (1, 1, 1)
-                normal_color = (*base_color, transparency)
-                down_color = (base_color[0] * 0.8, base_color[1] * 0.8, base_color[2] * 0.8, transparency)
+                base_color = custom_button_bg_color if button_bg_color_enabled else [1, 1, 1, 1]
 
+                # Ensure base_color is a list of 4 elements (RGBA)
+                if len(base_color) == 3:
+                    base_color.append(1) # Add alpha if missing
+
+                # Combine custom color's alpha with global transparency
+                final_alpha = base_color[3] * transparency
+
+                normal_color = (base_color[0], base_color[1], base_color[2], final_alpha)
+                down_color = (base_color[0] * 0.8, base_color[1] * 0.8, base_color[2] * 0.8, final_alpha)
                 w.background_normal = ''
                 w.background_down = ''
                 w.background_color = (0, 0, 0, 0)
@@ -71,17 +98,38 @@ def apply_styles_to_widget(widget):
                 w.bind(pos=w._update_canvas_transparent, size=w._update_canvas_transparent, state=w._update_canvas_transparent)
                 update_canvas(w, None)
             else:
-                # Restore default button appearance
                 w.canvas.before.clear()
                 w.background_normal = 'atlas://data/images/defaulttheme/button'
                 w.background_down = 'atlas://data/images/defaulttheme/button_pressed'
                 w.background_color = (1, 1, 1, 1)
 
-        elif hasattr(w, 'children'):
+        elif isinstance(w, Label):
+            if font_color_enabled:
+                w.color = custom_font_color
+            else:
+                w.color = [1, 1, 1, 1]  # Standardfarbe
+
+        if hasattr(w, 'children'):
             for child in w.children:
                 apply_to_children(child)
 
     apply_to_children(widget)
+
+def create_styled_popup(title, content, size_hint):
+    """Erstellt ein Popup mit benutzerdefinierten Stilen."""
+    settings = load_settings()
+    popup_color_enabled = settings.get('popup_color_enabled', False)
+    custom_popup_color = settings.get('custom_popup_color', [0.1, 0.1, 0.1, 0.9])
+
+    popup = Popup(title=title, content=content, size_hint=size_hint)
+    if popup_color_enabled:
+        popup.background_color = custom_popup_color
+        popup.background = '' # Erforderlich, damit background_color wirksam wird
+
+    # Anwenden von Stilen auf den Inhalt des Popups
+    apply_styles_to_widget(content)
+
+    return popup
 
 def apply_background(screen):
     """Fügt den Hintergrund zu einem Bildschirm hinzu oder entfernt ihn, basierend auf den Einstellungen."""

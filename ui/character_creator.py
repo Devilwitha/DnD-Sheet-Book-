@@ -16,7 +16,7 @@ from data_manager import (
     SKILL_LIST, FIGHTING_STYLE_DATA, SPELL_DATA
 )
 from core.character import Character
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
 class CharacterCreator(Screen):
     """Creator mit +/- Buttons für Attribute."""
@@ -178,7 +178,8 @@ class CharacterCreator(Screen):
         confirm_btn = Button(text="Bestätigen", size_hint_y=None, height=50)
         popup_content.add_widget(confirm_btn)
 
-        popup = Popup(title="Halbelf-Anpassung", content=popup_content, size_hint=(0.9, 0.9), auto_dismiss=False)
+        popup = create_styled_popup(title="Halbelf-Anpassung", content=popup_content, size_hint=(0.9, 0.9))
+        popup.auto_dismiss = False
 
         def confirm_choices(instance):
             selected_abilities = [name for name, cb in self.half_elf_ability_checkboxes.items() if cb.active]
@@ -235,7 +236,8 @@ class CharacterCreator(Screen):
         confirm_btn = Button(text="Bestätigen", size_hint_y=None, height=50)
         popup_content.add_widget(confirm_btn)
 
-        popup = Popup(title="Kampfstil auswählen", content=popup_content, size_hint=(0.9, 0.9), auto_dismiss=False)
+        popup = create_styled_popup(title="Kampfstil auswählen", content=popup_content, size_hint=(0.9, 0.9))
+        popup.auto_dismiss = False
 
         def confirm_choice(instance):
             selected_style = None
@@ -327,7 +329,8 @@ class CharacterCreator(Screen):
         btn_box.add_widget(confirm_btn)
         popup_content.add_widget(btn_box)
 
-        popup = Popup(title="Startzauber auswählen", content=popup_content, size_hint=(0.9, 0.9), auto_dismiss=False)
+        popup = create_styled_popup(title="Startzauber auswählen", content=popup_content, size_hint=(0.9, 0.9))
+        popup.auto_dismiss = False
 
         def confirm_choices(instance):
             selected_cantrips = [name for name, cb in cantrip_checkboxes.items() if cb.active]
@@ -390,7 +393,8 @@ class CharacterCreator(Screen):
         confirm_btn = Button(text="Bestätigen", size_hint_y=None, height=50)
         popup_content.add_widget(confirm_btn)
 
-        popup = Popup(title="Fertigkeiten auswählen", content=popup_content, size_hint=(0.9, 0.9), auto_dismiss=False)
+        popup = create_styled_popup(title="Fertigkeiten auswählen", content=popup_content, size_hint=(0.9, 0.9))
+        popup.auto_dismiss = False
 
         def confirm_skills(instance):
             selected_skills = [name for name, cb in self.skill_checkboxes.items() if cb.active]
@@ -435,6 +439,5 @@ class CharacterCreator(Screen):
             texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
         )
         content.add_widget(label)
-        popup = Popup(title=title, content=content, size_hint=(0.8, 0.8))
-        apply_styles_to_widget(popup.content)
+        popup = create_styled_popup(title=title, content=content, size_hint=(0.8, 0.8))
         popup.open()

@@ -16,7 +16,7 @@ from kivy.uix.checkbox import CheckBox
 from kivy.properties import ObjectProperty
 
 from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
 class CharacterSheet(Screen):
     """Finaler Charakterbogen mit allen neuen Features."""
@@ -106,7 +106,7 @@ class CharacterSheet(Screen):
             texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
         )
         content.add_widget(label)
-        Popup(title=title, content=content, size_hint=(0.8, 0.8)).open()
+        create_styled_popup(title=title, content=content, size_hint=(0.8, 0.8)).open()
 
     def update_weapon(self, text):
         self.character.equipped_weapon = text
@@ -195,7 +195,7 @@ class CharacterSheet(Screen):
         add_btn = Button(text="Hinzufügen")
         content.add_widget(add_btn)
 
-        popup = Popup(title="Ausrüstung hinzufügen", content=content, size_hint=(0.8, 0.5))
+        popup = create_styled_popup(title="Ausrüstung hinzufügen", content=content, size_hint=(0.8, 0.5))
 
         def add_action(instance):
             name = name_input.text.strip()
@@ -242,7 +242,7 @@ class CharacterSheet(Screen):
         add_btn = Button(text="Hinzufügen")
         content.add_widget(add_btn)
 
-        popup = Popup(title="Item hinzufügen", content=content, size_hint=(0.8, 0.7))
+        popup = create_styled_popup(title="Item hinzufügen", content=content, size_hint=(0.8, 0.7))
 
         def add_action(instance):
             item_name = item_input.text.strip()
@@ -250,31 +250,39 @@ class CharacterSheet(Screen):
                 self.show_popup("Fehler", "Bitte einen Namen für den Gegenstand eingeben.")
                 return
 
-            # Prüfen, ob das Item bereits existiert
-            existing_item = next((item for item in self.character.inventory if item['name'] == item_name), None)
-
-            if is_healing_checkbox.active:
+            is_healing = is_healing_checkbox.active
+            healing_details = None
+            if is_healing:
                 try:
                     count = int(dice_count_input.text)
                     dice = int(dice_type_input.text)
-                    if existing_item and existing_item.get('healing', {}).get('count') == count and existing_item.get('healing', {}).get('dice') == dice:
-                         existing_item['quantity'] += 1
-                    else:
-                        new_item = {
-                            "name": item_name,
-                            "quantity": 1,
-                            "healing": {"count": count, "dice": dice}
-                        }
-                        self.character.inventory.append(new_item)
+                    healing_details = {"count": count, "dice": dice}
                 except ValueError:
-                    self.show_popup("Fehler", "Ungültige Würfel-Eingabe.")
+                    self.show_popup("Fehler", "Ungültige Würfel-Eingabe für Heilitem.")
                     return
+
+            # Find a matching item to stack
+            found_item = None
+            for item in self.character.inventory:
+                if item['name'] == item_name:
+                    item_is_healing = 'healing' in item
+                    # Compare healing details dicts content-wise
+                    if is_healing and item_is_healing and item.get('healing') and healing_details and \
+                       item['healing']['count'] == healing_details['count'] and \
+                       item['healing']['dice'] == healing_details['dice']:
+                        found_item = item
+                        break
+                    elif not is_healing and not item_is_healing:
+                        found_item = item
+                        break
+
+            if found_item:
+                found_item['quantity'] += 1
             else:
-                if existing_item and 'healing' not in existing_item:
-                    existing_item['quantity'] += 1
-                else:
-                    new_item = {"name": item_name, "quantity": 1}
-                    self.character.inventory.append(new_item)
+                new_item = {"name": item_name, "quantity": 1}
+                if is_healing:
+                    new_item['healing'] = healing_details
+                self.character.inventory.append(new_item)
 
             self.update_inventory_display()
             popup.dismiss()
@@ -364,7 +372,7 @@ class CharacterSheet(Screen):
 
         content.add_widget(grid)
         apply_styles_to_widget(content)
-        Popup(title="Zauberbuch", content=content, size_hint=(0.8, 0.9)).open()
+        create_styled_popup(title="Zauberbuch", content=content, size_hint=(0.8, 0.9)).open()
 
     def show_spell_details_popup(self, spell_name, instance):
         spell_info = SPELL_DATA.get(spell_name, {})
@@ -385,23 +393,26 @@ class CharacterSheet(Screen):
         scroll_view.add_widget(label)
         content.add_widget(scroll_view)
 
-        popup = Popup(title=spell_name, content=content, size_hint=(0.8, 0.9))
+        popup = create_styled_popup(title=spell_name, content=content, size_hint=(0.8, 0.9))
 
         if spell_info.get("level", 0) > 0:
             cast_btn = Button(text="Wirken", size_hint_y=None, height=44)
-            cast_btn.bind(on_press=lambda x: (self.cast_spell(spell_name, spell_info.get('level')), popup.dismiss()))
+            # Pass the popup to be dismissed
+            cast_btn.bind(on_press=lambda x: (self.cast_spell(spell_name, spell_info.get('level'), popup)))
             content.add_widget(cast_btn)
 
         apply_styles_to_widget(content)
         popup.open()
 
-    def cast_spell(self, spell_name, spell_level):
+    def cast_spell(self, spell_name, spell_level, spell_details_popup):
         """Versucht, einen Zauber zu wirken und verbraucht einen Zauberplatz."""
         spell_level_str = str(spell_level)
         if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
             self.character.current_spell_slots[spell_level_str] -= 1
             self.show_popup("Zauber gewirkt", f"Du hast '{spell_name}' gewirkt.")
-            # Hier könnte man die Zauberliste aktualisieren, wenn sie noch offen ist.
+            spell_details_popup.dismiss()
+            # Re-open the spellbook to show updated slots
+            self.show_spells_popup()
         else:
             self.show_popup("Keine Zauberplätze", f"Keine Zauberplätze für Level {spell_level} mehr übrig.")
 
@@ -436,7 +447,7 @@ class CharacterSheet(Screen):
         short_rest_btn = Button(text="Kleine Rast")
         content.add_widget(short_rest_btn)
 
-        popup = Popup(title="Rasten", content=content, size_hint=(0.6, 0.4))
+        popup = create_styled_popup(title="Rasten", content=content, size_hint=(0.6, 0.4))
 
         long_rest_btn.bind(on_press=lambda x: (self.do_long_rest(), popup.dismiss()))
         short_rest_btn.bind(on_press=lambda x: (self.show_short_rest_popup(), popup.dismiss()))
@@ -463,22 +474,22 @@ class CharacterSheet(Screen):
             heal_btn = Button(text="Heilen")
             content.add_widget(heal_btn)
 
-            popup = Popup(title="Kleine Rast", content=content, size_hint=(0.8, 0.5))
+            popup = create_styled_popup(title="Kleine Rast", content=content, size_hint=(0.8, 0.5))
 
-            def heal_action(instance):
+            def heal_action(instance, p):
                 try:
                     dice_to_spend = int(dice_input.text)
                     if 0 < dice_to_spend <= self.character.hit_dice:
                         healed_amount = self.character.short_rest(dice_to_spend)
                         self.update_sheet()
                         self.show_popup("Heilung", f"Du hast {healed_amount} HP wiederhergestellt.")
-                        popup.dismiss()
+                        p.dismiss()
                     else:
                         self.show_popup("Fehler", "Ungültige Anzahl an Würfeln.")
                 except ValueError:
                     self.show_popup("Fehler", "Bitte eine gültige Zahl eingeben.")
 
-            heal_btn.bind(on_press=heal_action)
+            heal_btn.bind(on_press=lambda x: heal_action(x, popup))
 
         apply_styles_to_widget(content)
         popup.open()
