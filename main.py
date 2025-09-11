@@ -70,6 +70,7 @@ class DnDApp(App):
         Builder.load_file('ui/dmprepscreen.kv')
         Builder.load_file('ui/dmmainscreen.kv')
         Builder.load_file('ui/playermainscreen.kv')
+        Builder.load_file('ui/playercharacterdisplay.kv')
 
         if sys.platform.startswith('linux'):
             Window.fullscreen = 'auto'
