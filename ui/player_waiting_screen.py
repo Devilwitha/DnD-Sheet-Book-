@@ -73,6 +73,8 @@ class PlayerWaitingScreen(Screen):
         self.manager.current = 'main'
 
     def on_leave(self, *args):
-        if self.client_socket:
+        # The socket is passed to the next screen, so we only close it
+        # if we are NOT proceeding to the main game screen.
+        if self.manager.current != 'player_main' and self.client_socket:
             self.client_socket.close()
             self.client_socket = None
