@@ -85,6 +85,7 @@ class DnDApp(App):
         sm.add_widget(SplashScreen(name='splash'))
         sm.add_widget(MainMenu(name='main'))
         sm.add_widget(CharacterMenuScreen(name='character_menu'))
+        sm.add_widget(CharacterCreator(name='creator'))
         sm.add_widget(CharacterEditor(name='editor'))
         sm.add_widget(CharacterSheet(name='sheet'))
         sm.add_widget(OptionsScreen(name='options'))
