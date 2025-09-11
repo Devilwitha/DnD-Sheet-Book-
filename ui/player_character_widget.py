@@ -3,6 +3,9 @@ from kivy.properties import ObjectProperty
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from functools import partial
+from kivy.lang import Builder
+
+Builder.load_file('ui/playercharacterwidget.kv')
 
 class PlayerCharacterWidget(BoxLayout):
     """An interactive display of a character for the player's main screen."""
