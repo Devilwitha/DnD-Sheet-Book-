@@ -76,8 +76,15 @@ class CharacterSheet(Screen):
             self.currency_labels[curr] = Label(text=str(self.character.currency[curr]))
             self.ids.currency_box.add_widget(self.currency_labels[curr])
             btn_box = BoxLayout()
-            btn_box.add_widget(Button(text="-", on_press=partial(self.change_currency, curr, -1)))
-            btn_box.add_widget(Button(text="+", on_press=partial(self.change_currency, curr, 1)))
+
+            minus_btn = Button(text="-", on_press=partial(self.change_currency, curr, -1))
+            plus_btn = Button(text="+", on_press=partial(self.change_currency, curr, 1))
+
+            apply_styles_to_widget(minus_btn)
+            apply_styles_to_widget(plus_btn)
+
+            btn_box.add_widget(minus_btn)
+            btn_box.add_widget(plus_btn)
             self.ids.currency_box.add_widget(btn_box)
 
         self.ids.features_layout.clear_widgets()
