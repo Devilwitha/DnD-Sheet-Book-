@@ -40,6 +40,7 @@
                         height: 280
 
                     BoxLayout:
+                        id: hp_box
                         size_hint_y: None
                         height: 50
                         Button:
@@ -136,6 +137,15 @@
             Button:
                 text: "Zauber"
                 on_press: root.show_spells_popup()
+            Button:
+                text: "Rast"
+                on_press: root.show_rest_popup()
+            Button:
+                text: "d20 Wurf"
+                on_press: root.roll_d20()
+            Button:
+                text: "Initiative"
+                on_press: root.roll_initiative()
             Button:
                 text: "Level Up"
                 on_press: root.open_level_up_screen()

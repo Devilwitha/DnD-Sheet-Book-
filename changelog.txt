@@ -1,4 +1,25 @@
 ==========================================
+Build Version:                11.09.2025
+
+Gui Version:               0.5.21 Alpha
+Firmware Version:          0.5.0 M33
+Updater Version:           1.0.0
+
+DnD E-Sheet & Book Version:   
+- DE: 1.4
+
+------------------------------------------
+feat: Add interactive features to character sheet
+
+This commit introduces several new features to the character sheet to make it more interactive and align with D&D rules:
+
+- **Resting:** A "Rast" button has been added with "Grosse Rast" (Long Rest) and "Kleine Rast" (Short Rest) options. Long rests restore all HP and spell slots, while short rests allow spending hit dice to heal.
+- **Spell Casting:** Spell descriptions now include a "Wirken" (Cast) button. The spell list displays current vs. maximum spell slots (e.g., 3/4), and casting a spell consumes a slot.
+- **Dice Rolling:** Buttons for rolling Initiative and a general d20 have been added for quick access.
+- **Healing Items:** The inventory system has been updated to support healing items. When creating an item, it can be marked as a healing item with specific dice for healing. Using the item from the inventory automatically calculates and applies the healing to the character's HP.
+
+==========================================
+==========================================
 Build Version:                10.09.2025
 
 Gui Version:               0.5.16 Alpha

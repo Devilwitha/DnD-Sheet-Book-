@@ -1,0 +1,6 @@
+- Anderes PC Pogram für DM
+- Möglichkeit mit anderem pogram zu verbinden (wlan) und charakter daten zu übermiteln (und andere sachen wie zb was der spieler gewürfellt hat) für DM
+- dm soll die möglichkeit haben einen initialwurf für alle gegner und verbundenen alle spieler auszuführen 
+- es soll die möglichkeit geben offline spieler anzugeben und die verschiedenen gegner sollen aus einer liste geladen werden können und beim draufklicken sollen alle infos zu diesem gegner erscheinen
+- erstelle eine gute übersicht mit allen nötigen infos für den dm 
+- offline spieler sind solche die kein gerät haben und mit richtigen würfeln würfeln

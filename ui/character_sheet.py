@@ -12,6 +12,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
+from kivy.uix.checkbox import CheckBox
 from kivy.properties import ObjectProperty
 
 from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
@@ -57,6 +58,9 @@ class CharacterSheet(Screen):
         self.ids.stats_box.add_widget(Label(text=f"{self.character.initiative:+}"))
         self.ids.stats_box.add_widget(Label(text="Bewegungsrate:"))
         self.ids.stats_box.add_widget(Label(text=f"{self.character.speed}m ({int(self.character.speed / 1.5)} Felder)"))
+        self.ids.stats_box.add_widget(Label(text="Trefferwürfel:"))
+        self.ids.stats_box.add_widget(Label(text=f"{self.character.hit_dice}/{self.character.max_hit_dice}"))
+
 
         self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
 
@@ -72,14 +76,22 @@ class CharacterSheet(Screen):
             self.currency_labels[curr] = Label(text=str(self.character.currency[curr]))
             self.ids.currency_box.add_widget(self.currency_labels[curr])
             btn_box = BoxLayout()
-            btn_box.add_widget(Button(text="-", on_press=partial(self.change_currency, curr, -1)))
-            btn_box.add_widget(Button(text="+", on_press=partial(self.change_currency, curr, 1)))
+
+            minus_btn = Button(text="-", on_press=partial(self.change_currency, curr, -1))
+            plus_btn = Button(text="+", on_press=partial(self.change_currency, curr, 1))
+
+            apply_styles_to_widget(minus_btn)
+            apply_styles_to_widget(plus_btn)
+
+            btn_box.add_widget(minus_btn)
+            btn_box.add_widget(plus_btn)
             self.ids.currency_box.add_widget(btn_box)
 
         self.ids.features_layout.clear_widgets()
         for feature in self.character.features:
             btn = Button(text=feature['name'], size_hint_y=None, height=40, halign='left', valign='middle', padding=(10, 0))
             btn.bind(on_press=partial(self.show_feature_popup, feature))
+            apply_styles_to_widget(btn)  # Stil anwenden
             self.ids.features_layout.add_widget(btn)
 
         self.update_inventory_display()
@@ -111,22 +123,49 @@ class CharacterSheet(Screen):
 
     def update_inventory_display(self):
         self.ids.inventory_layout.clear_widgets()
-        for item_name, quantity in self.character.inventory.items():
+        for index, item in enumerate(self.character.inventory):
             item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
-            item_row.add_widget(Label(text=f"{item_name} ({quantity})", halign='left', valign='middle'))
 
-            btn_box = BoxLayout(size_hint_x=0.4)
-            btn_box.add_widget(Button(text="-", on_press=partial(self.adjust_item_quantity, item_name, -1)))
-            btn_box.add_widget(Button(text="+", on_press=partial(self.adjust_item_quantity, item_name, 1)))
+            # Item Name and Quantity
+            text = f"{item['name']} ({item['quantity']})"
+            if 'healing' in item:
+                text += f" (Heilung: {item['healing']['count']}d{item['healing']['dice']})"
+            item_row.add_widget(Label(text=text, halign='left', valign='middle'))
+
+            # Buttons
+            btn_box = BoxLayout(size_hint_x=0.5)
+            if 'healing' in item:
+                btn_box.add_widget(Button(text="Benutzen", on_press=partial(self.use_healing_item, index)))
+            btn_box.add_widget(Button(text="-", on_press=partial(self.adjust_item_quantity, index, -1)))
+            btn_box.add_widget(Button(text="+", on_press=partial(self.adjust_item_quantity, index, 1)))
 
             item_row.add_widget(btn_box)
             self.ids.inventory_layout.add_widget(item_row)
 
-    def adjust_item_quantity(self, item_name, amount, instance):
-        self.character.inventory[item_name] += amount
-        if self.character.inventory[item_name] <= 0:
-            del self.character.inventory[item_name]
-        self.update_inventory_display()
+    def adjust_item_quantity(self, item_index, amount, instance):
+        if 0 <= item_index < len(self.character.inventory):
+            self.character.inventory[item_index]['quantity'] += amount
+            if self.character.inventory[item_index]['quantity'] <= 0:
+                self.character.inventory.pop(item_index)
+            self.update_inventory_display()
+
+    def use_healing_item(self, item_index, instance):
+        if 0 <= item_index < len(self.character.inventory):
+            item = self.character.inventory[item_index]
+            healing_info = item.get('healing')
+            if healing_info:
+                num_dice = healing_info['count']
+                dice_type = healing_info['dice']
+
+                total_healed = 0
+                for _ in range(num_dice):
+                    total_healed += random.randint(1, dice_type)
+
+                self.character.hit_points = min(self.character.max_hit_points, self.character.hit_points + total_healed)
+                self.show_popup("Gegenstand benutzt", f"{total_healed} HP wiederhergestellt mit {item['name']}.")
+
+                self.adjust_item_quantity(item_index, -1, None)
+                self.update_sheet()
 
     def update_equipment_display(self):
         self.ids.equipment_layout.clear_widgets()
@@ -178,23 +217,67 @@ class CharacterSheet(Screen):
 
     def show_add_item_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        item_input = TextInput(hint_text="Gegenstand eingeben", multiline=False)
+
+        item_input = TextInput(hint_text="Gegenstandname", multiline=False)
         content.add_widget(item_input)
+
+        # Heilitem Optionen
+        healing_box = BoxLayout(size_hint_y=None, height=44)
+        healing_box.add_widget(Label(text="Heilitem:"))
+        is_healing_checkbox = CheckBox()
+        healing_box.add_widget(is_healing_checkbox)
+        content.add_widget(healing_box)
+
+        dice_count_input = TextInput(hint_text="Anzahl Würfel (z.B. 2)", multiline=False, disabled=True)
+        dice_type_input = TextInput(hint_text="Würfelart (z.B. 4 für d4)", multiline=False, disabled=True)
+
+        def on_checkbox_active(checkbox, value):
+            dice_count_input.disabled = not value
+            dice_type_input.disabled = not value
+        is_healing_checkbox.bind(active=on_checkbox_active)
+
+        content.add_widget(dice_count_input)
+        content.add_widget(dice_type_input)
 
         add_btn = Button(text="Hinzufügen")
         content.add_widget(add_btn)
 
-        popup = Popup(title="Item hinzufügen", content=content, size_hint=(0.8, 0.4))
+        popup = Popup(title="Item hinzufügen", content=content, size_hint=(0.8, 0.7))
 
         def add_action(instance):
             item_name = item_input.text.strip()
-            if item_name:
-                if item_name in self.character.inventory:
-                    self.character.inventory[item_name] += 1
+            if not item_name:
+                self.show_popup("Fehler", "Bitte einen Namen für den Gegenstand eingeben.")
+                return
+
+            # Prüfen, ob das Item bereits existiert
+            existing_item = next((item for item in self.character.inventory if item['name'] == item_name), None)
+
+            if is_healing_checkbox.active:
+                try:
+                    count = int(dice_count_input.text)
+                    dice = int(dice_type_input.text)
+                    if existing_item and existing_item.get('healing', {}).get('count') == count and existing_item.get('healing', {}).get('dice') == dice:
+                         existing_item['quantity'] += 1
+                    else:
+                        new_item = {
+                            "name": item_name,
+                            "quantity": 1,
+                            "healing": {"count": count, "dice": dice}
+                        }
+                        self.character.inventory.append(new_item)
+                except ValueError:
+                    self.show_popup("Fehler", "Ungültige Würfel-Eingabe.")
+                    return
+            else:
+                if existing_item and 'healing' not in existing_item:
+                    existing_item['quantity'] += 1
                 else:
-                    self.character.inventory[item_name] = 1
-                self.update_inventory_display()
-                popup.dismiss()
+                    new_item = {"name": item_name, "quantity": 1}
+                    self.character.inventory.append(new_item)
+
+            self.update_inventory_display()
+            popup.dismiss()
 
         add_btn.bind(on_press=add_action)
         apply_styles_to_widget(content)
@@ -266,6 +349,13 @@ class CharacterSheet(Screen):
                 if not spell_list: continue
 
                 level_name = "Zaubertricks" if spell_level == 0 else f"Level {spell_level} Zauber"
+
+                # Zauberplätze anzeigen
+                if spell_level > 0:
+                    max_slots = self.character.max_spell_slots.get(str(spell_level), 0)
+                    current_slots = self.character.current_spell_slots.get(str(spell_level), 0)
+                    level_name += f" ({current_slots}/{max_slots})"
+
                 grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=40))
                 for spell_name in sorted(spell_list):
                     btn = Button(text=spell_name, size_hint_y=None, height=40)
@@ -283,7 +373,37 @@ class CharacterSheet(Screen):
             f"[b]Schule:[/b] {spell_info.get('school', 'N/A')}\n\n"
             f"{spell_info.get('desc', 'Keine Beschreibung verfügbar.')}"
         )
-        self.show_popup(spell_name, text)
+
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        scroll_view = ScrollView()
+        label = Label(text=text, markup=True, size_hint_y=None, padding=(10, 10))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
+        scroll_view.add_widget(label)
+        content.add_widget(scroll_view)
+
+        popup = Popup(title=spell_name, content=content, size_hint=(0.8, 0.9))
+
+        if spell_info.get("level", 0) > 0:
+            cast_btn = Button(text="Wirken", size_hint_y=None, height=44)
+            cast_btn.bind(on_press=lambda x: (self.cast_spell(spell_name, spell_info.get('level')), popup.dismiss()))
+            content.add_widget(cast_btn)
+
+        apply_styles_to_widget(content)
+        popup.open()
+
+    def cast_spell(self, spell_name, spell_level):
+        """Versucht, einen Zauber zu wirken und verbraucht einen Zauberplatz."""
+        spell_level_str = str(spell_level)
+        if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
+            self.character.current_spell_slots[spell_level_str] -= 1
+            self.show_popup("Zauber gewirkt", f"Du hast '{spell_name}' gewirkt.")
+            # Hier könnte man die Zauberliste aktualisieren, wenn sie noch offen ist.
+        else:
+            self.show_popup("Keine Zauberplätze", f"Keine Zauberplätze für Level {spell_level} mehr übrig.")
 
     def open_level_up_screen(self):
         self.manager.get_screen('level_up').set_character(self.character)
@@ -297,3 +417,68 @@ class CharacterSheet(Screen):
             self.show_popup("Gespeichert", f"Charakter als '{filename}' gespeichert.")
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Speichern: {e}")
+
+    def roll_d20(self):
+        roll = random.randint(1, 20)
+        self.show_popup("d20 Wurf", f"Du hast eine {roll} gewürfelt.")
+
+    def roll_initiative(self):
+        roll = random.randint(1, 20)
+        total = roll + self.character.initiative
+        self.show_popup("Initiativewurf", f"Wurf: {roll} + {self.character.initiative} = {total}")
+
+    def show_rest_popup(self):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        long_rest_btn = Button(text="Grosse Rast")
+        content.add_widget(long_rest_btn)
+
+        short_rest_btn = Button(text="Kleine Rast")
+        content.add_widget(short_rest_btn)
+
+        popup = Popup(title="Rasten", content=content, size_hint=(0.6, 0.4))
+
+        long_rest_btn.bind(on_press=lambda x: (self.do_long_rest(), popup.dismiss()))
+        short_rest_btn.bind(on_press=lambda x: (self.show_short_rest_popup(), popup.dismiss()))
+
+        apply_styles_to_widget(content)
+        popup.open()
+
+    def do_long_rest(self):
+        self.character.long_rest()
+        self.update_sheet()
+        self.show_popup("Grosse Rast", "Du bist vollständig ausgeruht. HP und Zauberplätze wurden wiederhergestellt.")
+
+    def show_short_rest_popup(self):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        if self.character.hit_dice == 0:
+            content.add_widget(Label(text="Du hast keine Trefferwürfel mehr übrig."))
+        else:
+            content.add_widget(Label(text=f"Verfügbare Trefferwürfel: {self.character.hit_dice}/{self.character.max_hit_dice}"))
+
+            dice_input = TextInput(hint_text="Anzahl der zu verwendenden Würfel", input_filter='int', multiline=False)
+            content.add_widget(dice_input)
+
+            heal_btn = Button(text="Heilen")
+            content.add_widget(heal_btn)
+
+            popup = Popup(title="Kleine Rast", content=content, size_hint=(0.8, 0.5))
+
+            def heal_action(instance):
+                try:
+                    dice_to_spend = int(dice_input.text)
+                    if 0 < dice_to_spend <= self.character.hit_dice:
+                        healed_amount = self.character.short_rest(dice_to_spend)
+                        self.update_sheet()
+                        self.show_popup("Heilung", f"Du hast {healed_amount} HP wiederhergestellt.")
+                        popup.dismiss()
+                    else:
+                        self.show_popup("Fehler", "Ungültige Anzahl an Würfeln.")
+                except ValueError:
+                    self.show_popup("Fehler", "Bitte eine gültige Zahl eingeben.")
+
+            heal_btn.bind(on_press=heal_action)
+
+        apply_styles_to_widget(content)
+        popup.open()
