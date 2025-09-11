@@ -17,8 +17,16 @@ class PlayerCharacterWidget(BoxLayout):
         self.register_event_type('on_show_spells')
         self.register_event_type('on_roll_damage')
         self.register_event_type('on_use_item')
+        self.register_event_type('on_show_info')
+        self.register_event_type('on_show_rest')
 
     def on_show_spells(self, *args):
+        pass
+
+    def on_show_info(self, *args):
+        pass
+
+    def on_show_rest(self, *args):
         pass
 
     def on_roll_damage(self, *args):

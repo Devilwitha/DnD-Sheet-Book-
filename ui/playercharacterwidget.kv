@@ -76,10 +76,16 @@
             GridLayout:
                 cols: 2
                 size_hint_y: None
-                height: 50
+                height: 100
+                Button:
+                    text: "Info"
+                    on_press: root.dispatch('on_show_info')
                 Button:
                     text: "Zauber"
                     on_press: root.dispatch('on_show_spells')
+                Button:
+                    text: "Rast"
+                    on_press: root.dispatch('on_show_rest')
                 Button:
                     text: "Schaden würfeln"
                     on_press: root.dispatch('on_roll_damage')

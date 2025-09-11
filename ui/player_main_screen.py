@@ -7,6 +7,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.clock import Clock
@@ -189,7 +190,6 @@ class PlayerMainScreen(Screen):
             self.update_log(log_msg)
             self.update_character_sheet()
 
-            # Show confirmation
             popup = create_styled_popup(title="Zauber gewirkt", content=Label(text=f"Du hast '{spell_name}' gewirkt."), size_hint=(0.7, 0.4))
             popup.open()
         else:
@@ -197,7 +197,6 @@ class PlayerMainScreen(Screen):
             popup.open()
 
     def use_item(self, item, instance):
-        # For now, only handle healing items
         if 'healing' in item:
             healing_info = item.get('healing')
             num_dice = healing_info['count']
@@ -215,3 +214,40 @@ class PlayerMainScreen(Screen):
                 self.character.inventory.remove(item)
 
             self.update_character_sheet()
+
+    def show_info_popup(self):
+        if not self.character: return
+        prof_text = ", ".join(self.character.proficiencies)
+        lang_text = ", ".join(self.character.languages)
+        text = (
+            f"[b]Gesinnung:[/b] {self.character.alignment}\n\n"
+            f"[b]Hintergrund:[/b] {self.character.background}\n\n"
+            f"[b]Kompetenzen:[/b]\n{prof_text}\n\n"
+            f"[b]Sprachen:[/b]\n{lang_text}"
+        )
+        content = ScrollView()
+        label = Label(text=text, markup=True, size_hint_y=None, padding=(10, 10))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
+        content.add_widget(label)
+        create_styled_popup(title="Charakter-Informationen", content=content, size_hint=(0.8, 0.8)).open()
+
+    def show_rest_popup(self):
+        if not self.character: return
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        long_rest_btn = Button(text="Grosse Rast")
+        content.add_widget(long_rest_btn)
+        # Short rest is more complex, so we'll just implement long rest for now.
+        popup = create_styled_popup(title="Rasten", content=content, size_hint=(0.6, 0.4))
+        long_rest_btn.bind(on_press=lambda x: (self.do_long_rest(), popup.dismiss()))
+        apply_styles_to_widget(content)
+        popup.open()
+
+    def do_long_rest(self):
+        self.character.long_rest()
+        self.update_character_sheet()
+        log_msg = f"{self.character.name} hat eine grosse Rast gemacht."
+        self.send_message_to_dm("LOG", log_msg)
+        self.update_log(log_msg)
