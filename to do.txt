@@ -1,6 +1,11 @@
-- Anderes PC Pogram für DM
+- neuer button in optionen namens DM spiel wen daraufgeklickt soll es diemöglichkeit geben sich als dm oder als spieler (server hosten oder als client verbinden) geben 
+- wenn der dm gewählt wurde erstelle eine lobby um sich zu verbinden und dan per bestätigung zu starten in der lobby screen werden der dm name so wie die verbundenen clienten angezeigt 
+- clienten kommen wenn verbunden in die lobby oder ins spiel sollte es bereits laufn und der dem sucht nach weitern spielern vor dem beitreten muss ein charakter geladen werden
 - Möglichkeit mit anderem pogram zu verbinden (wlan) und charakter daten zu übermiteln (und andere sachen wie zb was der spieler gewürfellt hat) für DM
+- button um einen weitern spieler zu verbinden oder zu kicken
 - dm soll die möglichkeit haben einen initialwurf für alle gegner und verbundenen alle spieler auszuführen 
 - es soll die möglichkeit geben offline spieler anzugeben und die verschiedenen gegner sollen aus einer liste geladen werden können und beim draufklicken sollen alle infos zu diesem gegner erscheinen
 - erstelle eine gute übersicht mit allen nötigen infos für den dm 
-- offline spieler sind solche die kein gerät haben und mit richtigen würfeln würfeln
+- offline spieler sind solche die kein gerät haben und mit richtigen würfeln würfeln (classic pen paper)
+- die gui soll sich aktualisieren sobald sich bei einem spieler was geändert hat 
+- verbinden mit dm soll über optionen DM spiel verbunden werden können mit den spielern und bei den spielern ist es auch undter optionen DM zu verbinden verbinden soll gleich wie beim 
