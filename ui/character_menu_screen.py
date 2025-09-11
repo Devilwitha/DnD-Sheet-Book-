@@ -26,7 +26,9 @@ class CharacterMenuScreen(Screen):
         popup_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         popup_layout.bind(minimum_height=popup_layout.setter('height'))
 
-        files = [f for f in os.listdir('.') if f.endswith('.char')]
+        saves_dir = "saves"
+        os.makedirs(saves_dir, exist_ok=True)
+        files = [f for f in os.listdir(saves_dir) if f.endswith('.char')]
         for filename in files:
             char_layout = BoxLayout(size_hint_y=None, height=40)
 
@@ -69,8 +71,9 @@ class CharacterMenuScreen(Screen):
         self.confirmation_popup.open()
 
     def delete_character(self, filename):
+        filepath = os.path.join("saves", filename)
         try:
-            os.remove(filename)
+            os.remove(filepath)
             self.confirmation_popup.dismiss()
             self.popup.dismiss()
             self.show_load_popup() # Refresh the list
@@ -78,8 +81,9 @@ class CharacterMenuScreen(Screen):
             self.show_popup("Fehler", f"Fehler beim Löschen des Charakters: {e}")
 
     def load_character(self, filename):
+        filepath = os.path.join("saves", filename)
         try:
-            with open(filename, 'rb') as f:
+            with open(filepath, 'rb') as f:
                 character = pickle.load(f)
             character = ensure_character_attributes(character)
             self.manager.get_screen('sheet').load_character(character)
@@ -89,8 +93,9 @@ class CharacterMenuScreen(Screen):
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
 
     def edit_character(self, filename):
+        filepath = os.path.join("saves", filename)
         try:
-            with open(filename, 'rb') as f:
+            with open(filepath, 'rb') as f:
                 character = pickle.load(f)
             character = ensure_character_attributes(character)
             editor_screen = self.manager.get_screen('editor')

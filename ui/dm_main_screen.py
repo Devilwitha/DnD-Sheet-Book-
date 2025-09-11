@@ -286,10 +286,14 @@ class DMMainScreen(Screen):
                 'summary': summary_input.text.strip()
             }
 
+            saves_dir = "saves"
+            os.makedirs(saves_dir, exist_ok=True)
+            filepath = os.path.join(saves_dir, f"{filename}.session")
+
             try:
-                with open(f"{filename}.session", 'w', encoding='utf-8') as f:
+                with open(filepath, 'w', encoding='utf-8') as f:
                     json.dump(session_data, f, indent=4)
-                self.log_message(f"Sitzung '{filename}.session' gespeichert.")
+                self.log_message(f"Sitzung '{filepath}' gespeichert.")
                 popup.dismiss()
             except Exception as e:
                 self.log_message(f"Fehler beim Speichern der Sitzung: {e}")

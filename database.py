@@ -2,8 +2,8 @@ import sqlite3
 import json
 import os
 
-DATABASE_FILE = 'dnd.db'
 DATA_DIR = 'data'
+DATABASE_FILE = os.path.join(DATA_DIR, 'dnd.db')
 
 def get_db_connection():
     """Establishes a connection to the SQLite database."""
@@ -179,6 +179,7 @@ def get_data_from_db():
 
 def init_db():
     """Initializes the database. Deletes the old one if it exists to ensure fresh data."""
+    os.makedirs(DATA_DIR, exist_ok=True)
     try:
         # Delete the old database file to ensure it's rebuilt with corrected data sources.
         if os.path.exists(DATABASE_FILE):

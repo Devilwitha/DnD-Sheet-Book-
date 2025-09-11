@@ -386,11 +386,14 @@ class CharacterSheet(Screen):
         self.manager.current = 'level_up'
 
     def save_character(self):
+        saves_dir = "saves"
+        os.makedirs(saves_dir, exist_ok=True)
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
+        filepath = os.path.join(saves_dir, filename)
         try:
-            with open(filename, 'wb') as f:
+            with open(filepath, 'wb') as f:
                 pickle.dump(self.character, f)
-            self.show_popup("Gespeichert", f"Charakter als '{filename}' gespeichert.")
+            self.show_popup("Gespeichert", f"Charakter als '{filepath}' gespeichert.")
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Speichern: {e}")
 

@@ -38,7 +38,9 @@ class DMSpielScreen(Screen):
         scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
 
-        session_files = [f for f in os.listdir('.') if f.endswith('.session')]
+        saves_dir = "saves"
+        os.makedirs(saves_dir, exist_ok=True)
+        session_files = [f for f in os.listdir(saves_dir) if f.endswith('.session')]
         if not session_files:
             create_styled_popup(title="Keine Sitzungen", content=Label(text="Keine gespeicherten Sitzungen gefunden."), size_hint=(0.6, 0.4)).open()
             return
@@ -57,8 +59,9 @@ class DMSpielScreen(Screen):
 
     def do_load_file(self, filename, instance):
         """Loads the selected file and transitions to the lobby."""
+        filepath = os.path.join("saves", filename)
         try:
-            with open(filename, 'r', encoding='utf-8') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 session_data = json.load(f)
 
             app = App.get_running_app()
