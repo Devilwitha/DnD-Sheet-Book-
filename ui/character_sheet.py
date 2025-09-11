@@ -84,6 +84,7 @@ class CharacterSheet(Screen):
         for feature in self.character.features:
             btn = Button(text=feature['name'], size_hint_y=None, height=40, halign='left', valign='middle', padding=(10, 0))
             btn.bind(on_press=partial(self.show_feature_popup, feature))
+            apply_styles_to_widget(btn)  # Stil anwenden
             self.ids.features_layout.add_widget(btn)
 
         self.update_inventory_display()
