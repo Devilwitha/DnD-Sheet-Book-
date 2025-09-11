@@ -15,7 +15,7 @@ from kivy.uix.screenmanager import Screen
 from data_manager import (
     RACE_DATA, CLASS_DATA, ALIGNMENT_DATA, BACKGROUND_DATA
 )
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
 class CharacterEditor(Screen):
     """Editor-Bildschirm zum Bearbeiten eines vorhandenen Charakters."""
@@ -141,4 +141,4 @@ class CharacterEditor(Screen):
             self.show_popup("Fehler", f"Fehler beim Speichern des Charakters: {e}")
 
     def show_popup(self, title, message):
-        Popup(title=title, content=Label(text=message), size_hint=(0.6, 0.4)).open()
+        create_styled_popup(title=title, content=Label(text=message), size_hint=(0.6, 0.4)).open()

@@ -11,7 +11,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 
 from utils.helpers import (
-    apply_styles_to_widget, apply_background
+    apply_styles_to_widget, apply_background, create_styled_popup
 )
 
 
@@ -63,7 +63,7 @@ class SystemScreen(Screen):
         btn_layout.add_widget(no_btn)
         content.add_widget(btn_layout)
         apply_styles_to_widget(content)
-        self.confirmation_popup = Popup(title="Herunterfahren bestätigen", content=content, size_hint=(0.6, 0.5))
+        self.confirmation_popup = create_styled_popup(title="Herunterfahren bestätigen", content=content, size_hint=(0.6, 0.5))
         self.confirmation_popup.open()
 
     def do_shutdown(self, instance):
@@ -79,11 +79,12 @@ class SystemScreen(Screen):
             self.show_popup("Fehler", f"Fehler beim Herunterfahren:\n{e}")
 
     def show_popup(self, title, message):
-        popup = Popup(title=title, content=Label(text=message), size_hint=(0.7, 0.5))
+        popup = create_styled_popup(title=title, content=Label(text=message), size_hint=(0.7, 0.5))
         popup.open()
 
     def update_app(self):
-        self.popup = Popup(title='Update', content=Label(text='Suche nach Updates...'), size_hint=(0.6, 0.4), auto_dismiss=False)
+        self.popup = create_styled_popup(title='Update', content=Label(text='Suche nach Updates...'), size_hint=(0.6, 0.4))
+        self.popup.auto_dismiss = False
         self.popup.open()
         Clock.schedule_once(self._update_task, 0.1)
 
@@ -106,7 +107,7 @@ class SystemScreen(Screen):
         btn_layout.add_widget(no_btn)
         content.add_widget(btn_layout)
         apply_styles_to_widget(content)
-        self.confirmation_popup = Popup(title="Neustart bestätigen", content=content, size_hint=(0.6, 0.5))
+        self.confirmation_popup = create_styled_popup(title="Neustart bestätigen", content=content, size_hint=(0.6, 0.5))
         self.confirmation_popup.open()
 
     def do_restart(self, instance):
@@ -123,7 +124,7 @@ class SystemScreen(Screen):
         btn_layout.add_widget(no_btn)
         content.add_widget(btn_layout)
         apply_styles_to_widget(content)
-        self.confirmation_popup = Popup(title="Neustart bestätigen", content=content, size_hint=(0.6, 0.5))
+        self.confirmation_popup = create_styled_popup(title="Neustart bestätigen", content=content, size_hint=(0.6, 0.5))
         self.confirmation_popup.open()
 
     def do_restart_system(self, instance):

@@ -10,7 +10,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.screenmanager import Screen
 
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
 class MainMenu(Screen):
     """Hauptmenü-Bildschirm zum Erstellen oder Laden eines Charakters."""
@@ -59,7 +59,7 @@ class MainMenu(Screen):
         content.add_widget(scroll_view)
 
         apply_styles_to_widget(content)
-        self.popup = Popup(title="Charakter laden", content=content, size_hint=(0.8, 0.8))
+        self.popup = create_styled_popup(title="Charakter laden", content=content, size_hint=(0.8, 0.8))
         self.popup.open()
 
     def delete_character_popup(self, filename):
@@ -75,7 +75,7 @@ class MainMenu(Screen):
         content.add_widget(btn_layout)
 
         apply_styles_to_widget(content)
-        self.confirmation_popup = Popup(title="Löschen bestätigen", content=content, size_hint=(0.6, 0.4))
+        self.confirmation_popup = create_styled_popup(title="Löschen bestätigen", content=content, size_hint=(0.6, 0.4))
         self.confirmation_popup.open()
 
     def delete_character(self, filename):
@@ -109,4 +109,4 @@ class MainMenu(Screen):
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters für die Bearbeitung: {e}")
 
     def show_popup(self, title, message):
-        Popup(title=title, content=Label(text=message), size_hint=(0.6, 0.4)).open()
+        create_styled_popup(title=title, content=Label(text=message), size_hint=(0.6, 0.4)).open()

@@ -12,7 +12,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from data_manager import CLASS_DATA, SPELL_DATA
-from utils.helpers import apply_styles_to_widget
+from utils.helpers import apply_styles_to_widget, create_styled_popup
 
 class LevelUpScreen(Screen):
     """Bildschirm für den Stufenaufstieg."""
@@ -209,7 +209,7 @@ class LevelUpScreen(Screen):
         btn_box.add_widget(cancel_btn)
         popup_content.add_widget(btn_box)
 
-        popup = Popup(title="Zauber für Stufenaufstieg auswählen", content=popup_content, size_hint=(0.9, 0.9))
+        popup = create_styled_popup(title="Zauber für Stufenaufstieg auswählen", content=popup_content, size_hint=(0.9, 0.9))
 
         def confirm_choices(instance):
             selected_cantrips = [name for name, cb in new_cantrip_checkboxes.items() if cb.active]
@@ -259,6 +259,17 @@ class LevelUpScreen(Screen):
             f"{spell_info.get('desc', 'Keine Beschreibung verfügbar.')}"
         )
         self.show_popup(spell_name, text)
+
+    def show_popup(self, title, message):
+        content = ScrollView()
+        label = Label(text=message, markup=True, size_hint_y=None, padding=(10, 10))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
+        content.add_widget(label)
+        popup = create_styled_popup(title=title, content=content, size_hint=(0.8, 0.8))
+        popup.open()
 
     def increase_ability(self, ability, instance):
         if self.total_points_allocated >= 2:
@@ -333,6 +344,5 @@ class LevelUpScreen(Screen):
             texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
         )
         content.add_widget(label)
-        popup = Popup(title=title, content=content, size_hint=(0.8, 0.8))
-        apply_styles_to_widget(popup.content)
+        popup = create_styled_popup(title=title, content=content, size_hint=(0.8, 0.8))
         popup.open()
