@@ -38,6 +38,7 @@ class PlayerMainScreen(Screen):
     def update_character_sheet(self):
         """Loads the character into the embedded character sheet widget."""
         if self.character:
+            self.ids.character_sheet_widget.is_player_view = True
             self.ids.character_sheet_widget.load_character(self.character)
 
     def start_listening(self):
@@ -52,15 +53,32 @@ class PlayerMainScreen(Screen):
         """The actual listener loop."""
         while self.client_socket:
             try:
-                message_bytes = self.client_socket.recv(1024)
-                if message_bytes:
-                    message = message_bytes.decode('utf-8')
-                    print(f"[*] Player received message: {message}")
-                    Clock.schedule_once(lambda dt, m=message: self.update_log(m))
-                else:
-                    print("[*] DM disconnected (received empty message).")
+                header = self.client_socket.recv(10)
+                if not header:
+                    print("[*] DM disconnected (header empty).")
                     Clock.schedule_once(lambda dt: self.handle_disconnect())
                     break
+
+                msg_len = int(header.strip())
+                data = b''
+                while len(data) < msg_len:
+                    chunk = self.client_socket.recv(msg_len - len(data))
+                    if not chunk: break
+                    data += chunk
+
+                response = json.loads(data.decode('utf-8'))
+                msg_type = response.get('type')
+                payload = response.get('payload')
+
+                if msg_type == 'LOG':
+                    Clock.schedule_once(lambda dt, m=payload: self.update_log(m))
+                elif msg_type == 'KICK':
+                    print("[*] Kicked by DM.")
+                    Clock.schedule_once(lambda dt: self.handle_disconnect())
+                    break
+                else:
+                    print(f"[*] Received unhandled message type: {msg_type}")
+
             except (socket.error, OSError) as e:
                 print(f"[!] Player listener thread error: {e}")
                 Clock.schedule_once(lambda dt: self.handle_disconnect())

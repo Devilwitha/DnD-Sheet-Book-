@@ -105,6 +105,7 @@
                     on_press: root.show_add_item_popup()
                     size_hint_y: None
                     height: 44
+                    disabled: root.is_player_view
 
                 Label:
                     text: "Ausrüstung"
@@ -122,6 +123,7 @@
                     on_press: root.show_add_equipment_popup()
                     size_hint_y: None
                     height: 44
+                    disabled: root.is_player_view
 
     # Footer
     BoxLayout:
@@ -131,12 +133,15 @@
         Button:
             text: "Info"
             on_press: root.show_info_popup()
+            disabled: root.is_player_view
         Button:
             text: "Zauber"
             on_press: root.show_spells_popup()
+            disabled: root.is_player_view
         Button:
             text: "Rast"
             on_press: root.show_rest_popup()
+            disabled: root.is_player_view
         Button:
             text: "d20 Wurf"
             on_press: root.roll_d20()
@@ -146,12 +151,15 @@
         Button:
             text: "Level Up"
             on_press: root.open_level_up_screen()
+            disabled: root.is_player_view
         Button:
             text: "Speichern"
             on_press: root.save_character()
+            disabled: root.is_player_view
         Button:
             text: "Hauptmenü"
             on_press: root.manager.current = 'main'
+            disabled: root.is_player_view
 
 <CharacterSheetScreen>:
     id: screen_sheet

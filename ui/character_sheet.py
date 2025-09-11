@@ -13,7 +13,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, BooleanProperty
 
 from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
@@ -22,6 +22,7 @@ class CharacterSheetWidget(BoxLayout):
     """Finaler Charakterbogen als wiederverwendbares Widget."""
     character = ObjectProperty(None)
     manager = ObjectProperty(None)
+    is_player_view = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(CharacterSheetWidget, self).__init__(**kwargs)
@@ -212,7 +213,15 @@ class CharacterSheetWidget(BoxLayout):
 
     def roll_d20(self):
         roll = random.randint(1, 20)
-        self.show_popup("d20 Wurf", f"Du hast eine {roll} gewürfelt.")
+        # Simplified popup for testing
+        try:
+            popup = Popup(title='d20 Wurf',
+                          content=Label(text=f'Du hast eine {roll} gewürfelt.'),
+                          size_hint=(None, None), size=(400, 200))
+            popup.open()
+            print("Popup open called")
+        except Exception as e:
+            print(f"Error opening popup: {e}")
 
     def roll_initiative(self):
         roll = random.randint(1, 20)

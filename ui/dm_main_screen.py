@@ -107,7 +107,7 @@ class DMMainScreen(Screen):
             self.log_message(f"Spieler '{player_name}' wurde gekickt.")
 
     def roll_initiative_for_all(self):
-        """Rolls initiative for all players and enemies."""
+        """Rolls initiative for all players and enemies and sends results to clients."""
         self.initiative_order = []
 
         # Roll for online players
@@ -116,7 +116,10 @@ class DMMainScreen(Screen):
             roll = random.randint(1, 20)
             total = roll + char.initiative
             self.initiative_order.append({'name': char.name, 'roll': total, 'type': 'player'})
-            self.log_message(f"Initiative für {char.name}: {roll} + {char.initiative} = {total}")
+            log_msg = f"Initiative für {char.name}: {roll} + {char.initiative} = {total}"
+            self.log_message(log_msg)
+            if 'socket' in player_info and player_info['socket']:
+                self.send_message_to_client(player_info['socket'], "LOG", log_msg)
 
         # Roll for offline players
         for player_name in self.offline_players:
@@ -135,6 +138,15 @@ class DMMainScreen(Screen):
         self.initiative_order.sort(key=lambda x: x['roll'], reverse=True)
 
         self.update_initiative_ui()
+
+    def send_message_to_client(self, client_socket, msg_type, payload):
+        """Sends a message with a type and payload to a specific client."""
+        try:
+            data = json.dumps({'type': msg_type, 'payload': payload})
+            message = f"{len(data):<10}{data}"
+            client_socket.sendall(message.encode('utf-8'))
+        except Exception as e:
+            print(f"[!] Failed to send message of type {msg_type} to client: {e}")
 
     def update_initiative_ui(self):
         init_list_widget = self.ids.initiative_list
