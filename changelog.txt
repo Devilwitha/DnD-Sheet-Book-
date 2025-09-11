@@ -1,4 +1,39 @@
 ==========================================
+Build Version:                11.09.2025
+
+Gui Version:               0.6.0 Alpha
+Firmware Version:          0.6.0 M33
+Updater Version:           1.0.0
+
+------------------------------------------
+feat: Add DM Spiel mode
+
+This commit introduces a new "DM Spiel" mode, which allows for a networked D&D session between a Dungeon Master and players.
+
+- **New Screens:**
+  - "DM Spiel" screen with options to "DM Hosten", "Spieler beitreten", or "DM Vorbereiten".
+  - DM lobby screen to manage connected players.
+  - Player lobby screen to connect to a DM.
+  - DM main screen with an overview of players, enemies, and an event log.
+  - Player main screen to view character sheet and game events.
+  - DM preparation screen to manage enemy lists and session notes.
+
+- **Networking:**
+  - Implemented a client-server architecture using sockets.
+  - The DM acts as the server, players as clients.
+  - Automatic discovery of the DM on the local network using Zeroconf.
+  - Character data is transferred from players to the DM.
+
+- **Game Features:**
+  - DM can manage connected players (kick).
+  - DM can add offline players.
+  - DM can load and manage enemy lists.
+  - DM can roll initiative for all participants.
+  - Session data (players, enemies, logs) can be saved and loaded.
+  - A session summary can be saved and shown to players on reconnect.
+
+==========================================
+==========================================
 Build Version:                10.09.2025
 
 Gui Version:               0.5.16 Alpha

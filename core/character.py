@@ -223,3 +223,51 @@ class Character:
         for item, bonus in self.equipment.items():
             ac += bonus
         self.armor_class = ac
+
+    def to_dict(self):
+        """Serializes the character object to a dictionary."""
+        # self.spells keys can be integers, convert them to strings for JSON
+        spells_str_keys = {str(k): v for k, v in self.spells.items()}
+        return {
+            "name": self.name,
+            "race": self.race,
+            "char_class": self.char_class,
+            "level": self.level,
+            "base_abilities": self.base_abilities,
+            "abilities": self.abilities,
+            "hit_points": self.hit_points,
+            "max_hit_points": self.max_hit_points,
+            "speed": self.speed,
+            "initiative": self.initiative,
+            "armor_class": self.armor_class,
+            "inventory": self.inventory,
+            "equipment": self.equipment,
+            "currency": self.currency,
+            "equipped_weapon": self.equipped_weapon,
+            "background": self.background,
+            "alignment": self.alignment,
+            "personality_traits": self.personality_traits,
+            "ideals": self.ideals,
+            "bonds": self.bonds,
+            "flaws": self.flaws,
+            "features": self.features,
+            "proficiencies": self.proficiencies,
+            "languages": self.languages,
+            "spells": spells_str_keys,
+            "max_spell_slots": self.max_spell_slots,
+            "current_spell_slots": self.current_spell_slots,
+            "max_hit_dice": self.max_hit_dice,
+            "hit_dice": self.hit_dice,
+            "fighting_style": self.fighting_style,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        """Creates a character object from a dictionary."""
+        char = cls(data["name"], data["race"], data["char_class"])
+        for key, value in data.items():
+            # Spells need to be converted back to int keys
+            if key == "spells":
+                value = {int(k): v for k, v in value.items()}
+            setattr(char, key, value)
+        return char

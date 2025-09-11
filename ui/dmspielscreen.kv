@@ -1,46 +1,39 @@
-<OptionsScreen>:
+<DMSpielScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
         spacing: 10
 
         Label:
-            text: "Optionen"
+            text: "DM Spiel"
             font_size: '30sp'
             size_hint_y: None
             height: 80
 
         Button:
-            text: "Gui Einstellungen"
-            on_press: root.manager.current = 'settings'
+            text: "DM Hosten"
+            on_press: root.host_dm()
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
-            text: "DM Spiel"
-            on_press: root.manager.current = 'dm_spiel'
+            text: "Spieler beitreten"
+            on_press: root.join_player()
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
-            text: "SaveData übertragen"
-            on_press: root.manager.current = 'transfer'
+            text: "DM Vorbereiten"
+            on_press: root.prepare_dm()
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
-            text: "System Einstellungen"
-            on_press: root.manager.current = 'system'
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            text: "Info"
-            on_press: root.switch_to_info()
+            text: "Sitzung laden"
+            on_press: root.load_session()
             size_hint_y: None
             height: 80
             font_size: '20sp'
@@ -49,8 +42,8 @@
             size_hint_y: 1.0
 
         Button:
-            text: "Zurück zum Hauptmenü"
-            on_press: root.manager.current = 'main'
+            text: "Zurück zu den Optionen"
+            on_press: root.manager.current = 'options'
             size_hint_y: None
             height: 80
             font_size: '20sp'

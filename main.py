@@ -40,6 +40,12 @@ from ui.splash_screen import SplashScreen
 from ui.system_screen import SystemScreen
 from ui.changelog_screen import ChangelogScreen
 from ui.transfer_screen import TransferScreen
+from ui.dm_spiel_screen import DMSpielScreen
+from ui.dm_lobby_screen import DMLobbyScreen
+from ui.player_lobby_screen import PlayerLobbyScreen
+from ui.dm_prep_screen import DMPrepScreen
+from ui.dm_main_screen import DMMainScreen
+from ui.player_main_screen import PlayerMainScreen
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
@@ -56,6 +62,12 @@ class DnDApp(App):
         Builder.load_file('ui/changelogscreen.kv')
         Builder.load_file('ui/infoscreen.kv')
         Builder.load_file('ui/transferscreen.kv')
+        Builder.load_file('ui/dmspielscreen.kv')
+        Builder.load_file('ui/dmlobbyscreen.kv')
+        Builder.load_file('ui/playerlobbyscreen.kv')
+        Builder.load_file('ui/dmprepscreen.kv')
+        Builder.load_file('ui/dmmainscreen.kv')
+        Builder.load_file('ui/playermainscreen.kv')
 
         if sys.platform.startswith('linux'):
             Window.fullscreen = 'auto'
@@ -80,6 +92,13 @@ class DnDApp(App):
         sm.add_widget(InfoScreen(name='info'))
         sm.add_widget(LevelUpScreen(name='level_up'))
         sm.add_widget(TransferScreen(name='transfer'))
+        sm.add_widget(DMSpielScreen(name='dm_spiel'))
+        sm.add_widget(DMLobbyScreen(name='dm_lobby'))
+        sm.add_widget(PlayerLobbyScreen(name='player_lobby'))
+        sm.add_widget(DMPrepScreen(name='dm_prep'))
+        sm.add_widget(DMMainScreen(name='dm_main'))
+        sm.add_widget(PlayerMainScreen(name='player_main'))
+
 
         root.add_widget(sm)
 

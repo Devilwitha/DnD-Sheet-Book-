@@ -1,0 +1,43 @@
+<PlayerLobbyScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Spieler Lobby"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Label:
+            text: "Verfügbare DM's:"
+            font_size: '20sp'
+            size_hint_y: None
+            height: 40
+
+        # This will be populated with available DMs later
+        ScrollView:
+            size_hint_y: 2.0
+            GridLayout:
+                id: dm_list
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+
+        BoxLayout:
+            size_hint_y: 1.0
+
+        Button:
+            text: "Verbinden"
+            on_press: root.connect_to_dm()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "Zurück"
+            on_press: root.manager.current = 'dm_spiel'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

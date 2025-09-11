@@ -1,0 +1,50 @@
+<PlayerMainScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        # Summary Label
+        Label:
+            id: summary_label
+            markup: True
+            size_hint_y: None
+            height: self.texture_size[1]
+            text_size: self.width, None
+            padding: (10, 10)
+
+        # Top section: Character Sheet
+        Label:
+            text: "Charakterbogen"
+            font_size: '20sp'
+            size_hint_y: None
+            height: 40
+
+        # This will be replaced with a proper character sheet widget later
+        Label:
+            id: character_sheet_view
+            text: "Character sheet data..."
+            size_hint_y: 0.6
+
+        # Bottom section: Log
+        Label:
+            text: "Log"
+            font_size: '20sp'
+            size_hint_y: None
+            height: 40
+
+        ScrollView:
+            size_hint_y: 0.4
+            Label:
+                id: log_output
+                text: "Game log will appear here..."
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: self.width, None
+                markup: True
+
+        Button:
+            text: "Verbindung trennen"
+            on_press: root.handle_disconnect()
+            size_hint_y: None
+            height: 60

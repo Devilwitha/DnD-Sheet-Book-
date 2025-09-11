@@ -1,0 +1,65 @@
+<DMPrepScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "DM Vorbereitung"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Label:
+            text: "Gegnerliste"
+            font_size: '20sp'
+            size_hint_y: None
+            height: 40
+
+        ScrollView:
+            GridLayout:
+                id: enemy_list_view
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+
+        BoxLayout:
+            size_hint_y: None
+            height: 60
+            Button:
+                text: "Gegner hinzufügen"
+                on_press: root.add_enemy_popup()
+            Button:
+                text: "Liste speichern"
+                on_press: root.save_enemy_list()
+            Button:
+                text: "Liste laden"
+                on_press: root.load_enemy_list()
+
+        Label:
+            text: "Sitzungsnotizen:"
+            font_size: '20sp'
+            size_hint_y: None
+            height: 40
+
+        TextInput:
+            id: session_notes
+            size_hint_y: 2.0
+
+        BoxLayout:
+            size_hint_y: 1.0
+
+        Button:
+            text: "Speichern"
+            # This will be implemented later
+            # on_press: root.save_prep()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "Zurück"
+            on_press: root.manager.current = 'dm_spiel'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

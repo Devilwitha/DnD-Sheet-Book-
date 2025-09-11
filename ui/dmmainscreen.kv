@@ -1,0 +1,114 @@
+<DMMainScreen>:
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 10
+        spacing: 10
+
+        # Left side: Players and Enemies
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.7
+            spacing: 10
+
+            # Online Players
+            Label:
+                text: "Online Spieler"
+                font_size: '20sp'
+                size_hint_y: None
+                height: 40
+            ScrollView:
+                GridLayout:
+                    id: online_players_list
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+
+            # Offline Players
+            Label:
+                text: "Offline Spieler"
+                font_size: '20sp'
+                size_hint_y: None
+                height: 40
+            ScrollView:
+                GridLayout:
+                    id: offline_players_list
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+
+            # Enemies
+            Label:
+                text: "Gegner"
+                font_size: '20sp'
+                size_hint_y: None
+                height: 40
+            ScrollView:
+                GridLayout:
+                    id: enemies_list
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+
+        # Right side: Controls and Log
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.3
+            spacing: 10
+
+            Label:
+                text: "Initiative"
+                font_size: '20sp'
+                size_hint_y: None
+                height: 40
+
+            ScrollView:
+                size_hint_y: 1.5 # Give it more space
+                GridLayout:
+                    id: initiative_list
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+
+            Button:
+                text: "Initiative für alle würfeln"
+                on_press: root.roll_initiative_for_all()
+                size_hint_y: None
+                height: 60
+
+            Button:
+                text: "Offline Spieler hinzufügen"
+                on_press: root.add_offline_player()
+                size_hint_y: None
+                height: 60
+
+            Button:
+                text: "Gegner hinzufügen"
+                on_press: root.add_enemy()
+                size_hint_y: None
+                height: 60
+
+            Button:
+                text: "Sitzung speichern"
+                on_press: root.save_session()
+                size_hint_y: None
+                height: 60
+
+            Label:
+                text: "Log"
+                font_size: '20sp'
+                size_hint_y: None
+                height: 40
+
+            ScrollView:
+                Label:
+                    id: log_output
+                    text: "Game log will appear here..."
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_size: self.width, None
+
+            Button:
+                text: "Lobby"
+                on_press: root.manager.current = 'dm_lobby'
+                size_hint_y: None
+                height: 60
