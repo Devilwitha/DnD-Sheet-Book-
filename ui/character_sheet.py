@@ -32,7 +32,7 @@ class CharacterSheet(Screen):
         self.scene = Scene()
         self.renderer = Renderer()
         self.renderer.scene = self.scene
-        self.light = Light(renderer=self.renderer, intensity=0.8)
+        self.light = Light(renderer=self.renderer, intensity=0.5)
         self.light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.loaded_obj = None
@@ -70,9 +70,9 @@ class CharacterSheet(Screen):
             # Recreate scene to ensure it's clean
             self.scene = Scene()
             self.renderer.scene = self.scene
-            self.light = Light(renderer=self.renderer, intensity=0.8)
-            if hasattr(self.character, 'light_intensity'):
-                self.light.intensity = self.character.light_intensity
+            # Use the saved light intensity, with a sensible default
+            saved_intensity = getattr(self.character, 'light_intensity', 0.5)
+            self.light = Light(renderer=self.renderer, intensity=saved_intensity)
             self.light.pos_z = 1
             self.loaded_obj = None
 

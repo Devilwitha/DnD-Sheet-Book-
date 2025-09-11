@@ -1,6 +1,7 @@
 import pickle
 import random
 from functools import partial
+import os
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -41,7 +42,6 @@ class CharacterEditor(Screen):
         self.last_touch_distance = 0
         self.loaded_obj = None
         self.touch_mode = None
-        # build_ui is called from on_pre_enter now
 
     def build_ui(self):
         layout = self.ids.editor_layout
@@ -127,7 +127,7 @@ class CharacterEditor(Screen):
 
     def on_pre_enter(self, *args):
         self.build_ui()
-        self.load_character(self.character) # Reload character to apply settings
+        self.load_character(self.character)
         apply_background(self)
         apply_styles_to_widget(self)
         settings = load_settings()
@@ -225,8 +225,10 @@ class CharacterEditor(Screen):
     def _update_scene(self, dt):
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
-            if self.light and 'brightness_slider' in self.ids:
-                self.light.intensity = self.ids.brightness_slider.value
+            # Recreate the light every frame to ensure slider value is used
+            if 'brightness_slider' in self.ids:
+                self.light = Light(renderer=self.renderer, intensity=self.ids.brightness_slider.value)
+                self.light.pos_z = 1
             self.renderer.render(self.scene, self.camera)
 
     def on_touch_down(self, touch):
@@ -309,8 +311,7 @@ class CharacterEditor(Screen):
         self.scene = Scene()
         self.renderer.scene = self.scene
 
-        self.light = Light(renderer=self.renderer, intensity=self.ids.brightness_slider.value)
-        self.light.pos_z = 1
+        # Light is now created/updated in the _update_scene loop
 
         loader = STLLoader()
         self.loaded_obj = loader.load(self.stl_path)
