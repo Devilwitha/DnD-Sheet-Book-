@@ -33,7 +33,7 @@ class CharacterCreator(Screen):
         self.scene = Scene()
         self.renderer = Renderer()
         self.renderer.scene = self.scene
-        self.light = Light(renderer=self.renderer, intensity=0.8)
+        self.light = Light(renderer=self.renderer, intensity=0.5)
         self.light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.stl_path = None
@@ -120,8 +120,7 @@ class CharacterCreator(Screen):
             file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
             viewer_layout.add_widget(file_chooser_button)
 
-            brightness_slider = Slider(min=0, max=1, value=0.8, size_hint_y=0.1)
-            brightness_slider.bind(value=self.on_brightness_change)
+            brightness_slider = Slider(min=0, max=1.5, value=0.5, size_hint_y=0.1)
             self.ids.brightness_slider = brightness_slider
             viewer_layout.add_widget(brightness_slider)
 
@@ -147,12 +146,14 @@ class CharacterCreator(Screen):
     def _update_scene(self, dt):
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
+            if self.light and 'brightness_slider' in self.ids:
+                self.light.intensity = self.ids.brightness_slider.value
             self.renderer.render(self.scene, self.camera)
 
     def on_touch_down(self, touch):
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
-            if self.renderer.collide_point(*touch.pos):
+            if 'stl_viewer_placeholder' in self.ids and self.ids.stl_viewer_placeholder.collide_point(*touch.pos):
                 if touch.is_mouse_scrolling:
                     if touch.button == 'scrollup':
                         self.camera.position.z -= 1
@@ -162,7 +163,7 @@ class CharacterCreator(Screen):
 
                 touch.grab(self)
                 self.touches.append(touch)
-                self.touch_mode = touch.button # 'left', 'right', etc.
+                self.touch_mode = touch.button
                 return True
         return super(CharacterCreator, self).on_touch_down(touch)
 
@@ -171,13 +172,13 @@ class CharacterCreator(Screen):
         if settings.get('stl_viewer_enabled', True):
             if touch.grab_current is self and self.loaded_obj:
                 if len(self.touches) == 1:
-                    if self.touch_mode == 'left': # Rotate object
+                    if self.touch_mode == 'left':
                         self.loaded_obj.rotation.y += touch.dx
                         self.loaded_obj.rotation.x += touch.dy
-                    elif self.touch_mode == 'right': # Pan camera
+                    elif self.touch_mode == 'right':
                         self.camera.position.x -= touch.dx * 0.1
                         self.camera.position.y -= touch.dy * 0.1
-                elif len(self.touches) == 2: # Pinch to zoom
+                elif len(self.touches) == 2:
                     t1, t2 = self.touches
                     dist = t1.distance(t2)
                     if self.last_touch_distance != 0:
@@ -199,10 +200,6 @@ class CharacterCreator(Screen):
                     self.last_touch_distance = 0
                 return True
         return super(CharacterCreator, self).on_touch_up(touch)
-
-    def on_brightness_change(self, instance, value):
-        if self.light:
-            self.light.intensity = value
 
     def adjust_ability(self, ability, amount, instance):
         current_score = int(self.ability_scores_labels[ability].text)
@@ -244,12 +241,12 @@ class CharacterCreator(Screen):
             if self.light:
                 character.light_intensity = self.light.intensity
             else:
-                character.light_intensity = 0.8
+                character.light_intensity = 0.5
         else:
             character.stl_file_path = None
             character.camera_position = None
             character.object_rotation = None
-            character.light_intensity = 0.8
+            character.light_intensity = 0.5
 
         class_data = CLASS_DATA.get(character.char_class, {})
 
@@ -259,6 +256,22 @@ class CharacterCreator(Screen):
             self.show_half_elf_choices_popup(character)
         else:
             self.show_skill_selection_popup(character)
+
+    # ... (rest of the file is unchanged, so I'll omit it for brevity)
+    # ... I will copy the full content when using the tool.
+    # ... The following functions are unchanged:
+    # show_half_elf_choices_popup
+    # show_fighting_style_popup
+    # show_initial_spell_selection_popup
+    # show_skill_selection_popup
+    # finish_character_creation
+    # show_spell_info_popup
+    # show_popup
+    # show_file_chooser
+    # load_model
+
+    # I need to get the full content to overwrite it. I will re-paste the full content from the previous read.
+    # The omitted functions are now included in the block below.
 
     def show_half_elf_choices_popup(self, character):
         popup_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
@@ -481,7 +494,6 @@ class CharacterCreator(Screen):
         skill_choices_data = class_data.get("skill_choices")
 
         if not skill_choices_data:
-            # If no skills to choose, proceed to the next step
             if "progression" in class_data:
                 self.show_initial_spell_selection_popup(character)
             else:
@@ -528,7 +540,6 @@ class CharacterCreator(Screen):
 
             popup.dismiss()
 
-            # Proceed to the next step in character creation
             if "progression" in class_data:
                 self.show_initial_spell_selection_popup(character)
             else:
@@ -590,26 +601,21 @@ class CharacterCreator(Screen):
     def load_model(self, path):
         self.stl_path = path
 
-        # Create a new scene to ensure a clean state
         self.scene = Scene()
         self.renderer.scene = self.scene
 
-        # Add light to the new scene
         self.light = Light(renderer=self.renderer, intensity=self.ids.brightness_slider.value)
         self.light.pos_z = 1
 
-        # Load the object
         loader = STLLoader()
         self.loaded_obj = loader.load(self.stl_path)
         self.scene.add(self.loaded_obj)
 
-        # Set initial camera position
         self.camera.position.x = 0
         self.camera.position.y = 0
-        self.camera.position.z = 30 # Adjusted for auto-scaled models
+        self.camera.position.z = 30
         self.camera.look_at([0,0,0])
 
-        # Add the renderer to the placeholder if it's not there
         placeholder = self.ids.stl_viewer_placeholder
         if not self.renderer.parent:
             placeholder.add_widget(self.renderer)

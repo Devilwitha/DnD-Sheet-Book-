@@ -33,7 +33,7 @@ class CharacterEditor(Screen):
         self.scene = Scene()
         self.renderer = Renderer()
         self.renderer.scene = self.scene
-        self.light = Light(renderer=self.renderer, intensity=0.8)
+        self.light = Light(renderer=self.renderer, intensity=0.5)
         self.light.pos_z = 1
         self.camera = PerspectiveCamera(75, 1, 1, 1000)
         self.stl_path = None
@@ -41,7 +41,7 @@ class CharacterEditor(Screen):
         self.last_touch_distance = 0
         self.loaded_obj = None
         self.touch_mode = None
-        self.build_ui()
+        # build_ui is called from on_pre_enter now
 
     def build_ui(self):
         layout = self.ids.editor_layout
@@ -106,7 +106,6 @@ class CharacterEditor(Screen):
 
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
-            # Add the 3D viewer and button
             container = GridLayout(cols=1, size_hint_y=None, height=400)
             viewer_layout = BoxLayout(orientation='vertical')
             stl_viewer_placeholder = BoxLayout()
@@ -116,41 +115,30 @@ class CharacterEditor(Screen):
             file_chooser_button = Button(text="STL Datei auswählen", size_hint_y=0.1, on_press=lambda x: self.show_file_chooser())
             viewer_layout.add_widget(file_chooser_button)
 
-            brightness_slider = Slider(min=0, max=1, value=0.8, size_hint_y=0.1)
-            brightness_slider.bind(value=self.on_brightness_change)
+            brightness_slider = Slider(min=0, max=1.5, value=0.5, size_hint_y=0.1)
             self.ids.brightness_slider = brightness_slider
             viewer_layout.add_widget(brightness_slider)
 
             container.add_widget(viewer_layout)
             layout.add_widget(container)
-            # Add a placeholder ID to the container so we can remove it later if needed
-            self.ids.viewer_container = container
-            layout.add_widget(Label()) # Add an empty label to fill the second column
+            layout.add_widget(Label())
 
         layout.add_widget(save_button)
 
     def on_pre_enter(self, *args):
+        self.build_ui()
+        self.load_character(self.character) # Reload character to apply settings
         apply_background(self)
         apply_styles_to_widget(self)
-
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
-            # Ensure the viewer is visible if it was hidden
-            if 'viewer_container' in self.ids and self.ids.viewer_container:
-                self.ids.viewer_container.opacity = 1
-                self.ids.viewer_container.size_hint_y = None
-                self.ids.viewer_container.height = 400
             Clock.schedule_interval(self._update_scene, 1.0 / 60.0)
-        else:
-            # Hide the viewer if it exists
-            if 'viewer_container' in self.ids and self.ids.viewer_container:
-                self.ids.viewer_container.opacity = 0
-                self.ids.viewer_container.size_hint_y = None
-                self.ids.viewer_container.height = 0
-
 
     def load_character(self, character):
         self.character = character
+        if not self.character:
+            return
+
         self.inputs["Name"].text = self.character.name
         self.inputs["Rasse"].text = self.character.race
         self.inputs["Klasse"].text = self.character.char_class
@@ -166,7 +154,7 @@ class CharacterEditor(Screen):
 
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
-            if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path:
+            if hasattr(self.character, 'stl_file_path') and self.character.stl_file_path and os.path.exists(self.character.stl_file_path):
                 self.load_model(self.character.stl_file_path)
                 if self.character.camera_position:
                     self.camera.position.x = self.character.camera_position[0]
@@ -176,9 +164,8 @@ class CharacterEditor(Screen):
                     self.loaded_obj.rotation.x = self.character.object_rotation[0]
                     self.loaded_obj.rotation.y = self.character.object_rotation[1]
                     self.loaded_obj.rotation.z = self.character.object_rotation[2]
-                if hasattr(self.character, 'light_intensity'):
+                if hasattr(self.character, 'light_intensity') and 'brightness_slider' in self.ids:
                     self.ids.brightness_slider.value = self.character.light_intensity
-                    self.light.intensity = self.character.light_intensity
                 self.camera.look_at([0,0,0])
 
     def adjust_ability(self, ability, amount, instance):
@@ -206,7 +193,8 @@ class CharacterEditor(Screen):
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
             self.character.stl_file_path = self.stl_path
-            self.character.camera_position = (self.camera.position.x, self.camera.position.y, self.camera.position.z)
+            if self.camera:
+                self.character.camera_position = (self.camera.position.x, self.camera.position.y, self.camera.position.z)
             if self.loaded_obj:
                 self.character.object_rotation = (self.loaded_obj.rotation.x, self.loaded_obj.rotation.y, self.loaded_obj.rotation.z)
             if self.light:
@@ -215,7 +203,7 @@ class CharacterEditor(Screen):
             self.character.stl_file_path = None
             self.character.camera_position = None
             self.character.object_rotation = None
-            self.character.light_intensity = 0.8
+            self.character.light_intensity = 0.5
 
         self.character.initialize_character()
 
@@ -237,12 +225,14 @@ class CharacterEditor(Screen):
     def _update_scene(self, dt):
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
+            if self.light and 'brightness_slider' in self.ids:
+                self.light.intensity = self.ids.brightness_slider.value
             self.renderer.render(self.scene, self.camera)
 
     def on_touch_down(self, touch):
         settings = load_settings()
         if settings.get('stl_viewer_enabled', True):
-            if self.renderer.collide_point(*touch.pos):
+            if 'stl_viewer_placeholder' in self.ids and self.ids.stl_viewer_placeholder.collide_point(*touch.pos):
                 if touch.is_mouse_scrolling:
                     if touch.button == 'scrollup':
                         self.camera.position.z -= 1
@@ -290,10 +280,6 @@ class CharacterEditor(Screen):
                 return True
         return super(CharacterEditor, self).on_touch_up(touch)
 
-    def on_brightness_change(self, instance, value):
-        if self.light:
-            self.light.intensity = value
-
     def show_file_chooser(self):
         content = BoxLayout(orientation="vertical")
         file_chooser = FileChooserListView(filters=["*.stl"])
@@ -320,26 +306,21 @@ class CharacterEditor(Screen):
     def load_model(self, path):
         self.stl_path = path
 
-        # Create a new scene to ensure a clean state
         self.scene = Scene()
         self.renderer.scene = self.scene
 
-        # Add light to the new scene
         self.light = Light(renderer=self.renderer, intensity=self.ids.brightness_slider.value)
         self.light.pos_z = 1
 
-        # Load the object
         loader = STLLoader()
         self.loaded_obj = loader.load(self.stl_path)
         self.scene.add(self.loaded_obj)
 
-        # Set initial camera position
         self.camera.position.x = 0
         self.camera.position.y = 0
-        self.camera.position.z = 30 # Adjusted for auto-scaled models
+        self.camera.position.z = 30
         self.camera.look_at([0,0,0])
 
-        # Add the renderer to the placeholder if it's not there
         placeholder = self.ids.stl_viewer_placeholder
         if not self.renderer.parent:
             placeholder.add_widget(self.renderer)

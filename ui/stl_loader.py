@@ -53,8 +53,8 @@ class STLLoader:
         Logger.info(f"STLLoader: Scaling factor: {scale_factor}, Center: {center}")
 
         geometry = Geometry()
-        # Use a brighter material for better visibility
-        material = Material(color=(0.8, 0.8, 0.8), diffuse=(0.7, 0.7, 0.7), specular=(0.2, 0.2, 0.2), shininess=10.0)
+        # Use a balanced material to avoid overexposure
+        material = Material(color=(0.6, 0.6, 0.6), diffuse=(0.6, 0.6, 0.6), specular=(0.1, 0.1, 0.1), shininess=5.0)
 
         for i in range(len(stl_mesh.v0)):
             # Apply transformation: center the model at origin and then scale it
