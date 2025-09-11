@@ -11,4 +11,4 @@
 - verbinden mit dm soll über optionen DM spiel verbunden werden können mit den spielern und bei den spielern ist es auch undter optionen DM zu verbinden verbinden soll gleich wie beim 
 - möglichkeit mehrere listen mit gegnern zu speichern und wieder zu laden um schnller zu sein für den dm 
 - unter optionen dm spiel soll es noch ein button geben namens dm vorbereiten wo der dm sich nicht verbinden muss um zb ein spiel vorzubereiten und die infos und spiel abläufe und gegnerlisten zu speichern
--erhöhe die versions nr von gui auf 0.6.0 und die Firmwar nr auf 0.6.0 und erweitere die changalog.txt datei 
+- erhöhe die versions nr von gui auf 0.6.0 und die Firmwar nr auf 0.6.0 und erweitere die changalog.txt datei 
