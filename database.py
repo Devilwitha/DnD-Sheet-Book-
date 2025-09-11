@@ -156,8 +156,6 @@ def get_data_from_db():
             'features': {int(k): v for k, v in json.loads(row['features']).items()}
         }
 
-    conn.close()
-
     ENEMY_DATA = {}
     for row in fetch_all_as_dict('enemies', 'name').values():
         ENEMY_DATA[row['name']] = {
@@ -166,8 +164,6 @@ def get_data_from_db():
             'speed': row['speed'],
             'attacks': json.loads(row['attacks'])
         }
-
-    conn.close()
 
     return {
         "ALIGNMENT_DATA": ALIGNMENT_DATA,
