@@ -30,7 +30,7 @@ from utils.helpers import save_settings
 
 from ui.main_menu import MainMenu
 from ui.character_creator import CharacterCreator
-from ui.character_sheet import CharacterSheet
+from ui.character_sheet import CharacterSheetScreen
 from ui.options_screen import OptionsScreen
 from ui.character_menu_screen import CharacterMenuScreen
 from ui.level_up_screen import LevelUpScreen
@@ -86,7 +86,7 @@ class DnDApp(App):
         sm.add_widget(MainMenu(name='main'))
         sm.add_widget(CharacterMenuScreen(name='character_menu'))
         sm.add_widget(CharacterEditor(name='editor'))
-        sm.add_widget(CharacterSheet(name='sheet'))
+        sm.add_widget(CharacterSheetScreen(name='sheet'))
         sm.add_widget(OptionsScreen(name='options'))
         sm.add_widget(SettingsScreen(name='settings'))
         sm.add_widget(SystemScreen(name='system'))

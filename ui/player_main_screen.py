@@ -36,10 +36,9 @@ class PlayerMainScreen(Screen):
             self.ids.summary_label.text = ""
 
     def update_character_sheet(self):
-        """Populates the character sheet part of the screen."""
-        # This is a placeholder. I will integrate the full sheet later.
+        """Loads the character into the embedded character sheet widget."""
         if self.character:
-            self.ids.character_sheet_view.text = f"Character: {self.character.name}\nClass: {self.character.char_class}\nHP: {self.character.hit_points}/{self.character.max_hit_points}"
+            self.ids.character_sheet_widget.load_character(self.character)
 
     def start_listening(self):
         """Starts a thread to listen for messages from the DM."""

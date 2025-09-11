@@ -1,50 +1,48 @@
+#:import CharacterSheetWidget ui.character_sheet.CharacterSheetWidget
+
 <PlayerMainScreen>:
     BoxLayout:
-        orientation: 'vertical'
+        orientation: 'horizontal'
         padding: 10
         spacing: 10
 
-        # Summary Label
-        Label:
-            id: summary_label
-            markup: True
-            size_hint_y: None
-            height: self.texture_size[1]
-            text_size: self.width, None
-            padding: (10, 10)
+        # Left side: Character Sheet
+        CharacterSheetWidget:
+            id: character_sheet_widget
+            size_hint_x: 0.7
 
-        # Top section: Character Sheet
-        Label:
-            text: "Charakterbogen"
-            font_size: '20sp'
-            size_hint_y: None
-            height: 40
+        # Right side: Log and Summary
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.3
+            spacing: 10
 
-        # This will be replaced with a proper character sheet widget later
-        Label:
-            id: character_sheet_view
-            text: "Character sheet data..."
-            size_hint_y: 0.6
-
-        # Bottom section: Log
-        Label:
-            text: "Log"
-            font_size: '20sp'
-            size_hint_y: None
-            height: 40
-
-        ScrollView:
-            size_hint_y: 0.4
             Label:
-                id: log_output
-                text: "Game log will appear here..."
-                size_hint_y: None
+                id: summary_label
+                markup: True
+                size_hint_y: 0.3
                 height: self.texture_size[1]
                 text_size: self.width, None
-                markup: True
+                padding: (10, 10)
 
-        Button:
-            text: "Verbindung trennen"
-            on_press: root.handle_disconnect()
-            size_hint_y: None
-            height: 60
+            Label:
+                text: "Log"
+                font_size: '20sp'
+                size_hint_y: None
+                height: 40
+
+            ScrollView:
+                size_hint_y: 0.7
+                Label:
+                    id: log_output
+                    text: "Game log will appear here..."
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_size: self.width, None
+                    markup: True
+
+            Button:
+                text: "Verbindung trennen"
+                on_press: root.handle_disconnect()
+                size_hint_y: None
+                height: 60

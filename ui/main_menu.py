@@ -1,5 +1,3 @@
-import os
-import sys
 from kivy.uix.screenmanager import Screen
 from utils.helpers import apply_background, apply_styles_to_widget
 

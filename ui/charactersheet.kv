@@ -1,157 +1,160 @@
-<CharacterSheet>:
-    main_layout: main_layout
-    BoxLayout:
-        id: main_layout
-        orientation: 'vertical'
+<CharacterSheetWidget>:
+    orientation: 'vertical'
 
-        # Header
+    # Header
+    GridLayout:
+        cols: 3
+        size_hint_y: None
+        height: 60
+        Label:
+            id: name_label
+            font_size: '20sp'
+        Label:
+            id: class_label
+        Label:
+            id: alignment_label
+
+    # Content
+    ScrollView:
         GridLayout:
-            cols: 3
+            cols: 2
+            spacing: 10
+            padding: 10
             size_hint_y: None
-            height: 60
-            Label:
-                id: name_label
-                font_size: '20sp'
-            Label:
-                id: class_label
-            Label:
-                id: alignment_label
+            height: self.minimum_height
 
-        # Content
-        ScrollView:
-            GridLayout:
-                cols: 2
+            # Left Column
+            BoxLayout:
+                orientation: 'vertical'
                 spacing: 10
-                padding: 10
                 size_hint_y: None
                 height: self.minimum_height
 
-                # Left Column
+                GridLayout:
+                    id: stats_box
+                    cols: 2
+                    size_hint_y: None
+                    height: 280
+
                 BoxLayout:
-                    orientation: 'vertical'
-                    spacing: 10
+                    id: hp_box
+                    size_hint_y: None
+                    height: 50
+                    Button:
+                        text: "-"
+                        on_press: root.change_hp(-1)
+                    Label:
+                        id: hp_label
+                    Button:
+                        text: "+"
+                        on_press: root.change_hp(1)
+
+                GridLayout:
+                    cols: 1
+                    size_hint_y: None
+                    height: 150
+                    spacing: 5
+                    Label:
+                        text: "Ausrüstete Waffe:"
+                    Spinner:
+                        id: weapon_spinner
+                        on_text: root.update_weapon(self.text)
+                    Button:
+                        text: "Schaden auswürfeln"
+                        on_press: root.roll_damage()
+
+                GridLayout:
+                    id: currency_box
+                    cols: 3
+                    size_hint_y: None
+                    height: 200
+                    spacing: 5
+
+            # Right Column
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+                size_hint_y: None
+                height: self.minimum_height
+
+                Label:
+                    text: "Fähigkeiten"
+                    font_size: '20sp'
+                    size_hint_y: None
+                    height: 40
+                GridLayout:
+                    id: features_layout
+                    cols: 1
+                    spacing: 5
                     size_hint_y: None
                     height: self.minimum_height
 
-                    GridLayout:
-                        id: stats_box
-                        cols: 2
-                        size_hint_y: None
-                        height: 280
-
-                    BoxLayout:
-                        id: hp_box
-                        size_hint_y: None
-                        height: 50
-                        Button:
-                            text: "-"
-                            on_press: root.change_hp(-1)
-                        Label:
-                            id: hp_label
-                        Button:
-                            text: "+"
-                            on_press: root.change_hp(1)
-
-                    GridLayout:
-                        cols: 1
-                        size_hint_y: None
-                        height: 150
-                        spacing: 5
-                        Label:
-                            text: "Ausrüstete Waffe:"
-                        Spinner:
-                            id: weapon_spinner
-                            on_text: root.update_weapon(self.text)
-                        Button:
-                            text: "Schaden auswürfeln"
-                            on_press: root.roll_damage()
-
-                    GridLayout:
-                        id: currency_box
-                        cols: 3
-                        size_hint_y: None
-                        height: 200
-                        spacing: 5
-
-                # Right Column
-                BoxLayout:
-                    orientation: 'vertical'
-                    spacing: 10
+                Label:
+                    text: "Inventar"
+                    font_size: '20sp'
+                    size_hint_y: None
+                    height: 40
+                GridLayout:
+                    id: inventory_layout
+                    cols: 1
+                    spacing: 5
                     size_hint_y: None
                     height: self.minimum_height
+                Button:
+                    text: "Item hinzufügen"
+                    on_press: root.show_add_item_popup()
+                    size_hint_y: None
+                    height: 44
 
-                    Label:
-                        text: "Fähigkeiten"
-                        font_size: '20sp'
-                        size_hint_y: None
-                        height: 40
-                    GridLayout:
-                        id: features_layout
-                        cols: 1
-                        spacing: 5
-                        size_hint_y: None
-                        height: self.minimum_height
+                Label:
+                    text: "Ausrüstung"
+                    font_size: '20sp'
+                    size_hint_y: None
+                    height: 40
+                GridLayout:
+                    id: equipment_layout
+                    cols: 1
+                    spacing: 5
+                    size_hint_y: None
+                    height: self.minimum_height
+                Button:
+                    text: "Ausrüstung hinzufügen"
+                    on_press: root.show_add_equipment_popup()
+                    size_hint_y: None
+                    height: 44
 
-                    Label:
-                        text: "Inventar"
-                        font_size: '20sp'
-                        size_hint_y: None
-                        height: 40
-                    GridLayout:
-                        id: inventory_layout
-                        cols: 1
-                        spacing: 5
-                        size_hint_y: None
-                        height: self.minimum_height
-                    Button:
-                        text: "Item hinzufügen"
-                        on_press: root.show_add_item_popup()
-                        size_hint_y: None
-                        height: 44
+    # Footer
+    BoxLayout:
+        size_hint_y: None
+        height: 50
+        spacing: 5
+        Button:
+            text: "Info"
+            on_press: root.show_info_popup()
+        Button:
+            text: "Zauber"
+            on_press: root.show_spells_popup()
+        Button:
+            text: "Rast"
+            on_press: root.show_rest_popup()
+        Button:
+            text: "d20 Wurf"
+            on_press: root.roll_d20()
+        Button:
+            text: "Initiative"
+            on_press: root.roll_initiative()
+        Button:
+            text: "Level Up"
+            on_press: root.open_level_up_screen()
+        Button:
+            text: "Speichern"
+            on_press: root.save_character()
+        Button:
+            text: "Hauptmenü"
+            on_press: root.get_manager().current = 'main'
 
-                    Label:
-                        text: "Ausrüstung"
-                        font_size: '20sp'
-                        size_hint_y: None
-                        height: 40
-                    GridLayout:
-                        id: equipment_layout
-                        cols: 1
-                        spacing: 5
-                        size_hint_y: None
-                        height: self.minimum_height
-                    Button:
-                        text: "Ausrüstung hinzufügen"
-                        on_press: root.show_add_equipment_popup()
-                        size_hint_y: None
-                        height: 44
-
-        # Footer
-        BoxLayout:
-            size_hint_y: None
-            height: 50
-            spacing: 5
-            Button:
-                text: "Info"
-                on_press: root.show_info_popup()
-            Button:
-                text: "Zauber"
-                on_press: root.show_spells_popup()
-            Button:
-                text: "Rast"
-                on_press: root.show_rest_popup()
-            Button:
-                text: "d20 Wurf"
-                on_press: root.roll_d20()
-            Button:
-                text: "Initiative"
-                on_press: root.roll_initiative()
-            Button:
-                text: "Level Up"
-                on_press: root.open_level_up_screen()
-            Button:
-                text: "Speichern"
-                on_press: root.save_character()
-            Button:
-                text: "Hauptmenü"
-                on_press: root.manager.current = 'main'
+<CharacterSheetScreen>:
+    id: screen_sheet
+    CharacterSheetWidget:
+        id: sheet_widget
+        character: screen_sheet.character
