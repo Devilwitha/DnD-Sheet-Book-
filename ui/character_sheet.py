@@ -133,11 +133,22 @@ class CharacterSheet(Screen):
         self.character.hit_points += amount
         self.character.hit_points = max(0, min(self.character.hit_points, self.character.max_hit_points))
         self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
+        self.sync_character_to_client()
+
+    def sync_character_to_client(self):
+        """If the DM is viewing this sheet, send the updated character to the client."""
+        app = App.get_running_app()
+        if hasattr(app, 'source_screen') and app.source_screen:
+            nm = app.network_manager
+            client_addr = nm.get_client_addr_by_name(self.character.name)
+            if client_addr:
+                nm.send_message(client_addr, "SET_CHARACTER_DATA", self.character.to_dict())
 
     def change_currency(self, currency, amount, instance):
         self.character.currency[currency] += amount
         self.character.currency[currency] = max(0, self.character.currency[currency])
         self.currency_labels[currency].text = str(self.character.currency[currency])
+        self.sync_character_to_client()
 
     def update_inventory_display(self):
         self.ids.inventory_layout.clear_widgets()
@@ -161,6 +172,7 @@ class CharacterSheet(Screen):
             if self.character.inventory[item_index]['quantity'] <= 0:
                 self.character.inventory.pop(item_index)
             self.update_inventory_display()
+            self.sync_character_to_client()
 
     def use_healing_item(self, item_index, instance):
         if 0 <= item_index < len(self.character.inventory):
@@ -190,6 +202,7 @@ class CharacterSheet(Screen):
             del self.character.equipment[item_name]
             self.character.calculate_armor_class()
             self.update_sheet()
+            self.sync_character_to_client()
 
     def show_add_equipment_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
@@ -208,6 +221,7 @@ class CharacterSheet(Screen):
                     self.character.equipment[name] = ac_bonus
                     self.character.calculate_armor_class()
                     self.update_sheet()
+                    self.sync_character_to_client()
                     popup.dismiss()
                 else:
                     self.show_popup("Fehler", "Bitte einen Namen eingeben.")
@@ -272,6 +286,7 @@ class CharacterSheet(Screen):
                     new_item['healing'] = healing_details
                 self.character.inventory.append(new_item)
             self.update_inventory_display()
+            self.sync_character_to_client()
             popup.dismiss()
         add_btn.bind(on_press=add_action)
         apply_styles_to_widget(content)
@@ -377,6 +392,7 @@ class CharacterSheet(Screen):
         if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
             self.character.current_spell_slots[spell_level_str] -= 1
             self.show_popup("Zauber gewirkt", f"Du hast '{spell_name}' gewirkt.")
+            self.sync_character_to_client()
             spell_details_popup.dismiss()
             self.show_spells_popup()
         else:
@@ -423,6 +439,7 @@ class CharacterSheet(Screen):
         self.character.long_rest()
         self.update_sheet()
         self.show_popup("Grosse Rast", "Du bist vollständig ausgeruht. HP und Zauberplätze wurden wiederhergestellt.")
+        self.sync_character_to_client()
 
     def go_back(self):
         """Navigates back to the source screen and clears the source."""
@@ -451,6 +468,7 @@ class CharacterSheet(Screen):
                         healed_amount = self.character.short_rest(dice_to_spend)
                         self.update_sheet()
                         self.show_popup("Heilung", f"Du hast {healed_amount} HP wiederhergestellt.")
+                        self.sync_character_to_client()
                         p.dismiss()
                     else:
                         self.show_popup("Fehler", "Ungültige Anzahl an Würfeln.")

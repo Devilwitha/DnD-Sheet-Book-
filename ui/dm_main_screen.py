@@ -347,6 +347,7 @@ class DMMainScreen(Screen):
                 with open(filepath, 'w', encoding='utf-8') as f:
                     json.dump(session_data, f, indent=4)
                 self.log_message(f"Sitzung '{filepath}' gespeichert.")
+                self.network_manager.broadcast_message("SAVE_YOUR_CHARACTER", "")
                 popup.dismiss()
             except Exception as e:
                 self.log_message(f"Fehler beim Speichern der Sitzung: {e}")

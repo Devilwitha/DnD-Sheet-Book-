@@ -1,5 +1,7 @@
 import random
 import json
+import os
+import pickle
 from functools import partial
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -12,6 +14,7 @@ from kivy.clock import Clock
 from kivy.app import App
 from queue import Empty
 
+from core.character import Character
 from data_manager import WEAPON_DATA, SPELL_DATA
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
@@ -57,6 +60,13 @@ class PlayerCharacterSheet(Screen):
                 elif msg_type == 'GAME_STATE_UPDATE':
                     self.update_player_list(payload.get('players', []))
                     self.update_initiative_order(payload.get('initiative', []))
+                elif msg_type == 'SET_CHARACTER_DATA':
+                    self.character = Character.from_dict(payload)
+                    self.app.character = self.character # Update the central character object
+                    self.update_sheet()
+                    create_styled_popup(title="Update", content=Label(text="Dein Charakter wurde vom DM aktualisiert."), size_hint=(0.6, 0.4)).open()
+                elif msg_type == 'SAVE_YOUR_CHARACTER':
+                    self.save_character()
 
         except Empty:
             pass
@@ -224,15 +234,20 @@ class PlayerCharacterSheet(Screen):
             regain_amount = max(1, self.character.level // 2)
             self.character.hit_dice = min(self.character.max_hit_dice, self.character.hit_dice + regain_amount)
             self.send_log_to_dm(f"macht eine kurze Rast.")
+            self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'hit_dice', 'value': self.character.hit_dice})
             self.update_sheet()
             popup.dismiss()
 
         def do_long_rest(instance):
             self.character.hit_points = self.character.max_hit_points
             self.character.hit_dice = self.character.max_hit_dice
-            if hasattr(self.character, 'max_spell_slots'):
-                self.character.spell_slots = list(self.character.max_spell_slots)
+            if hasattr(self.character, 'current_spell_slots'):
+                self.character.current_spell_slots = {k: v for k, v in self.character.max_spell_slots.items()}
+
             self.send_log_to_dm(f"macht eine lange Rast.")
+            self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'hit_points', 'value': self.character.hit_points})
+            self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'hit_dice', 'value': self.character.hit_dice})
+            self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'current_spell_slots', 'value': self.character.current_spell_slots})
             self.update_sheet()
             popup.dismiss()
 
@@ -261,3 +276,20 @@ class PlayerCharacterSheet(Screen):
         sheet_screen = self.manager.get_screen('sheet')
         sheet_screen.load_character(self.character)
         self.manager.current = 'sheet'
+
+    def save_character(self):
+        """Saves the current character state to a file."""
+        if not self.character:
+            return
+
+        saves_dir = "saves"
+        os.makedirs(saves_dir, exist_ok=True)
+        filename = f"{self.character.name.lower().replace(' ', '_')}.char"
+        filepath = os.path.join(saves_dir, filename)
+
+        try:
+            with open(filepath, 'wb') as f:
+                pickle.dump(self.character, f)
+            create_styled_popup(title="Gespeichert", content=Label(text=f"Charakter als '{filepath}' gespeichert."), size_hint=(0.7, 0.4)).open()
+        except Exception as e:
+            create_styled_popup(title="Fehler", content=Label(text=f"Fehler beim Speichern: {e}"), size_hint=(0.7, 0.4)).open()

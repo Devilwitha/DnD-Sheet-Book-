@@ -191,6 +191,14 @@ class NetworkManager:
                 except OSError:
                     pass
 
+    def get_client_addr_by_name(self, char_name):
+        """Finds a client's network address by their character name."""
+        with self.lock:
+            for addr, client_info in self.clients.items():
+                if client_info['character'].name == char_name:
+                    return addr
+        return None
+
     def connect_to_server(self, ip, port, character):
         if self.running or self.mode != 'idle':
             return False, "Network manager is busy."
