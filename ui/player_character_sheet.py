@@ -83,9 +83,25 @@ class PlayerCharacterSheet(Screen):
 
     def update_sheet(self):
         if not self.character: return
+
         self.ids.name_label.text = f"{self.character.name}"
         self.ids.class_label.text = f"{self.character.race} {self.character.char_class} {self.character.level}"
+        self.ids.alignment_label.text = f"Gesinnung: {self.character.alignment}"
         self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
+        self.ids.weapon_label.text = f"Waffe: {self.character.equipped_weapon}"
+
+        self.ids.stats_box.clear_widgets()
+        for ability, score in self.character.abilities.items():
+            modifier = (score - 10) // 2
+            sign = "+" if modifier >= 0 else ""
+            self.ids.stats_box.add_widget(Label(text=f"{ability}:"))
+            self.ids.stats_box.add_widget(Label(text=f"{score} ({sign}{modifier})"))
+
+        self.ids.currency_box.clear_widgets()
+        for curr, amount in self.character.currency.items():
+            self.ids.currency_box.add_widget(Label(text=f"{curr}:"))
+            self.ids.currency_box.add_widget(Label(text=str(amount)))
+
         self.update_inventory_display()
 
 

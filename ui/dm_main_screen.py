@@ -95,6 +95,7 @@ class DMMainScreen(Screen):
                                 if hasattr(character_to_update, stat):
                                     setattr(character_to_update, stat, value)
                                     self.log_message(f"System: {character_to_update.name}'s {stat} wurde auf {value} aktualisiert.")
+                                    self.update_online_players_list() # Refresh the UI
 
         except Empty:
             pass
@@ -114,7 +115,8 @@ class DMMainScreen(Screen):
         for addr, player_info in clients:
             char = player_info['character']
             player_entry = BoxLayout(size_hint_y=None, height=40)
-            name_button = Button(text=f"{char.name} ({char.char_class})")
+            hp_text = f"HP: {char.hit_points}/{char.max_hit_points}"
+            name_button = Button(text=f"{char.name} ({char.char_class}) - {hp_text}")
             name_button.bind(on_press=lambda x, c=char: self.view_player_sheet(c))
             kick_button = Button(text="Kicken", size_hint_x=0.3)
             kick_button.bind(on_press=lambda x, a=addr: self.kick_player(a))

@@ -54,16 +54,16 @@
                         Label:
                             text: "Ausrüstete Waffe:"
                         Label:
-                            id: weapon_spinner
+                            id: weapon_label # Changed from spinner to label
                         Button:
                             text: "Schaden auswürfeln"
                             on_press: root.roll_damage()
 
                     GridLayout:
                         id: currency_box
-                        cols: 5
+                        cols: 2 # Simplified for online view
                         size_hint_y: None
-                        height: 100
+                        height: 200
                         spacing: 5
 
                 # Right Column
