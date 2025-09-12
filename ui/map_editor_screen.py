@@ -6,6 +6,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.graphics import Color, Rectangle
 from functools import partial
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
@@ -24,17 +25,25 @@ class MapEditorScreen(Screen):
 
     def populate_object_spinner(self):
         app = App.get_running_app()
-        # It's possible the prep screen list isn't easily accessible.
-        # For now, let's assume we can get it from the dm_prep screen.
-        # A better solution might be a shared data manager.
-        dm_prep_screen = self.manager.get_screen('dm_prep')
-        enemy_names = [enemy.name for enemy in dm_prep_screen.enemy_list]
-
-        # Also add players from the lobby if they exist
+        enemy_names = []
         player_names = []
-        if app.network_manager.mode == 'dm':
-            with app.network_manager.lock:
-                player_names = [client['character'].name for client in app.network_manager.clients.values()]
+
+        try:
+            # Safely try to get enemy list
+            if self.manager.has_screen('dm_prep'):
+                dm_prep_screen = self.manager.get_screen('dm_prep')
+                if hasattr(dm_prep_screen, 'enemy_list'):
+                    enemy_names = [enemy.name for enemy in dm_prep_screen.enemy_list]
+        except Exception as e:
+            print(f"[WARN] Could not get enemy list for map editor: {e}")
+
+        try:
+            # Safely try to get player list
+            if app.network_manager and app.network_manager.mode == 'dm':
+                with app.network_manager.lock:
+                    player_names = [client['character'].name for client in app.network_manager.clients.values()]
+        except Exception as e:
+            print(f"[WARN] Could not get player list for map editor: {e}")
 
         self.ids.object_spinner.values = ["None"] + enemy_names + player_names
 

@@ -26,7 +26,7 @@ class CharacterMenuScreen(Screen):
         popup_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         popup_layout.bind(minimum_height=popup_layout.setter('height'))
 
-        saves_dir = "utils/data/saves"
+        saves_dir = "saves"
         os.makedirs(saves_dir, exist_ok=True)
         files = [f for f in os.listdir(saves_dir) if f.endswith('.char')]
         for filename in files:
@@ -71,7 +71,7 @@ class CharacterMenuScreen(Screen):
         self.confirmation_popup.open()
 
     def delete_character(self, filename):
-        filepath = os.path.join("utils/data/saves", filename)
+        filepath = os.path.join("saves", filename)
         try:
             os.remove(filepath)
             self.confirmation_popup.dismiss()
@@ -81,7 +81,7 @@ class CharacterMenuScreen(Screen):
             self.show_popup("Fehler", f"Fehler beim Löschen des Charakters: {e}")
 
     def load_character(self, filename):
-        filepath = os.path.join("utils/data/saves", filename)
+        filepath = os.path.join("saves", filename)
         try:
             with open(filepath, 'rb') as f:
                 character = pickle.load(f)
@@ -93,7 +93,7 @@ class CharacterMenuScreen(Screen):
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
 
     def edit_character(self, filename):
-        filepath = os.path.join("utils/data/saves", filename)
+        filepath = os.path.join("saves", filename)
         try:
             with open(filepath, 'rb') as f:
                 character = pickle.load(f)

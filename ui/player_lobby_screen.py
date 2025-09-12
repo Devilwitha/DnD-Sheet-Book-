@@ -91,7 +91,7 @@ class PlayerLobbyScreen(Screen):
         content = BoxLayout(orientation='vertical', spacing=10)
         popup_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         popup_layout.bind(minimum_height=popup_layout.setter('height'))
-        saves_dir = "utils/data/saves"
+        saves_dir = "saves"
         os.makedirs(saves_dir, exist_ok=True)
         files = [f for f in os.listdir(saves_dir) if f.endswith('.char')]
         for filename in files:
@@ -119,7 +119,7 @@ class PlayerLobbyScreen(Screen):
             return
 
         try:
-            filepath = os.path.join("utils/data/saves", self.selected_char_file)
+            filepath = os.path.join("saves", self.selected_char_file)
             with open(filepath, 'rb') as f:
                 character = pickle.load(f)
             character = ensure_character_attributes(character)

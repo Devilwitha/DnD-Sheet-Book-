@@ -265,7 +265,7 @@ class PlayerCharacterSheet(Screen):
 
     def save_character(self):
         if not self.character: return
-        saves_dir = "utils/data/saves"
+        saves_dir = "saves"
         os.makedirs(saves_dir, exist_ok=True)
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)

@@ -128,17 +128,35 @@ class CharacterSheet(Screen):
 
     def update_weapon(self, text):
         self.character.equipped_weapon = text
+        self.sync_character()
 
     def change_hp(self, amount):
         self.character.hit_points += amount
         self.character.hit_points = max(0, min(self.character.hit_points, self.character.max_hit_points))
         self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
-        self.sync_character_to_client()
+        self.sync_character()
+
+    def sync_character(self):
+        """Generic sync function that decides whether to sync to client or host."""
+        app = App.get_running_app()
+        # If source_screen exists, it means the DM is viewing a player's sheet
+        if hasattr(app, 'source_screen') and app.source_screen:
+            self.sync_character_to_client()
+        # Otherwise, the player is viewing their own sheet
+        else:
+            self.sync_character_to_host()
+
+    def sync_character_to_host(self):
+        """Sends the entire character object to the host."""
+        app = App.get_running_app()
+        if not self.character or not app.network_manager or app.network_manager.mode != 'client':
+            return
+        app.network_manager.send_to_dm("SET_CHARACTER_DATA", self.character.to_dict())
 
     def sync_character_to_client(self):
         """If the DM is viewing this sheet, send the updated character to the client."""
         app = App.get_running_app()
-        if hasattr(app, 'source_screen') and app.source_screen:
+        if hasattr(app, 'source_screen') and app.source_screen and app.network_manager.mode == 'dm':
             nm = app.network_manager
             client_addr = nm.get_client_addr_by_name(self.character.name)
             if client_addr:
@@ -148,7 +166,7 @@ class CharacterSheet(Screen):
         self.character.currency[currency] += amount
         self.character.currency[currency] = max(0, self.character.currency[currency])
         self.currency_labels[currency].text = str(self.character.currency[currency])
-        self.sync_character_to_client()
+        self.sync_character()
 
     def update_inventory_display(self):
         self.ids.inventory_layout.clear_widgets()
@@ -172,7 +190,7 @@ class CharacterSheet(Screen):
             if self.character.inventory[item_index]['quantity'] <= 0:
                 self.character.inventory.pop(item_index)
             self.update_inventory_display()
-            self.sync_character_to_client()
+            self.sync_character()
 
     def use_healing_item(self, item_index, instance):
         if 0 <= item_index < len(self.character.inventory):
@@ -184,7 +202,7 @@ class CharacterSheet(Screen):
                 total_healed = sum(random.randint(1, dice_type) for _ in range(num_dice))
                 self.character.hit_points = min(self.character.max_hit_points, self.character.hit_points + total_healed)
                 self.show_popup("Gegenstand benutzt", f"{total_healed} HP wiederhergestellt mit {item['name']}.")
-                self.adjust_item_quantity(item_index, -1, None)
+                self.adjust_item_quantity(item_index, -1, None) # This will sync
                 self.update_sheet()
 
     def update_equipment_display(self):
@@ -202,7 +220,7 @@ class CharacterSheet(Screen):
             del self.character.equipment[item_name]
             self.character.calculate_armor_class()
             self.update_sheet()
-            self.sync_character_to_client()
+            self.sync_character()
 
     def show_add_equipment_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
@@ -221,7 +239,7 @@ class CharacterSheet(Screen):
                     self.character.equipment[name] = ac_bonus
                     self.character.calculate_armor_class()
                     self.update_sheet()
-                    self.sync_character_to_client()
+                    self.sync_character()
                     popup.dismiss()
                 else:
                     self.show_popup("Fehler", "Bitte einen Namen eingeben.")
@@ -286,7 +304,7 @@ class CharacterSheet(Screen):
                     new_item['healing'] = healing_details
                 self.character.inventory.append(new_item)
             self.update_inventory_display()
-            self.sync_character_to_client()
+            self.sync_character()
             popup.dismiss()
         add_btn.bind(on_press=add_action)
         apply_styles_to_widget(content)
@@ -392,7 +410,7 @@ class CharacterSheet(Screen):
         if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
             self.character.current_spell_slots[spell_level_str] -= 1
             self.show_popup("Zauber gewirkt", f"Du hast '{spell_name}' gewirkt.")
-            self.sync_character_to_client()
+            self.sync_character()
             spell_details_popup.dismiss()
             self.show_spells_popup()
         else:
@@ -403,7 +421,7 @@ class CharacterSheet(Screen):
         self.manager.current = 'level_up'
 
     def save_character(self):
-        saves_dir = "utils/data/saves"
+        saves_dir = "saves"
         os.makedirs(saves_dir, exist_ok=True)
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)
@@ -439,7 +457,7 @@ class CharacterSheet(Screen):
         self.character.long_rest()
         self.update_sheet()
         self.show_popup("Grosse Rast", "Du bist vollständig ausgeruht. HP und Zauberplätze wurden wiederhergestellt.")
-        self.sync_character_to_client()
+        self.sync_character()
 
     def go_back(self):
         """Navigates back to the source screen and clears the source."""
@@ -468,7 +486,7 @@ class CharacterSheet(Screen):
                         healed_amount = self.character.short_rest(dice_to_spend)
                         self.update_sheet()
                         self.show_popup("Heilung", f"Du hast {healed_amount} HP wiederhergestellt.")
-                        self.sync_character_to_client()
+                        self.sync_character()
                         p.dismiss()
                     else:
                         self.show_popup("Fehler", "Ungültige Anzahl an Würfeln.")

@@ -288,7 +288,7 @@ class DMMainScreen(Screen):
                 'log': self.ids.log_output.text,
                 'summary': summary_input.text.strip()
             }
-            saves_dir = "utils/data/saves"
+            saves_dir = "saves"
             os.makedirs(saves_dir, exist_ok=True)
             filepath = os.path.join(saves_dir, f"{filename}.session")
             try:
