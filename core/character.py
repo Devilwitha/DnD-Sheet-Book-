@@ -1,5 +1,5 @@
 import random
-from data_manager import RACE_DATA, CLASS_DATA, SPELL_DATA
+from utils.data_manager import RACE_DATA, CLASS_DATA, SPELL_DATA
 
 class Character:
     """Finale Version der Charakter-Klasse mit allen neuen Attributen."""

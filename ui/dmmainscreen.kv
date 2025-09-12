@@ -7,10 +7,9 @@
         # Left side: Players and Enemies
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.7
+            size_hint_x: 0.25
             spacing: 10
 
-            # Online Players
             Label:
                 text: "Online Spieler"
                 font_size: '20sp'
@@ -23,7 +22,6 @@
                     size_hint_y: None
                     height: self.minimum_height
 
-            # Offline Players
             Label:
                 text: "Offline Spieler"
                 font_size: '20sp'
@@ -36,7 +34,6 @@
                     size_hint_y: None
                     height: self.minimum_height
 
-            # Enemies
             Label:
                 text: "Gegner"
                 font_size: '20sp'
@@ -49,10 +46,17 @@
                     size_hint_y: None
                     height: self.minimum_height
 
+        # Center: Map
+        GridLayout:
+            id: dm_map_grid
+            size_hint_x: 0.5
+            cols: 10 # Default
+            spacing: 2
+
         # Right side: Controls and Log
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.3
+            size_hint_x: 0.25
             spacing: 10
 
             Label:
@@ -62,7 +66,7 @@
                 height: 40
 
             ScrollView:
-                size_hint_y: 1.5 # Give it more space
+                size_hint_y: 0.4
                 GridLayout:
                     id: initiative_list
                     cols: 1
@@ -73,25 +77,31 @@
                 text: "Initiative für alle würfeln"
                 on_press: root.roll_initiative_for_all()
                 size_hint_y: None
-                height: 60
+                height: 44
 
             Button:
                 text: "Offline Spieler hinzufügen"
                 on_press: root.add_offline_player()
                 size_hint_y: None
-                height: 60
+                height: 44
 
             Button:
                 text: "Gegner hinzufügen"
                 on_press: root.add_enemy()
                 size_hint_y: None
-                height: 60
+                height: 44
 
             Button:
                 text: "Sitzung speichern"
                 on_press: root.save_session()
                 size_hint_y: None
-                height: 60
+                height: 44
+
+            Button:
+                text: "Load Map"
+                on_press: root.load_map_popup()
+                size_hint_y: None
+                height: 44
 
             Label:
                 text: "Log"
@@ -100,6 +110,7 @@
                 height: 40
 
             ScrollView:
+                size_hint_y: 0.6
                 Label:
                     id: log_output
                     text: "Game log will appear here..."

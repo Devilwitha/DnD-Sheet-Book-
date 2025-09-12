@@ -146,6 +146,11 @@
                     text: "Rasten"
                     on_press: root.show_rest_popup()
                 Button:
+                    id: view_map_button
+                    text: "Karte anzeigen"
+                    on_press: root.view_map()
+                    disabled: True # Disabled by default
+                Button:
                     text: "Charakterbogen"
                     on_press: root.show_full_character_sheet()
                 Button:

@@ -12,7 +12,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 
-from data_manager import (
+from utils.data_manager import (
     RACE_DATA, CLASS_DATA, ALIGNMENT_DATA, BACKGROUND_DATA
 )
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup

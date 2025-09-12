@@ -1,4 +1,4 @@
-from database import get_data_from_db, init_db
+from utils.database import get_data_from_db, init_db
 
 # Initialize the database if it doesn't exist
 init_db()

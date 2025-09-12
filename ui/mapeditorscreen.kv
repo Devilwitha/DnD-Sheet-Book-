@@ -1,0 +1,93 @@
+<MapEditorScreen>:
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 10
+        spacing: 10
+
+        # Controls on the left
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.3
+            spacing: 10
+
+            Label:
+                text: "Map Controls"
+                font_size: '20sp'
+                size_hint_y: None
+                height: 40
+
+            GridLayout:
+                cols: 2
+                size_hint_y: None
+                height: 120
+                spacing: 5
+
+                Label:
+                    text: "Rows:"
+                TextInput:
+                    id: rows_input
+                    text: "10"
+                    input_filter: 'int'
+                Label:
+                    text: "Cols:"
+                TextInput:
+                    id: cols_input
+                    text: "10"
+                    input_filter: 'int'
+                Button:
+                    text: "Create Grid"
+                    on_press: root.create_grid()
+
+            Label:
+                text: "Paint Tool"
+                font_size: '18sp'
+                size_hint_y: None
+                height: 30
+
+            Spinner:
+                id: tile_type_spinner
+                text: "Floor"
+                values: ["Floor", "Wall", "Door"]
+                size_hint_y: None
+                height: 44
+
+            Label:
+                text: "Place Object"
+                font_size: '18sp'
+                size_hint_y: None
+                height: 30
+
+            Spinner:
+                id: object_spinner
+                text: "None"
+                values: ["None"] # Will be populated with enemies/players
+                size_hint_y: None
+                height: 44
+
+            Button:
+                text: "Save Map"
+                on_press: root.save_map_popup()
+                size_hint_y: None
+                height: 44
+
+            Button:
+                text: "Load Map"
+                on_press: root.load_map_popup()
+                size_hint_y: None
+                height: 44
+
+            BoxLayout:
+                size_hint_y: 1.0 # Spacer
+
+            Button:
+                text: "Zurück"
+                on_press: root.go_back()
+                size_hint_y: None
+                height: 80
+                font_size: '20sp'
+
+        # Map grid on the right
+        GridLayout:
+            id: map_grid
+            cols: 10 # Default
+            spacing: 2

@@ -14,7 +14,7 @@ from kivy.app import App
 from queue import Empty
 
 from core.character import Character
-from data_manager import WEAPON_DATA, SPELL_DATA
+from utils.data_manager import WEAPON_DATA, SPELL_DATA
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
 class PlayerCharacterSheet(Screen):
@@ -26,6 +26,7 @@ class PlayerCharacterSheet(Screen):
         self.network_manager = self.app.network_manager
         self.character = None
         self.update_event = None
+        self.map_data = None
 
     def on_enter(self, *args):
         self.character = self.app.character
@@ -61,8 +62,19 @@ class PlayerCharacterSheet(Screen):
                     create_styled_popup(title="Update", content=Label(text="Dein Charakter wurde vom DM aktualisiert."), size_hint=(0.6, 0.4)).open()
                 elif msg_type == 'SAVE_YOUR_CHARACTER':
                     self.save_character()
+                elif msg_type == 'MAP_DATA':
+                    self.map_data = payload
+                    self.ids.view_map_button.disabled = False
+                    # Optionally, switch to the map screen automatically
+                    # self.view_map()
         except Empty:
             pass
+
+    def view_map(self):
+        if self.map_data:
+            map_screen = self.manager.get_screen('player_map')
+            map_screen.set_map_data(self.map_data)
+            self.manager.current = 'player_map'
 
     def handle_disconnect(self, message):
         if self.update_event:
@@ -253,7 +265,7 @@ class PlayerCharacterSheet(Screen):
 
     def save_character(self):
         if not self.character: return
-        saves_dir = "saves"
+        saves_dir = "utils/data/saves"
         os.makedirs(saves_dir, exist_ok=True)
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)

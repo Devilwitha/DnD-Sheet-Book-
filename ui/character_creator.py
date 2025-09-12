@@ -11,7 +11,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.screenmanager import Screen
-from data_manager import (
+from utils.data_manager import (
     RACE_DATA, CLASS_DATA, ALIGNMENT_DATA, BACKGROUND_DATA,
     SKILL_LIST, FIGHTING_STYLE_DATA, SPELL_DATA
 )

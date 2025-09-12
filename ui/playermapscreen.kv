@@ -1,0 +1,23 @@
+<PlayerMapScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Game Map"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        GridLayout:
+            id: player_map_grid
+            cols: 10 # Default
+            spacing: 2
+
+        Button:
+            text: "Zurück zum Charakterbogen"
+            on_press: root.go_back()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

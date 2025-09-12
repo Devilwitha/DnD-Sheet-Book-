@@ -11,7 +11,7 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
-from data_manager import CLASS_DATA, SPELL_DATA
+from utils.data_manager import CLASS_DATA, SPELL_DATA
 from utils.helpers import apply_styles_to_widget, create_styled_popup
 
 class LevelUpScreen(Screen):

@@ -16,7 +16,7 @@ from kivy.uix.checkbox import CheckBox
 from kivy.properties import ObjectProperty
 from kivy.app import App
 
-from data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
+from utils.data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 
 class CharacterSheet(Screen):
@@ -403,7 +403,7 @@ class CharacterSheet(Screen):
         self.manager.current = 'level_up'
 
     def save_character(self):
-        saves_dir = "saves"
+        saves_dir = "utils/data/saves"
         os.makedirs(saves_dir, exist_ok=True)
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)

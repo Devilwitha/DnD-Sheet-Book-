@@ -89,3 +89,6 @@ class DMPrepScreen(Screen):
             print(f"[*] Enemy list loaded from {filename}")
         except Exception as e:
             print(f"[!] Error loading enemy list: {e}")
+
+    def open_map_editor(self):
+        self.manager.current = 'map_editor'

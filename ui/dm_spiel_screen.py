@@ -38,7 +38,7 @@ class DMSpielScreen(Screen):
         scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
 
-        saves_dir = "saves"
+        saves_dir = "utils/data/saves"
         os.makedirs(saves_dir, exist_ok=True)
         session_files = [f for f in os.listdir(saves_dir) if f.endswith('.session')]
         if not session_files:
@@ -59,7 +59,7 @@ class DMSpielScreen(Screen):
 
     def do_load_file(self, filename, instance):
         """Loads the selected file and transitions to the lobby."""
-        filepath = os.path.join("saves", filename)
+        filepath = os.path.join("utils/data/saves", filename)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 session_data = json.load(f)

@@ -8,7 +8,8 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, RoundedRectangle
 
-SETTINGS_FILE = 'settings.json'
+DATA_DIR = 'utils/data'
+SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
 
 def load_settings():
     """Lädt die Einstellungen aus der JSON-Datei."""
