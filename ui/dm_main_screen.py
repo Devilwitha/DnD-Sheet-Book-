@@ -370,10 +370,11 @@ class DMMainScreen(Screen):
     def on_tile_click(self, row, col, instance):
         if self.selected_object and (row, col) in self.highlighted_tiles:
             self.move_object(self.selected_object['name'], (row, col))
-            self.network_manager.broadcast_message("MAP_DATA", self.map_data)
+            self.broadcast_map_data()
             self.selected_object = None
             self.highlighted_tiles = []
-            self.update_map_view()
+            # broadcast_map_data calls update_map_view, so this is redundant
+            # self.update_map_view()
         else:
             self.highlighted_tiles = []
             tile_data = self.map_data['tiles'].get((row, col))
