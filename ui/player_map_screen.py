@@ -13,6 +13,7 @@ class PlayerMapScreen(Screen):
         self.selected_object = None
         self.highlighted_tiles = []
         self.app = App.get_running_app()
+        self.interactable_pos = None
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -48,7 +49,37 @@ class PlayerMapScreen(Screen):
         grid.rows, grid.cols = rows, cols
 
         my_char_name = self.app.character.name if self.app.character else ""
+        my_pos = None
+        # First, find the player's character position
+        for pos, tile in tiles.items():
+            if tile.get('object') == my_char_name:
+                my_pos = pos
+                break
 
+        # Now, check for adjacent interactable furniture
+        self.interactable_pos = None
+        if my_pos:
+            r, c = my_pos
+            for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                check_pos = (r + dr, c + dc)
+                if check_pos in tiles and tiles[check_pos].get('furniture'):
+                    self.interactable_pos = check_pos
+                    break # Found one, that's enough
+
+        # Update the interact button's visibility and text
+        interact_btn = self.ids.interact_button
+        if self.interactable_pos:
+            furn_type = tiles[self.interactable_pos]['furniture']['type']
+            interact_btn.text = f"Interagiere mit {furn_type}"
+            interact_btn.height = 44
+            interact_btn.opacity = 1
+            interact_btn.disabled = False
+        else:
+            interact_btn.height = 0
+            interact_btn.opacity = 0
+            interact_btn.disabled = True
+
+        # Finally, draw the grid
         for r in range(rows):
             for c in range(cols):
                 tile_button = Button()
@@ -64,19 +95,22 @@ class PlayerMapScreen(Screen):
                 elif tile_data.get('type') == 'Door': bg_color = [0.6, 0.3, 0.1, 1]
 
                 tile_button.background_color = bg_color
+                tile_button.text = "" # Clear text
 
                 obj = tile_data.get('object')
+                furniture = tile_data.get('furniture')
+
                 if obj:
                     tile_button.text = obj[:3]
                     if obj == my_char_name:
                         tile_button.color = (0.5, 1, 0.5, 1) # Green for self
+                    elif '#' in obj:
+                        tile_button.color = (1, 0.5, 0.5, 1) # Red for enemies
                     else:
-                        # A simple way to differentiate players from enemies without full data
-                        # This assumes player names don't typically contain '#'
-                        if '#' in obj:
-                            tile_button.color = (1, 0.5, 0.5, 1) # Red for enemies
-                        else:
-                            tile_button.color = (0.5, 0.5, 1, 1) # Blue for other players
+                        tile_button.color = (0.5, 0.5, 1, 1) # Blue for other players
+                elif furniture:
+                    tile_button.text = furniture['type'][:2]
+                    tile_button.color = (0.7, 0.7, 0.7, 1) # Grey for furniture
 
                 grid.add_widget(tile_button)
 
@@ -115,3 +149,13 @@ class PlayerMapScreen(Screen):
 
     def go_back(self):
         self.manager.current = 'player_sheet'
+
+    def interact(self):
+        if self.interactable_pos:
+            self.app.network_manager.send_to_dm("INTERACT_WITH_OBJECT", {'pos': self.interactable_pos})
+
+            # Hide button immediately for responsiveness
+            self.ids.interact_button.height = 0
+            self.ids.interact_button.opacity = 0
+            self.ids.interact_button.disabled = True
+            self.interactable_pos = None

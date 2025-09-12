@@ -46,6 +46,18 @@
                     size_hint_y: None
                     height: self.minimum_height
 
+            Label:
+                text: "Objekte"
+                font_size: '20sp'
+                size_hint_y: None
+                height: 40
+            ScrollView:
+                GridLayout:
+                    id: objects_list
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+
         # Center: Map
         GridLayout:
             id: dm_map_grid

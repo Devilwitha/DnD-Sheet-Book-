@@ -60,24 +60,17 @@ class PlayerWaitingScreen(Screen):
 
     def proceed_to_game(self):
         # The character and connection are already managed by the app/network_manager
+        self.app.start_player_gameloop()
         self.manager.current = 'player_sheet'
 
     def handle_disconnect(self, message):
-        from utils.helpers import create_styled_popup
-        from kivy.uix.label import Label
-
-        # This function might be called multiple times, ensure it only runs once
+        # This function might be called multiple times from the update loop
+        # so we check if the event is still active before proceeding.
         if self.update_event:
             self.update_event.cancel()
             self.update_event = None
-
-            # The network manager's shutdown will handle socket closure
-            self.network_manager.shutdown()
-
-            create_styled_popup(title="Verbindung getrennt",
-                                content=Label(text=message),
-                                size_hint=(0.7, 0.4)).open()
-            self.manager.current = 'main'
+            # Call the app's central disconnect handler
+            self.app.handle_disconnect(message)
 
     def on_leave(self, *args):
         if self.update_event:
