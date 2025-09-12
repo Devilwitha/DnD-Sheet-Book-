@@ -126,7 +126,7 @@ class MapEditorScreen(Screen):
 
     def save_map_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        filename_input = TextInput(hint_text="map_name.json", multiline=False)
+        filename_input = TextInput(hint_text="map_name", multiline=False)
         save_btn = Button(text="Save")
         content.add_widget(filename_input)
         content.add_widget(save_btn)
@@ -137,6 +137,9 @@ class MapEditorScreen(Screen):
             filename = filename_input.text.strip()
             if not filename:
                 return
+
+            if not filename.endswith('.json'):
+                filename += '.json'
 
             saves_dir = "utils/data/maps"
             os.makedirs(saves_dir, exist_ok=True)
