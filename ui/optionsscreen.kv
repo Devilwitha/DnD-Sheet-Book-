@@ -12,28 +12,28 @@
 
         Button:
             text: "Gui Einstellungen"
-            on_press: root.manager.current = 'settings'
+            on_press: root.go_to_screen('settings')
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
             text: "SaveData übertragen"
-            on_press: root.manager.current = 'transfer'
+            on_press: root.go_to_screen('transfer')
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
             text: "System Einstellungen"
-            on_press: root.manager.current = 'system'
+            on_press: root.go_to_screen('system')
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
             text: "Info"
-            on_press: root.switch_to_info()
+            on_press: root.go_to_screen('info')
             size_hint_y: None
             height: 80
             font_size: '20sp'
@@ -42,8 +42,8 @@
             size_hint_y: 1.0
 
         Button:
-            text: "Zurück zum Hauptmenü"
-            on_press: root.manager.current = 'main'
+            text: "Zurück"
+            on_press: root.go_back()
             size_hint_y: None
             height: 80
             font_size: '20sp'

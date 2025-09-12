@@ -1,5 +1,6 @@
 import os
 import pickle
+from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
@@ -13,13 +14,17 @@ class CharacterMenuScreen(Screen):
     """Screen for loading, creating, or editing a character."""
     def __init__(self, **kwargs):
         super(CharacterMenuScreen, self).__init__(**kwargs)
+        self.app = App.get_running_app()
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
 
-    def switch_to_creator(self):
-        self.manager.current = 'creator'
+    def go_to_screen(self, screen_name):
+        self.app.change_screen(screen_name, source_screen=self.name)
+
+    def go_back(self):
+        self.app.change_screen('main')
 
     def show_load_popup(self):
         content = BoxLayout(orientation='vertical', spacing=10)
@@ -87,7 +92,7 @@ class CharacterMenuScreen(Screen):
                 character = pickle.load(f)
             character = ensure_character_attributes(character)
             self.manager.get_screen('sheet').load_character(character)
-            self.manager.current = 'sheet'
+            self.app.change_screen('sheet', source_screen=self.name)
             self.popup.dismiss()
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
@@ -100,7 +105,7 @@ class CharacterMenuScreen(Screen):
             character = ensure_character_attributes(character)
             editor_screen = self.manager.get_screen('editor')
             editor_screen.load_character(character)
-            self.manager.current = 'editor'
+            self.app.change_screen('editor', source_screen=self.name)
             self.popup.dismiss()
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters für die Bearbeitung: {e}")

@@ -21,7 +21,7 @@
 
         Button:
             text: "Changelog"
-            on_press: root.manager.current = 'changelog'
+            on_press: root.go_to_screen('changelog')
             size_hint_y: None
             height: 80
             font_size: '20sp'
@@ -53,8 +53,8 @@
             size_hint_y: 1.0 # Spacer
 
         Button:
-            text: "Zurück zu den Optionen"
-            on_press: root.manager.current = 'options'
+            text: "Zurück"
+            on_press: root.go_back()
             size_hint_y: None
             height: 80
             font_size: '20sp'

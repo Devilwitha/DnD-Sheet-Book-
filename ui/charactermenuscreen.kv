@@ -12,7 +12,7 @@
 
         Button:
             text: "Neuen Charakter erstellen"
-            on_press: root.switch_to_creator()
+            on_press: root.go_to_screen('creator')
             size_hint_y: None
             height: 80
             font_size: '20sp'
@@ -28,8 +28,8 @@
             size_hint_y: 1.0
 
         Button:
-            text: "Zurück zum Hauptmenü"
-            on_press: root.manager.current = 'main'
+            text: "Zurück"
+            on_press: root.go_back()
             size_hint_y: None
             height: 80
             font_size: '20sp'

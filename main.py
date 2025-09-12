@@ -64,6 +64,17 @@ class DnDApp(App):
         self.loaded_session_data = None
         self.source_screen = None # For back navigation
 
+    def change_screen(self, screen_name, source_screen=None):
+        """Changes the screen and sets the source screen for back navigation."""
+        if source_screen:
+            self.source_screen = source_screen
+        # It's a good practice to clear the source screen if not provided,
+        # to avoid accidental 'back' to a wrong screen.
+        elif screen_name in ['main', 'dm_spiel', 'player_sheet']:
+             self.source_screen = None
+
+        self.root.children[0].current = screen_name
+
     def build(self):
         Builder.load_file('ui/splashscreen.kv')
         Builder.load_file('ui/mainmenu.kv')

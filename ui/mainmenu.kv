@@ -9,12 +9,12 @@
 
         Button:
             text: "Charakter"
-            on_press: root.manager.current = 'character_menu'
+            on_press: root.go_to_screen('character_menu')
 
         Button:
             text: "DM Spiel"
-            on_press: root.manager.current = 'dm_spiel'
+            on_press: root.go_to_screen('dm_spiel')
 
         Button:
             text: "Optionen"
-            on_press: root.switch_to_options()
+            on_press: root.go_to_screen('options')

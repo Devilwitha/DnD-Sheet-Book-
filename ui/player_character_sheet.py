@@ -258,6 +258,7 @@ class PlayerCharacterSheet(Screen):
             initiative_widget.add_widget(Label(text=f"{roll}: {name}", size_hint_y=None, height=30))
 
     def show_full_character_sheet(self):
+        self.app.source_screen = self.name
         sheet_screen = self.manager.get_screen('sheet')
         sheet_screen.load_character(self.character)
         self.manager.current = 'sheet'
