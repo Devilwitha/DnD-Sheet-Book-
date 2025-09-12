@@ -65,8 +65,11 @@ class PlayerCharacterSheet(Screen):
                 elif msg_type == 'MAP_DATA':
                     self.map_data = payload
                     self.ids.view_map_button.disabled = False
-                    # Optionally, switch to the map screen automatically
-                    # self.view_map()
+                    # If the map screen exists, update it with the new data.
+                    # This ensures the map is up-to-date even if the player is not currently viewing it.
+                    if self.manager.has_screen('player_map'):
+                        map_screen = self.manager.get_screen('player_map')
+                        map_screen.set_map_data(self.map_data)
         except Empty:
             pass
 

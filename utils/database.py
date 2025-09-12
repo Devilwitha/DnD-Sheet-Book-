@@ -2,8 +2,10 @@ import sqlite3
 import json
 import os
 
-DATA_DIR = 'utils/data/json_data'
-DATABASE_FILE = os.path.join('utils/data', 'dnd.db')
+# Build paths relative to this script's location for robustness
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(SCRIPT_DIR, 'data', 'json_data')
+DATABASE_FILE = os.path.join(SCRIPT_DIR, 'data', 'dnd.db')
 
 def get_db_connection():
     """Establishes a connection to the SQLite database."""

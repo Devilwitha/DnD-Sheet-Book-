@@ -38,9 +38,18 @@ class DMMainScreen(Screen):
         apply_styles_to_widget(self)
 
     def on_enter(self, *args):
-        self.network_manager.broadcast_message("GAME_START", "Das Spiel beginnt!")
-        self.load_state_from_manager()
-        self.update_ui()
+        # Check if we are returning from the map editor with a newly saved map
+        if self.app.edited_map_data:
+            self.map_data = self.app.edited_map_data
+            self.app.edited_map_data = None # Clear it so it's not reloaded
+            self.log_message("Zuletzt bearbeitete Karte geladen.")
+            self.broadcast_map_data()
+        else:
+            # Normal on_enter logic
+            self.network_manager.broadcast_message("GAME_START", "Das Spiel beginnt!")
+            self.load_state_from_manager()
+            self.update_ui()
+
         self.update_event = Clock.schedule_interval(self.check_for_updates, 0.2)
 
     def on_leave(self, *args):
@@ -88,9 +97,11 @@ class DMMainScreen(Screen):
                 self.update_online_players_list()
             elif msg_type == 'MOVE_OBJECT':
                 to_pos_tuple = tuple(payload['to_pos'])
+                self.log_message(f"Processing MOVE_OBJECT for {payload['name']} to {to_pos_tuple}")
                 self.move_object(payload['name'], to_pos_tuple)
                 # The move_object function already logs the move.
                 # Now, broadcast the entire updated map state.
+                self.log_message(f"Broadcasting updated map data after move.")
                 self.broadcast_map_data()
 
         except Empty:

@@ -149,6 +149,10 @@ class MapEditorScreen(Screen):
                     save_data = self.map_data.copy()
                     save_data['tiles'] = {str(k): v for k, v in self.map_data['tiles'].items()}
                     json.dump(save_data, f, indent=4)
+
+                # Pass the saved map data back to the app object
+                self.app.edited_map_data = self.map_data
+
                 popup.dismiss()
             except Exception as e:
                 create_styled_popup(title="Error", content=Label(text=f"Error saving map:\n{e}"), size_hint=(0.6, 0.4)).open()

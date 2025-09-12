@@ -63,6 +63,7 @@ class DnDApp(App):
         self.network_manager = NetworkManager()
         self.loaded_session_data = None
         self.source_screen = None # For back navigation
+        self.edited_map_data = None # To pass map data from editor to DM screen
 
     def change_screen(self, screen_name, source_screen=None):
         """Changes the screen and sets the source screen for back navigation."""

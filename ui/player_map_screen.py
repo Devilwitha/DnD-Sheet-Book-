@@ -21,8 +21,20 @@ class PlayerMapScreen(Screen):
             self.update_map_view()
 
     def set_map_data(self, map_data):
-        # The tiles come with string keys from JSON, convert them
-        map_data['tiles'] = {eval(k): v for k, v in map_data['tiles'].items()}
+        # This function needs to be robust against None or empty map_data.
+        if not map_data or not map_data.get('tiles'):
+            self.map_data = map_data
+            self.update_map_view()
+            return
+
+        tiles = map_data.get('tiles')
+        # If the dictionary is not empty, check the type of the first key.
+        if tiles:
+            first_key = next(iter(tiles), None)
+            if isinstance(first_key, str):
+                # Keys are strings that need to be evaluated to tuples.
+                map_data['tiles'] = {eval(k): v for k, v in tiles.items()}
+
         self.map_data = map_data
         self.update_map_view()
 
