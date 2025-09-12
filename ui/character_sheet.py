@@ -139,11 +139,9 @@ class CharacterSheet(Screen):
     def sync_character(self):
         """Generic sync function that decides whether to sync to client or host."""
         app = App.get_running_app()
-        # If source_screen exists, it means the DM is viewing a player's sheet
-        if hasattr(app, 'source_screen') and app.source_screen:
+        if app.network_manager.mode == 'dm':
             self.sync_character_to_client()
-        # Otherwise, the player is viewing their own sheet
-        else:
+        elif app.network_manager.mode == 'client':
             self.sync_character_to_host()
 
     def sync_character_to_host(self):
