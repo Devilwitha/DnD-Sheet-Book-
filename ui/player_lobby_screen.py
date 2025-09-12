@@ -59,7 +59,7 @@ class PlayerLobbyScreen(Screen):
         try:
             self.zeroconf = Zeroconf()
             listener = DMListener(self)
-            self.browser = ServiceBrowser(self.zeroconf, "_http._tcp.local.", listener)
+            self.browser = ServiceBrowser(self.zeroconf, "_dndgame._tcp.local.", listener)
             print("[*] Started Zeroconf discovery.")
         except Exception as e:
             print(f"[!] Zeroconf failed to start: {e}")

@@ -46,9 +46,10 @@ class NetworkManager:
         except Exception:
             ip_address = "127.0.0.1"
 
-        service_name = f"DnD_DM_Server_{random.randint(1000, 9999)}._http._tcp.local."
+        service_type = "_dndgame._tcp.local."
+        service_name = f"DnD_DM_Server_{random.randint(1000, 9999)}.{service_type}"
         self.service_info = ServiceInfo(
-            "_http._tcp.local.",
+            service_type,
             service_name,
             addresses=[socket.inet_aton(ip_address)],
             port=port,
@@ -235,7 +236,13 @@ class NetworkManager:
                 if not header:
                     break
 
-                msg_len = int(header.strip())
+                try:
+                    msg_len = int(header.strip())
+                except ValueError:
+                    # This can happen if we connect to a non-compliant service (e.g., an HTTP server)
+                    print(f"DEBUG: Received invalid header from service: {header.strip()}. Disconnecting.")
+                    break
+
                 data = b''
                 while len(data) < msg_len:
                     chunk = self.client_socket.recv(msg_len - len(data))
@@ -243,8 +250,12 @@ class NetworkManager:
                     data += chunk
 
                 if data:
-                    message = json.loads(data.decode('utf-8'))
-                    self.incoming_messages.put(('DM', message))
+                    try:
+                        message = json.loads(data.decode('utf-8'))
+                        self.incoming_messages.put(('DM', message))
+                    except json.JSONDecodeError:
+                        print(f"DEBUG: Received non-JSON message from service. Disconnecting.")
+                        break
 
             except (socket.error, OSError, ConnectionResetError):
                 break
