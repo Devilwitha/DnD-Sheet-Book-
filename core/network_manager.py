@@ -124,7 +124,9 @@ class NetworkManager:
                     data += chunk
 
                 if data:
+                    print(f"[DM_THREAD] Received data from {client_address}: {data.decode('utf-8')}")
                     message = json.loads(data.decode('utf-8'))
+                    print(f"[DM_THREAD] Queuing message for UI: {message}")
                     self.incoming_messages.put((client_address, message))
 
         except (OSError, ConnectionResetError):
