@@ -60,34 +60,38 @@ class DMMainScreen(Screen):
 
     def check_for_updates(self, dt):
         try:
-            while True:
-                item = self.network_manager.incoming_messages.get_nowait()
-                if not isinstance(item, tuple) or len(item) != 2: continue
+            # Process one message per frame to avoid freezing
+            item = self.network_manager.incoming_messages.get_nowait()
+            if not isinstance(item, tuple) or len(item) != 2: return
 
-                source, message = item
-                if source in ['PLAYER_JOINED', 'PLAYER_LEFT']:
-                    self.log_message(f"System: {source} - {message.get('name', 'Unknown')}")
-                    self.update_online_players_list()
-                    self.broadcast_game_state()
-                    if self.map_data: self.broadcast_map_data()
-                    continue
+            source, message = item
+            if source in ['PLAYER_JOINED', 'PLAYER_LEFT']:
+                self.log_message(f"System: {source} - {message.get('name', 'Unknown')}")
+                self.update_online_players_list()
+                self.broadcast_game_state()
+                if self.map_data: self.broadcast_map_data()
+                return
 
-                msg_type = message.get('type')
-                payload = message.get('payload')
+            msg_type = message.get('type')
+            payload = message.get('payload')
 
-                if msg_type == 'LOG':
-                    player_name = self.network_manager.clients[source]['character'].name
-                    self.log_message(f"{player_name}: {payload}")
-                elif msg_type == 'SET_CHARACTER_DATA':
-                    with self.network_manager.lock:
-                        if source in self.network_manager.clients:
-                            new_char = Character.from_dict(payload)
-                            self.network_manager.clients[source]['character'] = new_char
-                            self.log_message(f"System: {new_char.name}'s data has been updated.")
-                            self.update_online_players_list()
-                elif msg_type == 'MOVE_OBJECT':
-                    self.move_object(payload['name'], payload['to_pos'])
-                    self.network_manager.broadcast_message("MAP_DATA", self.map_data)
+            if msg_type == 'LOG':
+                player_name = self.network_manager.clients[source]['character'].name
+                self.log_message(f"{player_name}: {payload}")
+            elif msg_type == 'SET_CHARACTER_DATA':
+                with self.network_manager.lock:
+                    if source in self.network_manager.clients:
+                        new_char = Character.from_dict(payload)
+                        self.network_manager.clients[source]['character'] = new_char
+                        self.log_message(f"System: {new_char.name}'s data has been updated.")
+                # Call UI update outside the lock
+                self.update_online_players_list()
+            elif msg_type == 'MOVE_OBJECT':
+                self.move_object(payload['name'], payload['to_pos'])
+                # The move_object function already logs the move.
+                # Now, broadcast the entire updated map state.
+                self.broadcast_map_data()
+
         except Empty:
             pass
 
@@ -403,3 +407,26 @@ class DMMainScreen(Screen):
             self.map_data['tiles'][from_pos]['object'] = None
             self.map_data['tiles'][to_pos]['object'] = obj_name
             self.log_message(f"{obj_name} moved from {from_pos} to {to_pos}")
+
+    def show_map_options_popup(self):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        load_button = Button(text="Load Map")
+        create_button = Button(text="Create New Map")
+        edit_button = Button(text="Edit Existing Map")
+
+        content.add_widget(load_button)
+        content.add_widget(create_button)
+        content.add_widget(edit_button)
+
+        popup = create_styled_popup(title="Map Options", content=content, size_hint=(0.6, 0.5))
+
+        def go_to_editor(instance):
+            self.manager.current = 'map_editor'
+            popup.dismiss()
+
+        load_button.bind(on_press=lambda x: (self.load_map_popup(), popup.dismiss()))
+        create_button.bind(on_press=go_to_editor)
+        edit_button.bind(on_press=go_to_editor)
+
+        popup.open()
