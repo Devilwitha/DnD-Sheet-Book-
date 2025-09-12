@@ -87,7 +87,8 @@ class DMMainScreen(Screen):
                 # Call UI update outside the lock
                 self.update_online_players_list()
             elif msg_type == 'MOVE_OBJECT':
-                self.move_object(payload['name'], payload['to_pos'])
+                to_pos_tuple = tuple(payload['to_pos'])
+                self.move_object(payload['name'], to_pos_tuple)
                 # The move_object function already logs the move.
                 # Now, broadcast the entire updated map state.
                 self.broadcast_map_data()
@@ -373,8 +374,6 @@ class DMMainScreen(Screen):
             self.broadcast_map_data()
             self.selected_object = None
             self.highlighted_tiles = []
-            # broadcast_map_data calls update_map_view, so this is redundant
-            # self.update_map_view()
         else:
             self.highlighted_tiles = []
             tile_data = self.map_data['tiles'].get((row, col))
@@ -422,12 +421,59 @@ class DMMainScreen(Screen):
 
         popup = create_styled_popup(title="Map Options", content=content, size_hint=(0.6, 0.5))
 
-        def go_to_editor(instance):
-            self.manager.current = 'map_editor'
+        def go_to_editor(instance, map_data=None):
+            editor_screen = self.manager.get_screen('map_editor')
+            if map_data:
+                editor_screen.load_existing_map(map_data)
+            self.app.change_screen('map_editor', source_screen=self.name)
+            popup.dismiss()
+
+        def select_map_to_edit(instance):
+            self.select_map_to_edit_popup(go_to_editor)
             popup.dismiss()
 
         load_button.bind(on_press=lambda x: (self.load_map_popup(), popup.dismiss()))
         create_button.bind(on_press=go_to_editor)
-        edit_button.bind(on_press=go_to_editor)
+        edit_button.bind(on_press=select_map_to_edit)
 
         popup.open()
+
+    def select_map_to_edit_popup(self, callback):
+        content = BoxLayout(orientation='vertical', spacing=10)
+        scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
+
+        saves_dir = "utils/data/maps"
+        os.makedirs(saves_dir, exist_ok=True)
+        map_files = [f for f in os.listdir(saves_dir) if f.endswith('.json')]
+
+        if not map_files:
+            create_styled_popup(title="No Maps", content=Label(text="No saved maps found to edit."), size_hint=(0.6, 0.4)).open()
+            return
+
+        for filename in map_files:
+            btn = Button(text=filename, size_hint_y=None, height=44)
+            # This lambda will load the file content and then call the callback
+            btn.bind(on_press=lambda x, f=filename: self.load_and_pass_map_to_editor(f, callback))
+            scroll_content.add_widget(btn)
+
+        scroll_view = ScrollView()
+        scroll_view.add_widget(scroll_content)
+        content.add_widget(scroll_view)
+
+        self.edit_map_popup = create_styled_popup(title="Select Map to Edit", content=content, size_hint=(0.8, 0.8))
+        self.edit_map_popup.open()
+
+    def load_and_pass_map_to_editor(self, filename, callback):
+        filepath = os.path.join("utils/data/maps", filename)
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                loaded_data = json.load(f)
+
+            if hasattr(self, 'edit_map_popup'):
+                self.edit_map_popup.dismiss()
+
+            callback(None, map_data=loaded_data)
+
+        except Exception as e:
+            create_styled_popup(title="Load Error", content=Label(text=f"Error loading map for editing:\n{e}"), size_hint=(0.7, 0.5)).open()

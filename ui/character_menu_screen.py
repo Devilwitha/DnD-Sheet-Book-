@@ -24,7 +24,10 @@ class CharacterMenuScreen(Screen):
         self.app.change_screen(screen_name, source_screen=self.name)
 
     def go_back(self):
-        self.app.change_screen('main')
+        if self.app.source_screen:
+            self.app.change_screen(self.app.source_screen)
+        else:
+            self.app.change_screen('main') # Fallback
 
     def show_load_popup(self):
         content = BoxLayout(orientation='vertical', spacing=10)

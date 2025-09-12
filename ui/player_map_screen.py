@@ -73,7 +73,8 @@ class PlayerMapScreen(Screen):
 
         if self.selected_object and (row, col) in self.highlighted_tiles:
             # Move action
-            payload = {'name': my_char_name, 'to_pos': (row, col)}
+            # Convert tuple to list for JSON serialization
+            payload = {'name': my_char_name, 'to_pos': [row, col]}
             self.app.network_manager.send_to_dm("MOVE_OBJECT", payload)
             self.selected_object = None
             self.highlighted_tiles = []
