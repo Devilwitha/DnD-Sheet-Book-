@@ -161,7 +161,47 @@ class DMMainScreen(Screen):
             label = Label(text=f"{roll}: {name}", size_hint_y=None, height=30)
             initiative_list_widget.add_widget(label)
 
-    # ... (add_offline_player, update_offline_players_list, etc. remain the same) ...
+    def add_offline_player(self):
+        """Opens a popup to add a new offline player."""
+        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        name_input = TextInput(hint_text="Name des Spielers", multiline=False)
+        save_button = Button(text="Speichern")
+
+        content.add_widget(name_input)
+        content.add_widget(save_button)
+
+        popup = create_styled_popup(title="Offline Spieler hinzufügen", content=content, size_hint=(0.6, 0.4))
+
+        def save_and_dismiss(instance):
+            player_name = name_input.text.strip()
+            if player_name:
+                self.offline_players.append(player_name)
+                self.update_offline_players_list()
+                self.log_message(f"Offline Spieler '{player_name}' hinzugefügt.")
+                popup.dismiss()
+
+        save_button.bind(on_press=save_and_dismiss)
+        popup.open()
+
+    def update_offline_players_list(self):
+        """Updates the UI list of offline players."""
+        player_list_widget = self.ids.offline_players_list
+        player_list_widget.clear_widgets()
+        for player_name in self.offline_players:
+            player_entry = BoxLayout(size_hint_y=None, height=40)
+            name_label = Label(text=player_name)
+            remove_button = Button(text="Entfernen", size_hint_x=0.3)
+            remove_button.bind(on_press=partial(self.remove_offline_player, player_name))
+            player_entry.add_widget(name_label)
+            player_entry.add_widget(remove_button)
+            player_list_widget.add_widget(player_entry)
+
+    def remove_offline_player(self, player_name, instance):
+        """Removes an offline player from the list."""
+        if player_name in self.offline_players:
+            self.offline_players.remove(player_name)
+            self.update_offline_players_list()
+            self.log_message(f"Offline Spieler '{player_name}' entfernt.")
 
     def add_enemy(self):
         content = BoxLayout(orientation='vertical', spacing=10)
