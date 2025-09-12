@@ -7,7 +7,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.spinner import Spinner
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
@@ -26,12 +25,7 @@ class PlayerCharacterSheet(Screen):
         self.app = App.get_running_app()
         self.network_manager = self.app.network_manager
         self.character = None
-        self.currency_labels = {}
         self.update_event = None
-
-    def on_pre_enter(self, *args):
-        apply_background(self)
-        apply_styles_to_widget(self)
 
     def on_enter(self, *args):
         self.character = self.app.character
@@ -62,12 +56,11 @@ class PlayerCharacterSheet(Screen):
                     self.update_initiative_order(payload.get('initiative', []))
                 elif msg_type == 'SET_CHARACTER_DATA':
                     self.character = Character.from_dict(payload)
-                    self.app.character = self.character # Update the central character object
+                    self.app.character = self.character
                     self.update_sheet()
                     create_styled_popup(title="Update", content=Label(text="Dein Charakter wurde vom DM aktualisiert."), size_hint=(0.6, 0.4)).open()
                 elif msg_type == 'SAVE_YOUR_CHARACTER':
                     self.save_character()
-
         except Empty:
             pass
 
@@ -75,15 +68,11 @@ class PlayerCharacterSheet(Screen):
         if self.update_event:
             self.update_event.cancel()
             self.update_event = None
-
-            create_styled_popup(title="Verbindung getrennt",
-                                content=Label(text=message),
-                                size_hint=(0.7, 0.4)).open()
+            create_styled_popup(title="Verbindung getrennt", content=Label(text=message), size_hint=(0.7, 0.4)).open()
             self.manager.current = 'main'
 
     def update_sheet(self):
         if not self.character: return
-
         self.ids.name_label.text = f"{self.character.name}"
         self.ids.class_label.text = f"{self.character.race} {self.character.char_class} {self.character.level}"
         self.ids.alignment_label.text = f"Gesinnung: {self.character.alignment}"
@@ -104,7 +93,6 @@ class PlayerCharacterSheet(Screen):
 
         self.update_inventory_display()
 
-
     def update_inventory_display(self):
         self.ids.inventory_layout.clear_widgets()
         for index, item in enumerate(self.character.inventory):
@@ -119,44 +107,41 @@ class PlayerCharacterSheet(Screen):
             item_row.add_widget(btn_box)
             self.ids.inventory_layout.add_widget(item_row)
 
+    def sync_character_to_host(self):
+        """Sends the entire character object to the host."""
+        if not self.character: return
+        self.network_manager.send_to_dm("SET_CHARACTER_DATA", self.character.to_dict())
+
     def use_healing_item(self, item_index, instance):
         if 0 <= item_index < len(self.character.inventory):
             item = self.character.inventory[item_index]
-            healing_info = item.get('healing')
-            if healing_info:
-                total_healed = sum(random.randint(1, healing_info['dice']) for _ in range(healing_info['count']))
+            if 'healing' in item:
+                total_healed = sum(random.randint(1, item['healing']['dice']) for _ in range(item['healing']['count']))
                 self.character.hit_points = min(self.character.max_hit_points, self.character.hit_points + total_healed)
-
                 log_msg = f"{self.character.name} benutzt {item['name']} und heilt {total_healed} HP."
                 self.send_log_to_dm(log_msg)
-                self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'hit_points', 'value': self.character.hit_points})
-
                 item['quantity'] -= 1
                 if item['quantity'] <= 0:
                     self.character.inventory.pop(item_index)
                 self.update_sheet()
+                self.sync_character_to_host()
 
     def show_spells_popup(self):
         if not hasattr(self.character, 'spells') or not self.character.spells:
-            create_styled_popup("Zauber", Label(text="Keine Zauber bekannt.")).open()
+            create_styled_popup(title="Zauber", content=Label(text="Keine Zauber bekannt."), size_hint=(0.8, 0.8)).open()
             return
-
         content = BoxLayout(orientation='vertical', spacing=10)
         grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
         grid.bind(minimum_height=grid.setter('height'))
-
         for spell_level in sorted(self.character.spells.keys()):
             spell_list = self.character.spells[spell_level]
             if not spell_list: continue
-
             level_name = f"Level {spell_level}" if spell_level > 0 else "Zaubertricks"
             grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=40))
-
             for spell_name in sorted(spell_list):
                 btn = Button(text=spell_name, size_hint_y=None, height=40)
                 btn.bind(on_press=partial(self.show_spell_confirmation_popup, spell_name))
                 grid.add_widget(btn)
-
         scroll = ScrollView(size_hint=(1, 1))
         scroll.add_widget(grid)
         content.add_widget(scroll)
@@ -165,32 +150,23 @@ class PlayerCharacterSheet(Screen):
     def show_spell_confirmation_popup(self, spell_name, instance):
         spell = SPELL_DATA.get(spell_name)
         if not spell: return
-
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-
         title_label = Label(text=f"[b]{spell_name}[/b]", markup=True, font_size='18sp')
         desc_label = Label(text=spell.get('desc', 'Keine Beschreibung verfügbar.'), text_size=(self.width*0.7, None))
-
         button_box = BoxLayout(size_hint_y=None, height=44, spacing=10)
         cast_button = Button(text="Wirken")
         cancel_button = Button(text="Abbrechen")
-
         button_box.add_widget(cast_button)
         button_box.add_widget(cancel_button)
-
         content.add_widget(title_label)
         content.add_widget(desc_label)
         content.add_widget(button_box)
-
         popup = create_styled_popup(title="Zauber bestätigen", content=content, size_hint=(0.8, 0.6))
-
         def do_cast(instance):
             self.cast_spell(spell_name, spell.get('level', 0))
             popup.dismiss()
-
         cast_button.bind(on_press=do_cast)
         cancel_button.bind(on_press=popup.dismiss)
-
         popup.open()
 
     def cast_spell(self, spell_name, spell_level):
@@ -198,14 +174,13 @@ class PlayerCharacterSheet(Screen):
         if spell_level > 0:
             if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
                 self.character.current_spell_slots[spell_level_str] -= 1
-                self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'current_spell_slots', 'value': self.character.current_spell_slots})
             else:
                 create_styled_popup(title="Fehler", content=Label(text="Keine Zauberplätze auf diesem Grad verfügbar.")).open()
                 return
-
         log_msg = f"{self.character.name} wirkt {spell_name}."
         self.send_log_to_dm(log_msg)
         self.update_sheet()
+        self.sync_character_to_host()
 
     def send_log_to_dm(self, log_message):
         self.network_manager.send_to_dm("LOG", log_message)
@@ -214,7 +189,6 @@ class PlayerCharacterSheet(Screen):
         modifier = (self.character.abilities.get(ability_name, 10) - 10) // 2
         roll = random.randint(1, 20)
         total = roll + modifier
-
         result_text = f"Wurf: {roll} + {modifier} ({ability_name}) = {total}"
         self.send_log_to_dm(f"führt einen {ability_name}-Wurf aus: {result_text}")
         create_styled_popup(title=f"{ability_name} Wurf", content=Label(text=result_text), size_hint=(0.5, 0.3)).open()
@@ -223,15 +197,11 @@ class PlayerCharacterSheet(Screen):
         weapon_name = self.character.equipped_weapon
         weapon_info = WEAPON_DATA.get(weapon_name)
         if not weapon_info: return
-
         damage_str = weapon_info.get('damage', '1d4')
         num_dice, dice_type = map(int, damage_str.split('d'))
-
         ability_mod = (self.character.abilities.get(weapon_info.get('ability', 'Stärke'), 10) - 10) // 2
-
         roll = sum(random.randint(1, dice_type) for _ in range(num_dice))
         total_damage = roll + ability_mod
-
         result_text = f"Schaden: {roll} + {ability_mod} = {total_damage}"
         self.send_log_to_dm(f"verursacht {total_damage} Schaden mit {weapon_name}.")
         create_styled_popup(title="Schadenswurf", content=Label(text=result_text), size_hint=(0.5, 0.3)).open()
@@ -240,69 +210,53 @@ class PlayerCharacterSheet(Screen):
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
         short_rest_btn = Button(text="Kurze Rast")
         long_rest_btn = Button(text="Lange Rast")
-
         content.add_widget(short_rest_btn)
         content.add_widget(long_rest_btn)
-
         popup = create_styled_popup(title="Rasten", content=content, size_hint=(0.5, 0.4))
-
         def do_short_rest(instance):
             regain_amount = max(1, self.character.level // 2)
             self.character.hit_dice = min(self.character.max_hit_dice, self.character.hit_dice + regain_amount)
             self.send_log_to_dm(f"macht eine kurze Rast.")
-            self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'hit_dice', 'value': self.character.hit_dice})
             self.update_sheet()
+            self.sync_character_to_host()
             popup.dismiss()
-
         def do_long_rest(instance):
             self.character.hit_points = self.character.max_hit_points
             self.character.hit_dice = self.character.max_hit_dice
             if hasattr(self.character, 'current_spell_slots'):
                 self.character.current_spell_slots = {k: v for k, v in self.character.max_spell_slots.items()}
-
             self.send_log_to_dm(f"macht eine lange Rast.")
-            self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'hit_points', 'value': self.character.hit_points})
-            self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'hit_dice', 'value': self.character.hit_dice})
-            self.network_manager.send_to_dm("UPDATE_STAT", {'stat': 'current_spell_slots', 'value': self.character.current_spell_slots})
             self.update_sheet()
+            self.sync_character_to_host()
             popup.dismiss()
-
         short_rest_btn.bind(on_press=do_short_rest)
         long_rest_btn.bind(on_press=do_long_rest)
-
         popup.open()
 
     def update_player_list(self, players):
-        """Updates the player list UI."""
         player_list_widget = self.ids.player_list_view
         player_list_widget.clear_widgets()
         for player_name in players:
             player_list_widget.add_widget(Label(text=player_name, size_hint_y=None, height=30))
 
     def update_initiative_order(self, initiative_order):
-        """Updates the initiative order UI."""
         initiative_widget = self.ids.initiative_view
         initiative_widget.clear_widgets()
         for roll, name in initiative_order:
             initiative_widget.add_widget(Label(text=f"{roll}: {name}", size_hint_y=None, height=30))
 
     def show_full_character_sheet(self):
-        """Switches to the main character sheet view."""
-        self.app.source_screen = self.name # 'player_sheet'
+        self.app.source_screen = self.name
         sheet_screen = self.manager.get_screen('sheet')
         sheet_screen.load_character(self.character)
         self.manager.current = 'sheet'
 
     def save_character(self):
-        """Saves the current character state to a file."""
-        if not self.character:
-            return
-
+        if not self.character: return
         saves_dir = "saves"
         os.makedirs(saves_dir, exist_ok=True)
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)
-
         try:
             with open(filepath, 'wb') as f:
                 pickle.dump(self.character, f)

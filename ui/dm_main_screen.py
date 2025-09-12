@@ -10,6 +10,7 @@ from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
 from queue import Empty
 
+from core.character import Character
 from core.enemy import Enemy
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 from functools import partial
@@ -86,26 +87,13 @@ class DMMainScreen(Screen):
                     if msg_type == 'LOG':
                         player_name = self.network_manager.clients[source]['character'].name
                         self.log_message(f"{player_name}: {payload}")
-                    elif msg_type == 'UPDATE_STAT':
-                        print(f"[DM_SCREEN] Received UPDATE_STAT from {source} with payload {payload}")
+                    elif msg_type == 'SET_CHARACTER_DATA':
                         with self.network_manager.lock:
                             if source in self.network_manager.clients:
-                                print(f"[DM_SCREEN] Found client {source} in clients dict.")
-                                character_to_update = self.network_manager.clients[source]['character']
-                                stat = payload.get('stat')
-                                value = payload.get('value')
-                                print(f"[DM_SCREEN] Attempting to update {character_to_update.name}'s {stat} to {value}")
-                                if hasattr(character_to_update, stat):
-                                    print(f"[DM_SCREEN] Before update: {getattr(character_to_update, stat, 'N/A')}")
-                                    setattr(character_to_update, stat, value)
-                                    print(f"[DM_SCREEN] After update: {getattr(character_to_update, stat, 'N/A')}")
-                                    self.log_message(f"System: {character_to_update.name}'s {stat} wurde auf {value} aktualisiert.")
-                                    print("[DM_SCREEN] Calling update_online_players_list()")
-                                    self.update_online_players_list() # Refresh the UI
-                                else:
-                                    print(f"[DM_SCREEN] Error: Character has no attribute {stat}")
-                            else:
-                                print(f"[DM_SCREEN] Error: Could not find source {source} in clients dict.")
+                                new_char = Character.from_dict(payload)
+                                self.network_manager.clients[source]['character'] = new_char
+                                self.log_message(f"System: {new_char.name}'s data has been updated.")
+                                self.update_online_players_list() # Refresh the UI
 
         except Empty:
             pass
