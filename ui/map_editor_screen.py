@@ -11,6 +11,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.graphics import Color, Rectangle
 from functools import partial
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from utils.data_manager import ENEMY_DATA
 from kivy.app import App
 
 class MapEditorScreen(Screen):
@@ -46,22 +47,20 @@ class MapEditorScreen(Screen):
         self.recreate_grid_from_data()
 
     def populate_object_spinner(self):
-        enemy_names = []
+        # Get all enemy names from the central enemy database
+        enemy_names = list(ENEMY_DATA.keys())
+
+        # Get names of currently connected players
         player_names = []
-        try:
-            if self.manager.has_screen('dm_prep'):
-                dm_prep_screen = self.manager.get_screen('dm_prep')
-                if hasattr(dm_prep_screen, 'enemy_list'):
-                    enemy_names = [enemy.name for enemy in dm_prep_screen.enemy_list]
-        except Exception as e:
-            print(f"[WARN] Could not get enemy list for map editor: {e}")
         try:
             if self.app.network_manager and self.app.network_manager.mode == 'dm':
                 with self.app.network_manager.lock:
                     player_names = [client['character'].name for client in self.app.network_manager.clients.values()]
         except Exception as e:
             print(f"[WARN] Could not get player list for map editor: {e}")
-        self.ids.object_spinner.values = ["None"] + enemy_names + player_names
+
+        # Combine the lists and set the spinner values
+        self.ids.object_spinner.values = ["None"] + sorted(enemy_names) + sorted(player_names)
 
     def create_grid(self):
         try:
