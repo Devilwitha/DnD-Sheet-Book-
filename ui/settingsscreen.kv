@@ -11,28 +11,6 @@
             size_hint_y: None
             height: 80
 
-        Label:
-            id: transparency_label
-            size_hint_y: None
-            height: 40
-
-        Slider:
-            id: transparency_slider
-            min: 0.1
-            max: 1.0
-            size_hint_y: None
-            height: 40
-            on_value: root.on_transparency_change(self.value)
-
-        BoxLayout:
-            size_hint_y: None
-            height: 40
-            Label:
-                text: "Transparenz an/aus"
-            Switch:
-                id: transparency_switch
-                on_active: root.on_transparency_toggle(self.active)
-
         BoxLayout:
             size_hint_y: None
             height: 40
@@ -52,8 +30,8 @@
                 on_active: root.on_keyboard_toggle(self.active)
 
         Button:
-            text: "Hintergründe"
-            on_press: root.show_background_options_popup()
+            text: "Hintergründe & Transparenz"
+            on_press: app.change_screen('background_settings')
             size_hint_y: None
             height: 80
             font_size: '20sp'
@@ -61,58 +39,17 @@
         Button:
             id: wifi_button
             text: "Wifi"
-            on_press: root.show_wifi_popup()
+            on_press: app.change_screen('wifi_settings')
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
-        BoxLayout:
+        Button:
+            text: "Anpassungen (Farben)"
+            on_press: app.change_screen('customization_settings')
             size_hint_y: None
-            height: 40
-            Label:
-                text: "Benutzerdefinierte Schriftfarbe"
-            Switch:
-                id: font_color_switch
-                on_active: root.on_font_color_toggle(self.active)
-            Button:
-                text: "Farbe wählen"
-                on_press: root.show_color_picker('font')
-
-        BoxLayout:
-            size_hint_y: None
-            height: 40
-            Label:
-                text: "Benutzerdefinierter Popup-Hintergrund"
-            Switch:
-                id: popup_color_switch
-                on_active: root.on_popup_color_toggle(self.active)
-            Button:
-                text: "Farbe wählen"
-                on_press: root.show_color_picker('popup')
-
-        BoxLayout:
-            size_hint_y: None
-            height: 40
-            Label:
-                text: "Button Schriftfarbe"
-            Switch:
-                id: button_font_color_switch
-                on_active: root.on_button_font_color_toggle(self.active)
-            Button:
-                text: "Farbe wählen"
-                on_press: root.show_color_picker('button_font')
-
-        BoxLayout:
-            size_hint_y: None
-            height: 40
-            Label:
-                text: "Button Hintergrundfarbe"
-            Switch:
-                id: button_bg_color_switch
-                on_active: root.on_button_bg_color_toggle(self.active)
-            Button:
-                text: "Farbe wählen"
-                on_press: root.show_color_picker('button_bg')
+            height: 80
+            font_size: '20sp'
 
         BoxLayout:
             size_hint_y: 1.0 # Spacer

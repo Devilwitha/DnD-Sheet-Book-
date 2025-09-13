@@ -1,0 +1,73 @@
+<CustomizationSettingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Anpassungen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        ScrollView:
+            GridLayout:
+                cols: 1
+                spacing: 10
+                size_hint_y: None
+                height: self.minimum_height
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: 40
+                    Label:
+                        text: "Benutzerdefinierte Schriftfarbe"
+                    Switch:
+                        id: font_color_switch
+                        on_active: root.on_font_color_toggle(self.active)
+                    Button:
+                        text: "Farbe wählen"
+                        on_press: root.show_color_picker('font')
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: 40
+                    Label:
+                        text: "Benutzerdefinierter Popup-Hintergrund"
+                    Switch:
+                        id: popup_color_switch
+                        on_active: root.on_popup_color_toggle(self.active)
+                    Button:
+                        text: "Farbe wählen"
+                        on_press: root.show_color_picker('popup')
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: 40
+                    Label:
+                        text: "Button Schriftfarbe"
+                    Switch:
+                        id: button_font_color_switch
+                        on_active: root.on_button_font_color_toggle(self.active)
+                    Button:
+                        text: "Farbe wählen"
+                        on_press: root.show_color_picker('button_font')
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: 40
+                    Label:
+                        text: "Button Hintergrundfarbe"
+                    Switch:
+                        id: button_bg_color_switch
+                        on_active: root.on_button_bg_color_toggle(self.active)
+                    Button:
+                        text: "Farbe wählen"
+                        on_press: root.show_color_picker('button_bg')
+
+        Button:
+            text: "Zurück"
+            on_press: root.go_back()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
