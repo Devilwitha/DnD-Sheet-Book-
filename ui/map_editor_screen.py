@@ -110,15 +110,39 @@ class MapEditorScreen(Screen):
         self.ids.furniture_spinner.text = "None"
 
         if object_to_place != "None":
-            # Clear any existing instance of this object on the map
-            for r_idx in range(self.map_data['rows']):
-                for c_idx in range(self.map_data['cols']):
-                    if self.map_data['tiles'].get((r_idx, c_idx), {}).get('object') == object_to_place:
-                        self.map_data['tiles'][(r_idx, c_idx)]['object'] = None
+            # If the object is a generic enemy type, create a unique instance
+            if object_to_place in ENEMY_DATA:
+                base_name = object_to_place
+                highest_num = 0
+                # Find the highest existing number for this enemy type
+                for r in range(self.map_data['rows']):
+                    for c in range(self.map_data['cols']):
+                        obj_on_tile = self.map_data['tiles'].get((r, c), {}).get('object')
+                        if obj_on_tile and obj_on_tile.startswith(base_name):
+                            try:
+                                # Try to parse a number like 'Goblin #2' -> 2
+                                num = int(obj_on_tile.split('#')[-1])
+                                if num > highest_num:
+                                    highest_num = num
+                            except (ValueError, IndexError):
+                                # This could happen if an enemy is named "Goblin" without a number.
+                                # If we find one, we should start numbering from #2, so we treat it as #1.
+                                if obj_on_tile == base_name and highest_num == 0:
+                                    highest_num = 1
 
-            # Place the new object and clear any furniture
-            tile_data['object'] = object_to_place
-            tile_data['furniture'] = None
+                unique_name = f"{base_name} #{highest_num + 1}"
+                tile_data['object'] = unique_name
+                tile_data['furniture'] = None
+            else: # It's a unique object, like a player character
+                # Clear any existing instance of this object on the map
+                for r_idx in range(self.map_data['rows']):
+                    for c_idx in range(self.map_data['cols']):
+                        if self.map_data['tiles'].get((r_idx, c_idx), {}).get('object') == object_to_place:
+                            self.map_data['tiles'][(r_idx, c_idx)]['object'] = None
+
+                # Place the new object and clear any furniture
+                tile_data['object'] = object_to_place
+                tile_data['furniture'] = None
 
         elif furniture_to_place != "None":
             # Place furniture and clear any object
@@ -215,9 +239,19 @@ class MapEditorScreen(Screen):
             os.makedirs(saves_dir, exist_ok=True)
             filepath = os.path.join(saves_dir, filename)
             try:
+                # Scan for enemies on the map
+                enemies_on_map = []
+                for tile_data in self.map_data.get('tiles', {}).values():
+                    obj = tile_data.get('object')
+                    if obj:
+                        base_name = obj.split('#')[0].strip()
+                        if base_name in ENEMY_DATA:
+                            enemies_on_map.append(obj)
+
                 with open(filepath, 'w', encoding='utf-8') as f:
                     save_data = self.map_data.copy()
                     save_data['tiles'] = {str(k): v for k, v in self.map_data['tiles'].items()}
+                    save_data['enemies'] = enemies_on_map
                     json.dump(save_data, f, indent=4)
 
                 # Pass the saved map data back to the app object

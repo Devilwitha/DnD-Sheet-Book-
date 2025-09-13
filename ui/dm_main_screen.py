@@ -68,8 +68,27 @@ class DMMainScreen(Screen):
 
         if session:
             self.offline_players = session.get('offline_players', [])
-            self.enemies = [Enemy.from_dict(e) for e in session.get('enemies', [])]
             self.map_data = session.get('map_data', None)
+
+            # Prioritize loading enemies from the map data if it exists and has an enemy list
+            if self.map_data and 'enemies' in self.map_data:
+                self.enemies.clear()
+                for enemy_name in self.map_data['enemies']:
+                    base_name = enemy_name.split('#')[0].strip()
+                    if base_name in ENEMY_DATA:
+                        enemy_stats = ENEMY_DATA[base_name]
+                        new_enemy = Enemy(
+                            name=enemy_name,
+                            hp=enemy_stats['hp'],
+                            ac=enemy_stats['ac'],
+                            attacks=enemy_stats['attacks']
+                        )
+                        self.enemies.append(new_enemy)
+                self.log_message("Feindliste automatisch von der Karte geladen.")
+            else:
+                # Fallback to the session's enemy list
+                self.enemies = [Enemy.from_dict(e) for e in session.get('enemies', [])]
+
             log_text = session.get('log', "Neue Sitzung gestartet.\n")
             if session.get('type') == 'prepared':
                 log_text += f"Notizen: {session.get('notes', '')}\n"
@@ -397,9 +416,28 @@ class DMMainScreen(Screen):
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
+
             self.map_data = loaded_data
             self.map_data['tiles'] = {eval(k): v for k, v in loaded_data['tiles'].items()}
             self.log_message(f"Map '{filename}' loaded.")
+
+            # Auto-load enemies from map file
+            if 'enemies' in loaded_data:
+                self.enemies.clear()
+                for enemy_name in loaded_data['enemies']:
+                    base_name = enemy_name.split('#')[0].strip()
+                    if base_name in ENEMY_DATA:
+                        enemy_stats = ENEMY_DATA[base_name]
+                        new_enemy = Enemy(
+                            name=enemy_name,
+                            hp=enemy_stats['hp'],
+                            ac=enemy_stats['ac'],
+                            attacks=enemy_stats['attacks']
+                        )
+                        self.enemies.append(new_enemy)
+                self.log_message(f"Feindliste automatisch von der Karte geladen.")
+                self.update_enemies_list_ui()
+
             self.broadcast_map_data()
             if hasattr(self, 'load_map_popup_widget'): self.load_map_popup_widget.dismiss()
         except Exception as e:
