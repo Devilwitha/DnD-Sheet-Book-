@@ -21,13 +21,10 @@ class CharacterMenuScreen(Screen):
         apply_styles_to_widget(self)
 
     def go_to_screen(self, screen_name):
-        self.app.change_screen(screen_name, source_screen=self.name)
+        self.app.change_screen(screen_name)
 
     def go_back(self):
-        if self.app.source_screen:
-            self.app.change_screen(self.app.source_screen)
-        else:
-            self.app.change_screen('main') # Fallback
+        self.app.go_back_screen()
 
     def show_load_popup(self):
         content = BoxLayout(orientation='vertical', spacing=10)
@@ -95,7 +92,7 @@ class CharacterMenuScreen(Screen):
                 character = pickle.load(f)
             character = ensure_character_attributes(character)
             self.manager.get_screen('sheet').load_character(character)
-            self.app.change_screen('sheet', source_screen=self.name)
+            self.app.change_screen('sheet')
             self.popup.dismiss()
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
@@ -108,7 +105,7 @@ class CharacterMenuScreen(Screen):
             character = ensure_character_attributes(character)
             editor_screen = self.manager.get_screen('editor')
             editor_screen.load_character(character)
-            self.app.change_screen('editor', source_screen=self.name)
+            self.app.change_screen('editor')
             self.popup.dismiss()
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters für die Bearbeitung: {e}")
