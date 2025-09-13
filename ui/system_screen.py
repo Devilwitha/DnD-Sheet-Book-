@@ -33,7 +33,6 @@ class SystemScreen(Screen):
 
         is_linux = sys.platform.startswith('linux')
 
-        # A list of button ids that are Linux-only
         linux_only_buttons = ['shutdown_button', 'restart_button', 'update_button', 'wifi_button']
 
         for btn_id in linux_only_buttons:

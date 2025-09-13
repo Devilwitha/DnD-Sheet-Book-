@@ -256,6 +256,7 @@ class DMMainScreen(Screen):
             player_list_widget.add_widget(player_entry)
 
     def view_player_sheet(self, character):
+        self.app.source_screen = self.name
         sheet_screen = self.manager.get_screen('sheet')
         sheet_screen.load_character(character)
         self.manager.current = 'sheet'
@@ -648,7 +649,7 @@ class DMMainScreen(Screen):
             editor_screen = self.manager.get_screen('map_editor')
             if map_data:
                 editor_screen.load_existing_map(map_data)
-            self.app.change_screen('map_editor')
+            self.app.change_screen('map_editor', source_screen=self.name)
             popup.dismiss()
 
         def select_map_to_edit(instance):

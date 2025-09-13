@@ -13,6 +13,7 @@ from functools import partial
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 from utils.data_manager import ENEMY_DATA
 from kivy.app import App
+from kivy.uix.checkbox import CheckBox
 
 class MapEditorScreen(Screen):
     """Screen for creating and editing maps."""
@@ -264,12 +265,18 @@ class MapEditorScreen(Screen):
         self.custom_enemy_list = None
         self.populate_spinners()
 
+    def go_back(self):
+        if self.map_data.get('tiles'):
+             self.app.edited_map_data = self.map_data
+        self.app.go_back_screen()
+
     def show_info_popup(self):
         info_text = (
             "[b]Map Editor Bedienung[/b]\n\n"
             "- [b]Grid erstellen:[/b] Geben Sie die gewünschte Anzahl an Zeilen und Spalten ein und klicken Sie auf 'Create Grid'.\n\n"
             "- [b]Malen:[/b] Wählen Sie einen Kacheltyp (Floor, Wall, Door) aus dem 'Paint Tool' Dropdown-Menü und klicken Sie auf die Kacheln, um sie zu malen.\n\n"
             "- [b]Gegner/Spieler platzieren:[/b] Wählen Sie einen Gegner oder Spieler aus den entsprechenden Dropdown-Menüs aus. Klicken Sie dann auf eine Kachel, um ihn zu platzieren.\n\n"
+            "- [b]Rechtsklick:[/b] Öffnet ein Kontextmenü für die ausgewählte Kachel.\n\n"
             "- [b]Speichern/Laden:[/b] Verwenden Sie die 'Save Map' und 'Load Map' Buttons, um Ihren Fortschritt zu speichern und zu laden.\n\n"
             "- [b]Gegnerlisten:[/b] Sie können benutzerdefinierte Gegnerlisten laden, um die 'Place Enemy' Auswahl zu füllen."
         )
@@ -281,11 +288,6 @@ class MapEditorScreen(Screen):
         )
         content.add_widget(label)
         create_styled_popup(title="Map Editor Info", content=content, size_hint=(0.8, 0.8)).open()
-
-    def go_back(self):
-        if self.map_data.get('tiles'):
-             self.app.edited_map_data = self.map_data
-        self.app.go_back_screen()
 
     def show_tile_context_menu(self, row, col):
         tile_data = self.map_data['tiles'].get((row, col))

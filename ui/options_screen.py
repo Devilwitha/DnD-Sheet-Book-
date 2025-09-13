@@ -16,7 +16,10 @@ class OptionsScreen(Screen):
         apply_styles_to_widget(self)
 
     def go_to_screen(self, screen_name):
-        self.app.change_screen(screen_name)
+        self.app.change_screen(screen_name, source_screen=self.name)
 
     def go_back(self):
-        self.app.go_back_screen()
+        if self.app.source_screen:
+            self.app.change_screen(self.app.source_screen)
+        else:
+            self.app.change_screen('main') # Fallback

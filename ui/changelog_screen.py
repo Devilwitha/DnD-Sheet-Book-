@@ -23,4 +23,7 @@ class ChangelogScreen(Screen):
             self.changelog_text = f"Fehler beim Laden des Changelogs:\n{e}"
 
     def go_back(self):
-        self.app.go_back_screen()
+        if self.app.source_screen:
+            self.app.change_screen(self.app.source_screen)
+        else:
+            self.app.change_screen('system') # Fallback
