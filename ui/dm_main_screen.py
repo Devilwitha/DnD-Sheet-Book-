@@ -585,20 +585,33 @@ class DMMainScreen(Screen):
 
     def on_tile_click(self, row, col, instance):
         if self.selected_object and (row, col) in self.highlighted_tiles:
+            # This is a confirmed move action
             self.move_object(self.selected_object['name'], (row, col))
             self.broadcast_map_data()
             self.selected_object = None
             self.highlighted_tiles = []
-        else:
-            self.highlighted_tiles = []
-            tile_data = self.map_data['tiles'].get((row, col))
-            if tile_data and tile_data.get('object'):
-                obj_name = tile_data['object']
-                self.selected_object = {'name': obj_name, 'pos': (row, col)}
-                self.highlight_movement_range(obj_name, row, col)
-            else:
-                self.selected_object = None
             self.update_map_view()
+            return
+
+        self.highlighted_tiles = []
+        tile_data = self.map_data['tiles'].get((row, col))
+        clicked_object_name = tile_data.get('object') if tile_data else None
+
+        # Case 1: An enemy is selected, and a player is clicked -> ATTACK
+        if self.selected_object and self.selected_object['name'] in [e.name for e in self.enemies] and \
+           clicked_object_name and clicked_object_name in [c['character'].name for c in self.network_manager.clients.values()]:
+            self.try_attack_player(self.selected_object, clicked_object_name, (row, col))
+
+        # Case 2: Any object is clicked -> SELECT it
+        elif clicked_object_name:
+            self.selected_object = {'name': clicked_object_name, 'pos': (row, col)}
+            self.highlight_movement_range(clicked_object_name, row, col)
+
+        # Case 3: An empty tile is clicked -> DESELECT
+        else:
+            self.selected_object = None
+
+        self.update_map_view()
 
     def highlight_movement_range(self, obj_name, r_start, c_start):
         # Determine movement speed (e.g., 6 squares for 9m)
@@ -627,12 +640,18 @@ class DMMainScreen(Screen):
             self.check_for_trigger(obj_name, to_pos)
 
     def check_for_trigger(self, obj_name, pos):
+        print(f"[TRIGGER_DEBUG] Checking for trigger at {pos} for object: {obj_name}")
         tile = self.map_data['tiles'].get(pos)
-        if not tile or tile.get('type') != 'Trigger':
+
+        if not tile:
+            print("[TRIGGER_DEBUG] No tile data found.")
             return
 
-        message = tile.get('trigger_message')
-        if not message:
+        print(f"[TRIGGER_DEBUG] Tile data is: {tile}")
+        tile_type = tile.get('type')
+        print(f"[TRIGGER_DEBUG] Tile type is: {tile_type}")
+
+        if tile_type != 'Trigger':
             return
 
         # Find the player's address to send them a direct message
@@ -643,36 +662,39 @@ class DMMainScreen(Screen):
                     player_addr = addr
                     break
 
-        if player_addr:
-            self.log_message(f"Trigger ausgelöst bei {pos} von {obj_name}.")
+        if not player_addr:
+            print(f"[TRIGGER_DEBUG] Trigger not fired because '{obj_name}' is not a connected player.")
+            return
 
-            # Send trigger message if it exists
-            if message:
-                self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
+        self.log_message(f"Trigger ausgelöst bei {pos} von {obj_name}.")
 
-            # Grant items and currency if they exist
-            items_to_grant = tile.get('trigger_items', [])
-            currency_to_grant = tile.get('trigger_currency', {})
+        # Send trigger message if it exists
+        message = tile.get('trigger_message')
+        if message:
+            self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
 
-            if items_to_grant or currency_to_grant:
-                granted_items_str_list = []
-                with self.network_manager.lock:
-                    char = self.network_manager.clients[player_addr]['character']
+        # Grant items and currency if they exist
+        items_to_grant = tile.get('trigger_items', [])
+        currency_to_grant = tile.get('trigger_currency', {})
 
-                    for item in items_to_grant:
-                        char.add_item(item['name'], item['quantity'])
-                        granted_items_str_list.append(f"{item['quantity']}x {item['name']}")
+        if items_to_grant or currency_to_grant:
+            granted_items_str_list = []
+            with self.network_manager.lock:
+                char = self.network_manager.clients[player_addr]['character']
 
-                    for code, amount in currency_to_grant.items():
-                        char.add_item(code, amount) # The add_item method handles currency
-                        granted_items_str_list.append(f"{amount} {code}")
+                for item in items_to_grant:
+                    char.add_item(item['name'], item['quantity'])
+                    granted_items_str_list.append(f"{item['quantity']}x {item['name']}")
 
-                if granted_items_str_list:
-                    granted_items_str = ", ".join(granted_items_str_list)
-                    self.log_message(f"{obj_name} erhält: {granted_items_str}.")
+                for code, amount in currency_to_grant.items():
+                    char.add_item(code, amount)
+                    granted_items_str_list.append(f"{amount} {code}")
 
-                # Send updated character data to the player
-                self.network_manager.send_message(player_addr, 'SET_CHARACTER_DATA', char.to_dict())
+            if granted_items_str_list:
+                granted_items_str = ", ".join(granted_items_str_list)
+                self.log_message(f"{obj_name} erhält: {granted_items_str}.")
+
+            self.network_manager.send_message(player_addr, 'SET_CHARACTER_DATA', char.to_dict())
 
     def show_map_options_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
@@ -736,6 +758,119 @@ class DMMainScreen(Screen):
 
         except Exception as e:
             create_styled_popup(title="Load Error", content=Label(text=f"Error loading map for editing:\n{e}"), size_hint=(0.7, 0.5)).open()
+
+    def try_attack_player(self, enemy_obj, player_name, player_pos):
+        enemy_name = enemy_obj['name']
+        enemy_pos = enemy_obj['pos']
+
+        # Find the full enemy object to get its attack data
+        enemy_data = None
+        for e in self.enemies:
+            if e.name == enemy_name:
+                enemy_data = e
+                break
+        if not enemy_data or not enemy_data.attacks:
+            self.log_message(f"[ERROR] No attack data found for {enemy_name}.")
+            return
+
+        # For now, use the first attack
+        attack = enemy_data.attacks[0]
+        attack_type = attack.get('type', 'Melee')
+        attack_range = attack.get('range', 1)
+
+        dist = max(abs(enemy_pos[0] - player_pos[0]), abs(enemy_pos[1] - player_pos[1]))
+
+        attack_valid = False
+        if attack_type == 'Melee' and dist <= attack_range:
+            attack_valid = True
+        elif attack_type == 'Ranged' and dist > 0:
+            attack_valid = True
+
+        if attack_valid:
+            self.open_dm_attack_popup(enemy_data, player_name, attack)
+        else:
+            self.log_message(f"Angriff von {enemy_name} auf {player_name} außer Reichweite.")
+
+    def open_dm_attack_popup(self, enemy, player_name, attack):
+        from kivy.uix.boxlayout import BoxLayout
+        from kivy.uix.gridlayout import GridLayout
+        from kivy.uix.textinput import TextInput
+        from kivy.uix.button import Button
+        from kivy.uix.label import Label
+
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text=f"Angriff: {enemy.name} -> {player_name}", font_size='18sp'))
+
+        # Manual Attack
+        manual_layout = GridLayout(cols=2, spacing=10, size_hint_y=None, height=50)
+        attack_roll_input = TextInput(hint_text="Attack Roll", input_filter='int')
+        damage_input = TextInput(hint_text="Damage", input_filter='int')
+        manual_layout.add_widget(Label(text="Attack Roll:"))
+        manual_layout.add_widget(attack_roll_input)
+        manual_layout.add_widget(Label(text="Damage:"))
+        manual_layout.add_widget(damage_input)
+        manual_button = Button(text="Execute Manual Attack")
+        content.add_widget(manual_layout)
+        content.add_widget(manual_button)
+
+        # Auto Attack
+        auto_button = Button(text=f"Roll {attack['name']} ({attack['to_hit']:+}, {attack['damage']})")
+        result_label = Label()
+        content.add_widget(auto_button)
+        content.add_widget(result_label)
+
+        popup = create_styled_popup(title="DM Attack", content=content, size_hint=(0.8, 0.7))
+
+        def execute_attack(attack_roll, damage, details=""):
+            # Find player character object
+            player_char = None
+            player_addr = self.network_manager.get_client_addr_by_name(player_name)
+            if player_addr:
+                player_char = self.network_manager.clients[player_addr]['character']
+
+            if not player_char:
+                self.log_message(f"[ERROR] Player {player_name} not found for attack.")
+                return
+
+            log_msg = f"{enemy.name} greift {player_name} an. {details}"
+            self.log_message(log_msg)
+
+            if attack_roll >= player_char.armor_class:
+                player_char.hit_points -= damage
+                self.log_message(f"GETROFFEN! {player_name} erleidet {damage} Schaden. Verbleibende HP: {player_char.hit_points}")
+                if player_char.hit_points <= 0:
+                    self.log_message(f"{player_name} ist bewusstlos!")
+                # Send update to the specific player
+                self.network_manager.send_message(player_addr, 'SET_CHARACTER_DATA', player_char.to_dict())
+            else:
+                self.log_message(f"VERFEHLT! Der Angriff auf {player_name} geht daneben.")
+
+            self.update_online_players_list() # Refresh DM's view of player HP
+            popup.dismiss()
+
+        def manual_action(instance):
+            try:
+                execute_attack(int(attack_roll_input.text), int(damage_input.text))
+            except ValueError:
+                result_label.text = "Invalid input."
+
+        def auto_action(instance):
+            attack_roll = random.randint(1, 20) + attack['to_hit']
+
+            damage_parts = attack['damage'].split('+')
+            dice_part = damage_parts[0]
+            bonus_damage = int(damage_parts[1]) if len(damage_parts) > 1 else 0
+            num_dice, dice_type = map(int, dice_part.split('d'))
+            damage_roll = sum(random.randint(1, dice_type) for _ in range(num_dice))
+            total_damage = damage_roll + bonus_damage
+
+            details = f"Roll: {attack_roll}, Damage: {total_damage}"
+            result_label.text = details
+            execute_attack(attack_roll, total_damage, details)
+
+        manual_button.bind(on_press=manual_action)
+        auto_button.bind(on_press=auto_action)
+        popup.open()
 
     def end_session_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)

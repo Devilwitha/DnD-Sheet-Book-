@@ -13,7 +13,6 @@ class PlayerMapScreen(Screen):
         self.selected_object = None
         self.highlighted_tiles = []
         self.app = App.get_running_app()
-        self.interactable_pos = None
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -56,29 +55,6 @@ class PlayerMapScreen(Screen):
                 my_pos = pos
                 break
 
-        # Now, check for adjacent interactable furniture
-        self.interactable_pos = None
-        if my_pos:
-            r, c = my_pos
-            for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                check_pos = (r + dr, c + dc)
-                if check_pos in tiles and tiles[check_pos].get('furniture'):
-                    self.interactable_pos = check_pos
-                    break # Found one, that's enough
-
-        # Update the interact button's visibility and text
-        interact_btn = self.ids.interact_button
-        if self.interactable_pos:
-            furn_type = tiles[self.interactable_pos]['furniture']['type']
-            interact_btn.text = f"Interagiere mit {furn_type}"
-            interact_btn.height = 44
-            interact_btn.opacity = 1
-            interact_btn.disabled = False
-        else:
-            interact_btn.height = 0
-            interact_btn.opacity = 0
-            interact_btn.disabled = True
-
         # Finally, draw the grid
         for r in range(rows):
             for c in range(cols):
@@ -116,30 +92,62 @@ class PlayerMapScreen(Screen):
 
                 grid.add_widget(tile_button)
 
-    def on_tile_click(self, row, col, instance):
-        my_char_name = self.app.character.name
+    def on_tile_click(self, instance, touch):
+        # This callback is bound to on_touch_down. We only care about when the touch is *on* our button.
+        if not instance.collide_point(*touch.pos):
+            return False
 
-        if self.selected_object and (row, col) in self.highlighted_tiles:
-            # Move action
-            # Convert tuple to list for JSON serialization
-            payload = {'name': my_char_name, 'to_pos': [row, col]}
-            self.app.network_manager.send_to_dm("MOVE_OBJECT", payload)
-            self.selected_object = None
-            self.highlighted_tiles = []
-            # Don't update view immediately, wait for server confirmation (MAP_DATA)
-        else:
-            self.highlighted_tiles = []
-            tile_data = self.map_data['tiles'].get((row, col))
-            # Check if clicking on an enemy to attack
-            if self.selected_object and tile_data and tile_data.get('object') and tile_data.get('object') != my_char_name:
-                self.try_attack_enemy(self.selected_object['pos'], (row, col), tile_data['object'])
-            # Check if clicking on self to select
-            elif tile_data and tile_data.get('object') == my_char_name:
-                self.selected_object = {'name': my_char_name, 'pos': (row, col)}
-                self.highlight_movement_range(row, col)
-            else:
+        if touch.is_mouse_scrolling:
+            return False
+
+        # Calculate row and col based on the button's index in the grid
+        grid = self.ids.player_map_grid
+        try:
+            index = grid.children.index(instance)
+            row = (len(grid.children) - 1 - index) // grid.cols
+            col = (len(grid.children) - 1 - index) % grid.cols
+        except (ValueError, AttributeError):
+            return False
+
+        my_char_name = self.app.character.name
+        tile_data = self.map_data['tiles'].get((row, col))
+        if not tile_data: return False
+
+        # Handle double-tap for interaction
+        if touch.is_double_tap:
+            if tile_data.get('furniture'):
+                # Find player position to check for adjacency
+                my_pos = None
+                for pos, tile in self.map_data['tiles'].items():
+                    if tile.get('object') == my_char_name:
+                        my_pos = pos
+                        break
+                if my_pos:
+                    dist = max(abs(my_pos[0] - row), abs(my_pos[1] - col))
+                    if dist == 1:
+                        self.interact((row, col))
+            return True
+
+        # Handle single left-click for movement and attacks
+        if touch.button == 'left' and not touch.is_double_tap:
+            if self.selected_object and (row, col) in self.highlighted_tiles:
+                payload = {'name': my_char_name, 'to_pos': [row, col]}
+                self.app.network_manager.send_to_dm("MOVE_OBJECT", payload)
                 self.selected_object = None
-            self.update_map_view()
+                self.highlighted_tiles = []
+            else:
+                self.highlighted_tiles = []
+                if self.selected_object and tile_data.get('object') and tile_data.get('object') != my_char_name:
+                    self.try_attack_enemy(self.selected_object['pos'], (row, col), tile_data['object'])
+                elif tile_data.get('object') == my_char_name:
+                    self.selected_object = {'name': my_char_name, 'pos': (row, col)}
+                    self.highlight_movement_range(row, col)
+                else:
+                    self.selected_object = None
+                self.update_map_view()
+            return True
+
+        return False
 
     def try_attack_enemy(self, from_pos, to_pos, enemy_name):
         from utils.data_manager import WEAPON_DATA
@@ -267,12 +275,7 @@ class PlayerMapScreen(Screen):
     def go_back(self):
         self.manager.current = 'player_sheet'
 
-    def interact(self):
-        if self.interactable_pos:
-            self.app.network_manager.send_to_dm("INTERACT_WITH_OBJECT", {'pos': self.interactable_pos})
-
-            # Hide button immediately for responsiveness
-            self.ids.interact_button.height = 0
-            self.ids.interact_button.opacity = 0
-            self.ids.interact_button.disabled = True
-            self.interactable_pos = None
+    def interact(self, position):
+        """Sends an interaction request to the server for a specific position."""
+        if position:
+            self.app.network_manager.send_to_dm("INTERACT_WITH_OBJECT", {'pos': list(position)})

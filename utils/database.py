@@ -131,6 +131,13 @@ def populate_db_from_json(conn):
     class_list = [(name, data['hit_die'], json.dumps(data.get('proficiencies', [])), json.dumps(data.get('progression', {})), json.dumps(data.get('spell_list', {})), json.dumps(data.get('features', {}))) for name, data in CLASS_DATA.items()]
     cursor.executemany("INSERT INTO classes (name, hit_die, proficiencies, progression, spell_list, features) VALUES (?, ?, ?, ?, ?, ?)", class_list)
 
+    # Augment enemy attacks with type and range
+    for enemy_data in ENEMY_DATA.values():
+        for attack in enemy_data.get('attacks', []):
+            # Default to Melee range 1 for all existing enemies for now
+            attack['type'] = 'Melee'
+            attack['range'] = 1
+
     enemy_list = [(name, data['hp'], data['ac'], data['speed'], json.dumps(data['attacks'])) for name, data in ENEMY_DATA.items()]
     cursor.executemany("INSERT INTO enemies (name, hp, ac, speed, attacks) VALUES (?, ?, ?, ?, ?)", enemy_list)
 
