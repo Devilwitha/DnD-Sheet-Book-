@@ -21,6 +21,7 @@ class MapEditorScreen(Screen):
         self.app = App.get_running_app()
         self.map_data = {}
         self.preloaded_map_data = None
+        self.custom_enemy_list = None
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -54,8 +55,12 @@ class MapEditorScreen(Screen):
         self.recreate_grid_from_data()
 
     def populate_object_spinner(self):
-        # Get all enemy names from the central enemy database
-        enemy_names = list(ENEMY_DATA.keys())
+        enemy_names = []
+        if self.custom_enemy_list:
+            enemy_names = self.custom_enemy_list
+        else:
+            # Get all enemy names from the central enemy database
+            enemy_names = list(ENEMY_DATA.keys())
 
         # Get names of currently connected players
         player_names = []
@@ -68,6 +73,44 @@ class MapEditorScreen(Screen):
 
         # Combine the lists and set the spinner values
         self.ids.object_spinner.values = ["None"] + sorted(enemy_names) + sorted(player_names)
+
+    def load_enemy_list_popup(self):
+        content = BoxLayout(orientation='vertical', spacing=10)
+        scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
+
+        # Assuming .enemies files are in the root directory for now
+        enemy_files = [f for f in os.listdir() if f.endswith('.enemies')]
+        if not enemy_files:
+            create_styled_popup(title="No Lists Found", content=Label(text="No .enemies files found."), size_hint=(0.6, 0.4)).open()
+            return
+
+        for filename in enemy_files:
+            btn = Button(text=filename, size_hint_y=None, height=44)
+            btn.bind(on_press=partial(self.do_load_enemy_list, filename))
+            scroll_content.add_widget(btn)
+
+        scroll_view = ScrollView()
+        scroll_view.add_widget(scroll_content)
+        content.add_widget(scroll_view)
+        self.enemy_list_popup = create_styled_popup(title="Load Enemy List", content=content, size_hint=(0.8, 0.8))
+        self.enemy_list_popup.open()
+
+    def do_load_enemy_list(self, filename, instance):
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                list_from_file = json.load(f)
+
+            # We only need the names for the spinner
+            self.custom_enemy_list = [enemy.get('name') for enemy in list_from_file if enemy.get('name')]
+            self.populate_object_spinner()
+            self.enemy_list_popup.dismiss()
+        except Exception as e:
+            create_styled_popup(title="Load Error", content=Label(text=f"Error loading enemy list:\n{e}"), size_hint=(0.7, 0.5)).open()
+
+    def reset_enemy_list(self):
+        self.custom_enemy_list = None
+        self.populate_object_spinner()
 
     def create_grid(self):
         try:
