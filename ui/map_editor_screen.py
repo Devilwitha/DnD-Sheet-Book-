@@ -109,43 +109,44 @@ class MapEditorScreen(Screen):
             enemy_to_place = self.ids.enemy_spinner.text
             player_to_place = self.ids.player_spinner.text
             furniture_to_place = self.ids.furniture_spinner.text
-        tile_data = self.map_data['tiles'].get((row, col))
-        if not tile_data: return
 
-        object_to_place, is_enemy = (player_to_place, False) if player_to_place != "None" else (enemy_to_place, True) if enemy_to_place != "None" else (None, False)
+            tile_data = self.map_data['tiles'].get((row, col))
+            if not tile_data: return
 
-        self.ids.enemy_spinner.text = "None"
-        self.ids.player_spinner.text = "None"
-        self.ids.furniture_spinner.text = "None"
+            object_to_place, is_enemy = (player_to_place, False) if player_to_place != "None" else (enemy_to_place, True) if enemy_to_place != "None" else (None, False)
 
-        if object_to_place:
-            if is_enemy:
-                base_name, highest_num = object_to_place, 0
-                for r in range(self.map_data['rows']):
-                    for c in range(self.map_data['cols']):
-                        obj = self.map_data['tiles'].get((r, c), {}).get('object')
-                        if obj and obj.startswith(base_name):
-                            try:
-                                num = int(obj.split('#')[-1])
-                                if num > highest_num: highest_num = num
-                            except (ValueError, IndexError):
-                                if obj == base_name and highest_num == 0: highest_num = 1
-                tile_data['object'], tile_data['furniture'] = f"{base_name} #{highest_num + 1}", None
-            else: # Player
-                for r in range(self.map_data['rows']):
-                    for c in range(self.map_data['cols']):
-                        if self.map_data['tiles'].get((r,c),{}).get('object') == object_to_place:
-                            self.map_data['tiles'][(r,c)]['object'] = None
-                tile_data['object'], tile_data['furniture'] = object_to_place, None
-        elif furniture_to_place != "None":
-            tile_data['object'], tile_data['furniture'] = None, {'type': furniture_to_place, 'is_mimic': self.ids.mimic_checkbox.active}
-        else:
-            if paint_tool == 'Trigger': self.prompt_for_trigger_message(tile_data)
+            self.ids.enemy_spinner.text = "None"
+            self.ids.player_spinner.text = "None"
+            self.ids.furniture_spinner.text = "None"
+
+            if object_to_place:
+                if is_enemy:
+                    base_name, highest_num = object_to_place, 0
+                    for r in range(self.map_data['rows']):
+                        for c in range(self.map_data['cols']):
+                            obj = self.map_data['tiles'].get((r, c), {}).get('object')
+                            if obj and obj.startswith(base_name):
+                                try:
+                                    num = int(obj.split('#')[-1])
+                                    if num > highest_num: highest_num = num
+                                except (ValueError, IndexError):
+                                    if obj == base_name and highest_num == 0: highest_num = 1
+                    tile_data['object'], tile_data['furniture'] = f"{base_name} #{highest_num + 1}", None
+                else: # Player
+                    for r in range(self.map_data['rows']):
+                        for c in range(self.map_data['cols']):
+                            if self.map_data['tiles'].get((r,c),{}).get('object') == object_to_place:
+                                self.map_data['tiles'][(r,c)]['object'] = None
+                    tile_data['object'], tile_data['furniture'] = object_to_place, None
+            elif furniture_to_place != "None":
+                tile_data['object'], tile_data['furniture'] = None, {'type': furniture_to_place, 'is_mimic': self.ids.mimic_checkbox.active}
             else:
-                tile_data['type'] = paint_tool
-                tile_data.pop('trigger_message', None)
-                if paint_tool == 'Wall': tile_data['object'], tile_data['furniture'] = None, None
-        self.update_grid_visuals()
+                if paint_tool == 'Trigger': self.prompt_for_trigger_message(tile_data)
+                else:
+                    tile_data['type'] = paint_tool
+                    tile_data.pop('trigger_message', None)
+                    if paint_tool == 'Wall': tile_data['object'], tile_data['furniture'] = None, None
+            self.update_grid_visuals()
 
     def prompt_for_trigger_message(self, tile_data):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
