@@ -224,6 +224,21 @@ class Character:
             ac += bonus
         self.armor_class = ac
 
+    def add_item(self, item_name, quantity):
+        """Adds an item to the inventory, stacking if it already exists."""
+        # Special handling for currency
+        if item_name.lower() in self.currency:
+            self.currency[item_name.lower()] += quantity
+            return
+
+        for item in self.inventory:
+            if item.get('name') == item_name:
+                item['quantity'] = item.get('quantity', 0) + quantity
+                return
+
+        # If item not found, add it as a new entry
+        self.inventory.append({'name': item_name, 'quantity': quantity})
+
     def to_dict(self):
         """Serializes the character object to a dictionary."""
         # self.spells keys can be integers, convert them to strings for JSON

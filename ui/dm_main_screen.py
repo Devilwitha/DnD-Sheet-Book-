@@ -629,8 +629,27 @@ class DMMainScreen(Screen):
                     break
 
         if player_addr:
-            self.log_message(f"Trigger ausgelöst bei {pos} von {obj_name}. Sende Nachricht.")
-            self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
+            self.log_message(f"Trigger ausgelöst bei {pos} von {obj_name}.")
+
+            # Send trigger message if it exists
+            if message:
+                self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
+
+            # Grant items if they exist
+            items_to_grant = tile.get('trigger_items', [])
+            if items_to_grant:
+                with self.network_manager.lock:
+                    char = self.network_manager.clients[player_addr]['character']
+                    granted_items_str_list = []
+                    for item in items_to_grant:
+                        char.add_item(item['name'], item['quantity'])
+                        granted_items_str_list.append(f"{item['quantity']}x {item['name']}")
+
+                granted_items_str = ", ".join(granted_items_str_list)
+                self.log_message(f"{obj_name} erhält: {granted_items_str}.")
+
+                # Send updated character data to the player
+                self.network_manager.send_message(player_addr, 'SET_CHARACTER_DATA', char.to_dict())
 
     def show_map_options_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)

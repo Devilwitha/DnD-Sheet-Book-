@@ -72,7 +72,7 @@ class MapEditorScreen(Screen):
         self.map_data = {'rows': rows, 'cols': cols, 'tiles': {}}
         for r in range(rows):
             for c in range(cols):
-                self.map_data['tiles'][(r, c)] = {'type': 'Floor', 'object': None, 'furniture': None, 'trigger_message': None}
+                self.map_data['tiles'][(r, c)] = {'type': 'Floor', 'object': None, 'furniture': None, 'trigger_message': None, 'trigger_items': []}
         self.current_map_filename = None
         self.recreate_grid_from_data()
 
@@ -125,7 +125,8 @@ class MapEditorScreen(Screen):
         elif furniture_to_place != "None":
             tile_data['object'], tile_data['furniture'] = None, {'type': furniture_to_place, 'is_mimic': self.ids.mimic_checkbox.active}
         else:
-            if paint_tool == 'Trigger': self.prompt_for_trigger_message(tile_data)
+            if paint_tool == 'Trigger':
+                self.prompt_for_trigger_data(tile_data)
             else:
                 tile_data['type'] = paint_tool
                 tile_data.pop('trigger_message', None)
@@ -133,17 +134,58 @@ class MapEditorScreen(Screen):
                     tile_data['object'], tile_data['furniture'] = None, None
         self.update_grid_visuals()
 
-    def prompt_for_trigger_message(self, tile_data):
+    def prompt_for_trigger_data(self, tile_data):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        message_input = TextInput(hint_text="Enter trigger message...", text=tile_data.get('trigger_message') or '', multiline=True)
-        save_btn = Button(text="Save Trigger")
+
+        content.add_widget(Label(text="Trigger Message:"))
+        message_input = TextInput(
+            hint_text="Enter trigger message...",
+            text=tile_data.get('trigger_message', ''),
+            multiline=True,
+            size_hint_y=0.4
+        )
         content.add_widget(message_input)
+
+        content.add_widget(Label(text="Items to Grant (Name,Qty; Name,Qty):"))
+        # Reconstruct item string for editing
+        items_str = "; ".join([f"{item['name']},{item['quantity']}" for item in tile_data.get('trigger_items', [])])
+        items_input = TextInput(
+            hint_text="Health Potion,1; Gold,50",
+            text=items_str,
+            multiline=False,
+            size_hint_y=0.2
+        )
+        content.add_widget(items_input)
+
+        save_btn = Button(text="Save Trigger", size_hint_y=0.2)
         content.add_widget(save_btn)
-        popup = create_styled_popup(title="Set Trigger Message", content=content, size_hint=(0.7, 0.5))
+
+        popup = create_styled_popup(title="Set Trigger Data", content=content, size_hint=(0.8, 0.6))
+
         def save_action(instance):
-            tile_data['type'], tile_data['trigger_message'] = 'Trigger', message_input.text
+            tile_data['type'] = 'Trigger'
+            tile_data['trigger_message'] = message_input.text
+
+            # Parse items
+            items_to_add = []
+            raw_items_str = items_input.text.strip()
+            if raw_items_str:
+                try:
+                    item_pairs = raw_items_str.split(';')
+                    for pair in item_pairs:
+                        if ',' in pair:
+                            name, qty_str = pair.split(',')
+                            name = name.strip()
+                            qty = int(qty_str.strip())
+                            if name and qty > 0:
+                                items_to_add.append({'name': name, 'quantity': qty})
+                except Exception as e:
+                    print(f"[WARN] Could not parse trigger items string: {e}")
+
+            tile_data['trigger_items'] = items_to_add
             self.update_grid_visuals()
             popup.dismiss()
+
         save_btn.bind(on_press=save_action)
         popup.open()
 
