@@ -25,33 +25,66 @@ class PlayerCharacterSheet(Screen):
         self.app = App.get_running_app()
         self.network_manager = self.app.network_manager
         self.character = None
+        self.update_event = None
         self.map_data = None
 
     def on_enter(self, *args):
-        # The character should be set by the app's global loop or waiting screen
         self.character = self.app.character
         self.update_sheet()
-        # Start the main game loop when entering this screen
-        self.app.start_player_gameloop()
+        self.update_event = Clock.schedule_interval(self.check_for_updates, 0.5)
 
     def on_leave(self, *args):
-        # Stop the main game loop if we are leaving the game (e.g. disconnect)
-        # We don't want to stop it if we are just navigating to the map screen.
-        if self.manager.current not in ['player_map']:
-             self.app.stop_player_gameloop()
-        # Start the main game loop when entering this screen
-        self.app.start_player_gameloop()
+        if self.update_event:
+            self.update_event.cancel()
+            self.update_event = None
 
-    def on_leave(self, *args):
-        # Stop the main game loop if we are leaving the game (e.g. disconnect)
-        # We don't want to stop it if we are just navigating to the map screen.
-        if self.manager.current not in ['player_map']:
-             self.app.stop_player_gameloop()
+    def check_for_updates(self, dt):
+        if not self.network_manager.running and self.network_manager.mode == 'idle':
+            self.handle_disconnect("Verbindung zum DM verloren.")
+            return
+
+        try:
+            while True:
+                source, message = self.network_manager.incoming_messages.get_nowait()
+                msg_type = message.get('type')
+                payload = message.get('payload')
+
+                if msg_type == 'KICK':
+                    self.handle_disconnect("Du wurdest vom DM gekickt.")
+                    return
+                elif msg_type == 'GAME_STATE_UPDATE':
+                    self.update_player_list(payload.get('players', []))
+                    self.update_initiative_order(payload.get('initiative', []))
+                elif msg_type == 'SET_CHARACTER_DATA':
+                    self.character = Character.from_dict(payload)
+                    self.app.character = self.character
+                    self.update_sheet()
+                    create_styled_popup(title="Update", content=Label(text="Dein Charakter wurde vom DM aktualisiert."), size_hint=(0.6, 0.4)).open()
+                elif msg_type == 'SAVE_YOUR_CHARACTER':
+                    self.save_character()
+                elif msg_type == 'MAP_DATA':
+                    self.map_data = payload
+                    self.ids.view_map_button.disabled = False
+                    # If the map screen exists, update it with the new data.
+                    # This ensures the map is up-to-date even if the player is not currently viewing it.
+                    if self.manager.has_screen('player_map'):
+                        map_screen = self.manager.get_screen('player_map')
+                        map_screen.set_map_data(self.map_data)
+        except Empty:
+            pass
 
     def view_map(self):
-        # The map data is now managed by the global loop
-        if self.manager.has_screen('player_map'):
+        if self.map_data:
+            map_screen = self.manager.get_screen('player_map')
+            map_screen.set_map_data(self.map_data)
             self.manager.current = 'player_map'
+
+    def handle_disconnect(self, message):
+        if self.update_event:
+            self.update_event.cancel()
+            self.update_event = None
+            create_styled_popup(title="Verbindung getrennt", content=Label(text=message), size_hint=(0.7, 0.4)).open()
+            self.manager.current = 'main'
 
     def update_sheet(self):
         if not self.character: return

@@ -41,9 +41,7 @@ def create_tables(conn):
     CREATE TABLE IF NOT EXISTS weapons (
         name TEXT PRIMARY KEY,
         damage TEXT NOT NULL,
-        ability TEXT NOT NULL,
-        type TEXT,
-        range INTEGER
+        ability TEXT NOT NULL
     )''')
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS spells (
@@ -103,24 +101,8 @@ def populate_db_from_json(conn):
     cursor.executemany("INSERT INTO skills (name, ability) VALUES (?, ?)", SKILL_LIST.items())
     cursor.executemany("INSERT INTO fighting_styles (name, description) VALUES (?, ?)", FIGHTING_STYLE_DATA.items())
 
-    # Augment weapon data with type and range before inserting
-    for name, data in WEAPON_DATA.items():
-        if name in ["Glefe", "Hellebarde", "Lanze", "Pike", "Peitsche"]:
-            data['type'] = "Melee"
-            data['range'] = 2
-        elif name in ["Leichte Armbrust", "Kurzbogen", "Schleuder", "Blasrohr", "Handarmbrust", "Schwere Armbrust", "Langbogen", "Wurfpfeil"]:
-            data['type'] = "Ranged"
-            # Setting some default ranges
-            if name in ["Leichte Armbrust", "Kurzbogen"]: data['range'] = 20
-            elif name in ["Schwere Armbrust"]: data['range'] = 25
-            elif name in ["Langbogen"]: data['range'] = 30
-            else: data['range'] = 15
-        else: # Default to standard Melee
-            data['type'] = "Melee"
-            data['range'] = 1
-
-    weapon_list = [(name, data['damage'], data['ability'], data['type'], data['range']) for name, data in WEAPON_DATA.items()]
-    cursor.executemany("INSERT INTO weapons (name, damage, ability, type, range) VALUES (?, ?, ?, ?, ?)", weapon_list)
+    weapon_list = [(name, data['damage'], data['ability']) for name, data in WEAPON_DATA.items()]
+    cursor.executemany("INSERT INTO weapons (name, damage, ability) VALUES (?, ?, ?)", weapon_list)
 
     spell_list = [(name, data['level'], data['school'], data['desc']) for name, data in SPELL_DATA.items()]
     cursor.executemany("INSERT INTO spells (name, level, school, description) VALUES (?, ?, ?, ?)", spell_list)
@@ -130,13 +112,6 @@ def populate_db_from_json(conn):
 
     class_list = [(name, data['hit_die'], json.dumps(data.get('proficiencies', [])), json.dumps(data.get('progression', {})), json.dumps(data.get('spell_list', {})), json.dumps(data.get('features', {}))) for name, data in CLASS_DATA.items()]
     cursor.executemany("INSERT INTO classes (name, hit_die, proficiencies, progression, spell_list, features) VALUES (?, ?, ?, ?, ?, ?)", class_list)
-
-    # Augment enemy attacks with type and range
-    for enemy_data in ENEMY_DATA.values():
-        for attack in enemy_data.get('attacks', []):
-            # Default to Melee range 1 for all existing enemies for now
-            attack['type'] = 'Melee'
-            attack['range'] = 1
 
     enemy_list = [(name, data['hp'], data['ac'], data['speed'], json.dumps(data['attacks'])) for name, data in ENEMY_DATA.items()]
     cursor.executemany("INSERT INTO enemies (name, hp, ac, speed, attacks) VALUES (?, ?, ?, ?, ?)", enemy_list)
@@ -161,7 +136,7 @@ def get_data_from_db():
     SKILL_LIST = fetch_all_as_dict('skills', 'name', 'ability')
     FIGHTING_STYLE_DATA = fetch_all_as_dict('fighting_styles', 'name', 'description')
 
-    WEAPON_DATA = {row['name']: {'damage': row['damage'], 'ability': row['ability'], 'type': row['type'], 'range': row['range']} for row in fetch_all_as_dict('weapons', 'name').values()}
+    WEAPON_DATA = {row['name']: {'damage': row['damage'], 'ability': row['ability']} for row in fetch_all_as_dict('weapons', 'name').values()}
     SPELL_DATA = {row['name']: {'level': row['level'], 'school': row['school'], 'desc': row['description']} for row in fetch_all_as_dict('spells', 'name').values()}
 
     RACE_DATA = {}

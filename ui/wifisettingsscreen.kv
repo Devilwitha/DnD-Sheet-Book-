@@ -1,0 +1,39 @@
+<WifiSettingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Wifi Settings"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Label:
+            id: wifi_status_label
+            text: "Status: N/A"
+            size_hint_y: 0.2
+            font_size: '18sp'
+
+        Button:
+            text: "Refresh Status"
+            on_press: root.refresh_wifi_status(self)
+            size_hint_y: None
+            height: 50
+
+        Button:
+            text: "Scan for Networks"
+            on_press: root.scan_for_wifi(self)
+            size_hint_y: None
+            height: 50
+
+        BoxLayout:
+            size_hint_y: 1.0 # Spacer
+
+        Button:
+            text: "Zurück"
+            on_press: root.go_back()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

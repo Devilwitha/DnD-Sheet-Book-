@@ -16,12 +16,6 @@
                 size_hint_y: None
                 height: 40
 
-            Button:
-                text: "Info / Help"
-                on_press: app.change_screen('map_editor_info', source_screen=root.name)
-                size_hint_y: None
-                height: 44
-
             GridLayout:
                 cols: 2
                 size_hint_y: None
@@ -53,85 +47,32 @@
             Spinner:
                 id: tile_type_spinner
                 text: "Floor"
-                values: ["Floor", "Wall", "Door", "Trigger", "Empty"]
+                values: ["Floor", "Wall", "Door"]
                 size_hint_y: None
                 height: 44
 
             Label:
-                text: "Place Enemy"
+                text: "Place Object"
                 font_size: '18sp'
                 size_hint_y: None
                 height: 30
 
             Spinner:
-                id: enemy_spinner
+                id: object_spinner
                 text: "None"
-                values: ["None"]
-                size_hint_y: None
-                height: 44
-
-            Label:
-                text: "Place Player"
-                font_size: '18sp'
-                size_hint_y: None
-                height: 30
-
-            Spinner:
-                id: player_spinner
-                text: "None"
-                values: ["None"]
-                size_hint_y: None
-                height: 44
-
-            Label:
-                text: "Place Furniture"
-                font_size: '18sp'
-                size_hint_y: None
-                height: 30
-
-            Spinner:
-                id: furniture_spinner
-                text: "None"
-                values: ["None", "Chest", "Table", "Statue", "Altar", "Bookshelf"]
-                size_hint_y: None
-                height: 44
-
-            BoxLayout:
-                size_hint_y: None
-                height: 30
-                Label:
-                    text: "Is Mimic/Enchanted:"
-                CheckBox:
-                    id: mimic_checkbox
-                    size_hint_x: 0.3
-
-            Button:
-                text: "Save Map"
-                on_press: root.save_map()
+                values: ["None"] # Will be populated with enemies/players
                 size_hint_y: None
                 height: 44
 
             Button:
-                text: "Save Map As..."
-                on_press: root.save_map_as_popup()
+                text: "Save Map"
+                on_press: root.save_map_popup()
                 size_hint_y: None
                 height: 44
 
             Button:
                 text: "Load Map"
                 on_press: root.load_map_popup()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Load Enemy List"
-                on_press: root.load_enemy_list_popup()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Reset Enemy List"
-                on_press: root.reset_enemy_list()
                 size_hint_y: None
                 height: 44
 

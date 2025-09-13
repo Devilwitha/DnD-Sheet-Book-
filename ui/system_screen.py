@@ -95,35 +95,15 @@ class SystemScreen(Screen):
         popup.open()
 
     def update_app(self):
-        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        content.add_widget(Label(text='Wählen Sie den Branch für das Update:', height=80, font_size='20sp'))
-
-        btn_layout = BoxLayout(spacing=10)
-        main_btn = Button(text="Main", on_press=lambda x: self._start_update('main'), height=80, font_size='20sp')
-        beta_btn = Button(text="Beta", on_press=lambda x: self._start_update('beta'), height=80, font_size='20sp')
-
-        btn_layout.add_widget(main_btn)
-        btn_layout.add_widget(beta_btn)
-        content.add_widget(btn_layout)
-
-        cancel_btn = Button(text="Abbrechen", on_press=lambda x: self.branch_popup.dismiss(), height=80, font_size='20sp')
-        content.add_widget(cancel_btn)
-
-        apply_styles_to_widget(content)
-        self.branch_popup = create_styled_popup(title="Update Branch wählen", content=content, size_hint=(0.6, 0.6))
-        self.branch_popup.open()
-
-    def _start_update(self, branch):
-        self.branch_popup.dismiss()
-        self.popup = create_styled_popup(title='Update', content=Label(text=f'Update für Branch "{branch}" wird gestartet...'), size_hint=(0.6, 0.4))
+        self.popup = create_styled_popup(title='Update', content=Label(text='Suche nach Updates...'), size_hint=(0.6, 0.4))
         self.popup.auto_dismiss = False
         self.popup.open()
-        Clock.schedule_once(lambda dt: self._run_update_script(branch), 0.1)
+        Clock.schedule_once(self._update_task, 0.1)
 
-    def _run_update_script(self, branch):
+    def _update_task(self, dt):
         try:
             self.popup.content.text = "Updater wird gestartet...\nDie Anwendung wird sich nun schließen."
-            subprocess.Popen([sys.executable, "utils/updater.py", branch])
+            subprocess.Popen([sys.executable, "updater.py"])
             Clock.schedule_once(lambda x: App.get_running_app().stop(), 0.5)
         except Exception as e:
             self.popup.content.text = f"Fehler beim Starten des Updaters:\n{e}"

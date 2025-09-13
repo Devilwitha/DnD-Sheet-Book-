@@ -46,18 +46,6 @@
                     size_hint_y: None
                     height: self.minimum_height
 
-            Label:
-                text: "Objekte"
-                font_size: '20sp'
-                size_hint_y: None
-                height: 40
-            ScrollView:
-                GridLayout:
-                    id: objects_list
-                    cols: 1
-                    size_hint_y: None
-                    height: self.minimum_height
-
         # Center: Map
         GridLayout:
             id: dm_map_grid
@@ -129,13 +117,6 @@
                     size_hint_y: None
                     height: self.texture_size[1]
                     text_size: self.width, None
-
-            Button:
-                text: "Sitzung beenden"
-                on_press: root.end_session_popup()
-                size_hint_y: None
-                height: 44
-                background_color: (0.8, 0.2, 0.2, 1)
 
             Button:
                 text: "Lobby"

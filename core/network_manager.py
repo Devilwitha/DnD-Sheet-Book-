@@ -185,22 +185,13 @@ class NetworkManager:
                 self.outgoing_messages.put((client_info['socket'], message))
 
     def kick_player(self, client_address):
-        """Kicks a player by shutting down their socket in a background thread."""
-        kick_thread = threading.Thread(target=self._do_kick, args=(client_address,))
-        kick_thread.daemon = True
-        kick_thread.start()
-
-    def _do_kick(self, client_address):
-        """The actual kick logic that runs in a thread."""
         with self.lock:
             client_info = self.clients.get(client_address)
             if client_info:
                 try:
                     self.send_message(client_address, 'KICK', 'You have been kicked.')
-                    # This is the potentially blocking call
                     client_info['socket'].shutdown(socket.SHUT_RDWR)
                 except OSError:
-                    # This is expected if the client has already disconnected
                     pass
 
     def get_client_addr_by_name(self, char_name):

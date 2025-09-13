@@ -1,7 +1,6 @@
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from kivy.app import App
-from kivy.uix.label import Label
 from utils.helpers import apply_background, apply_styles_to_widget
 from core.character import Character
 from queue import Empty
@@ -60,19 +59,25 @@ class PlayerWaitingScreen(Screen):
             pass
 
     def proceed_to_game(self):
-        # The character and connection are already managed by the app/network_manager.
-        # This screen's only job is to wait for the GAME_START signal and change the screen.
-        # The new screen will be responsible for starting the main game loop.
+        # The character and connection are already managed by the app/network_manager
         self.manager.current = 'player_sheet'
 
     def handle_disconnect(self, message):
-        # This function might be called multiple times from the update loop
-        # so we check if the event is still active before proceeding.
+        from utils.helpers import create_styled_popup
+        from kivy.uix.label import Label
+
+        # This function might be called multiple times, ensure it only runs once
         if self.update_event:
             self.update_event.cancel()
             self.update_event = None
-            # Call the app's central disconnect handler
-            self.app.handle_disconnect(message)
+
+            # The network manager's shutdown will handle socket closure
+            self.network_manager.shutdown()
+
+            create_styled_popup(title="Verbindung getrennt",
+                                content=Label(text=message),
+                                size_hint=(0.7, 0.4)).open()
+            self.manager.current = 'main'
 
     def on_leave(self, *args):
         if self.update_event:

@@ -55,8 +55,10 @@ from ui.player_character_sheet import PlayerCharacterSheet
 from ui.player_waiting_screen import PlayerWaitingScreen
 from ui.map_editor_screen import MapEditorScreen
 from ui.player_map_screen import PlayerMapScreen
+from ui.customization_settings_screen import CustomizationSettingsScreen
+from ui.background_settings_screen import BackgroundSettingsScreen
+from ui.wifi_settings_screen import WifiSettingsScreen
 from ui.map_editor_info_screen import MapEditorInfoScreen
-
 class DnDApp(App):
     """Haupt-App-Klasse."""
     def __init__(self, **kwargs):
@@ -65,81 +67,6 @@ class DnDApp(App):
         self.loaded_session_data = None
         self.source_screen = None # For back navigation
         self.edited_map_data = None # To pass map data from editor to DM screen
-        self.player_game_loop = None
-
-    def start_player_gameloop(self):
-        if self.player_game_loop:
-            self.player_game_loop.cancel()
-        self.player_game_loop = Clock.schedule_interval(self.check_for_player_updates, 0.5)
-
-    def stop_player_gameloop(self):
-        if self.player_game_loop:
-            self.player_game_loop.cancel()
-            self.player_game_loop = None
-
-    def check_for_player_updates(self, dt):
-        from utils.helpers import create_styled_popup
-        from kivy.uix.label import Label
-        from queue import Empty
-
-        if not self.network_manager.running and self.network_manager.mode == 'idle':
-            self.handle_disconnect("Verbindung zum DM verloren.")
-            return
-
-        try:
-            while True:
-                source, message = self.network_manager.incoming_messages.get_nowait()
-                msg_type = message.get('type')
-                payload = message.get('payload')
-                sm = self.root.children[0]
-
-                if msg_type == 'KICK':
-                    self.handle_disconnect("Du wurdest vom DM gekickt.")
-                    return
-                elif msg_type == 'MAP_DATA':
-                    if sm.has_screen('player_map'):
-                        sm.get_screen('player_map').set_map_data(payload)
-                    if sm.has_screen('player_sheet'):
-                        sm.get_screen('player_sheet').map_data = payload
-                        sm.get_screen('player_sheet').ids.view_map_button.disabled = False
-                elif msg_type == 'TRIGGER_MESSAGE':
-                    create_styled_popup(
-                        title="!",
-                        content=Label(text=payload.get('message', '...')),
-                        size_hint=(0.7, 0.5)
-                    ).open()
-                elif msg_type == 'GAME_STATE_UPDATE':
-                    if sm.has_screen('player_sheet'):
-                        sm.get_screen('player_sheet').update_player_list(payload.get('players', []))
-                        sm.get_screen('player_sheet').update_initiative_order(payload.get('initiative', []))
-                elif msg_type == 'SET_CHARACTER_DATA':
-                    self.character = Character.from_dict(payload)
-                    if sm.has_screen('player_sheet'):
-                        sm.get_screen('player_sheet').character = self.character
-                        sm.get_screen('player_sheet').update_sheet()
-                    create_styled_popup(title="Update", content=Label(text="Dein Charakter wurde vom DM aktualisiert."), size_hint=(0.6, 0.4)).open()
-                elif msg_type == 'SAVE_YOUR_CHARACTER':
-                    if sm.has_screen('player_sheet'):
-                        sm.get_screen('player_sheet').save_character()
-                elif msg_type == 'GAME_START':
-                    # This is a fallback handler. The main logic is in the waiting screen,
-                    # but if this loop gets the message first due to a race condition,
-                    # we handle it here to ensure the game starts.
-                    if sm.current == 'player_waiting':
-                        sm.current = 'player_sheet'
-        except Empty:
-            pass
-
-    def handle_disconnect(self, message):
-        from utils.helpers import create_styled_popup
-        from kivy.uix.label import Label
-
-        self.stop_player_gameloop()
-        if self.network_manager.running:
-            self.network_manager.shutdown()
-
-        create_styled_popup(title="Verbindung getrennt", content=Label(text=message), size_hint=(0.7, 0.4)).open()
-        self.change_screen('main')
 
     def change_screen(self, screen_name, source_screen=None):
         """Changes the screen and sets the source screen for back navigation."""
@@ -175,8 +102,10 @@ class DnDApp(App):
         Builder.load_file('ui/playercharactersheet.kv')
         Builder.load_file('ui/mapeditorscreen.kv')
         Builder.load_file('ui/playermapscreen.kv')
+        Builder.load_file('ui/customizationsettingsscreen.kv')
+        Builder.load_file('ui/backgroundsettingsscreen.kv')
+        Builder.load_file('ui/wifisettingsscreen.kv')
         Builder.load_file('ui/mapeditorinfoscreen.kv')
-
         if sys.platform.startswith('win'):
             Window.fullscreen = False
         else:
@@ -210,7 +139,9 @@ class DnDApp(App):
         sm.add_widget(MapEditorScreen(name='map_editor'))
         sm.add_widget(PlayerMapScreen(name='player_map'))
         sm.add_widget(MapEditorInfoScreen(name='map_editor_info'))
-
+        sm.add_widget(CustomizationSettingsScreen(name='customization_settings'))
+        sm.add_widget(BackgroundSettingsScreen(name='background_settings'))
+        sm.add_widget(WifiSettingsScreen(name='wifi_settings'))
 
         root.add_widget(sm)
 
