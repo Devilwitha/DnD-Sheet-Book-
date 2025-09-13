@@ -701,3 +701,22 @@ class DMMainScreen(Screen):
 
         except Exception as e:
             create_styled_popup(title="Load Error", content=Label(text=f"Error loading map for editing:\n{e}"), size_hint=(0.7, 0.5)).open()
+
+    def end_session_popup(self):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text='Möchten Sie die Sitzung wirklich beenden?\nAlle Spieler werden getrennt.'))
+        btn_layout = BoxLayout(spacing=10)
+        yes_btn = Button(text="Ja, beenden", on_press=self.do_end_session)
+        no_btn = Button(text="Nein", on_press=lambda x: self.confirmation_popup.dismiss())
+        btn_layout.add_widget(yes_btn)
+        btn_layout.add_widget(no_btn)
+        content.add_widget(btn_layout)
+        apply_styles_to_widget(content)
+        self.confirmation_popup = create_styled_popup(title="Sitzung beenden bestätigen", content=content, size_hint=(0.6, 0.5))
+        self.confirmation_popup.open()
+
+    def do_end_session(self, instance):
+        self.confirmation_popup.dismiss()
+        self.log_message("Sitzung wird beendet...")
+        self.network_manager.shutdown()
+        self.app.change_screen('main')

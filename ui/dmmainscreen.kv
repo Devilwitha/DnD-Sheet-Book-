@@ -131,6 +131,13 @@
                     text_size: self.width, None
 
             Button:
+                text: "Sitzung beenden"
+                on_press: root.end_session_popup()
+                size_hint_y: None
+                height: 44
+                background_color: (0.8, 0.2, 0.2, 1)
+
+            Button:
                 text: "Lobby"
                 on_press: app.change_screen('dm_lobby')
                 size_hint_y: None
