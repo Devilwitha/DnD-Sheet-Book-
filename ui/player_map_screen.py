@@ -259,7 +259,7 @@ class PlayerMapScreen(Screen):
                 dist = abs(r - r_start) + abs(c - c_start)
                 if 0 < dist <= speed:
                     tile_data = self.map_data['tiles'].get((r,c))
-                    if tile_data and tile_data['type'] != 'Wall' and not tile_data.get('object'):
+                    if tile_data and tile_data['type'] not in ['Wall', 'Empty'] and not tile_data.get('object'):
                         self.highlighted_tiles.append((r, c))
 
     def go_back(self):

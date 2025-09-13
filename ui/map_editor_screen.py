@@ -129,7 +129,8 @@ class MapEditorScreen(Screen):
             else:
                 tile_data['type'] = paint_tool
                 tile_data.pop('trigger_message', None)
-                if paint_tool == 'Wall': tile_data['object'], tile_data['furniture'] = None, None
+                if paint_tool in ['Wall', 'Empty']:
+                    tile_data['object'], tile_data['furniture'] = None, None
         self.update_grid_visuals()
 
     def prompt_for_trigger_message(self, tile_data):
@@ -154,7 +155,7 @@ class MapEditorScreen(Screen):
             r, c = i // cols, i % cols
             tile = self.map_data['tiles'].get((r, c), {})
             child.text, obj, furn = "", tile.get('object'), tile.get('furniture')
-            bg = {'Wall': [0.2,0.2,0.2,1], 'Door': [0.6,0.3,0.1,1], 'Trigger': [1,1,0,0.5]}.get(tile.get('type'), [0.5,0.5,0.5,1])
+            bg = {'Wall': [0.2,0.2,0.2,1], 'Door': [0.6,0.3,0.1,1], 'Trigger': [1,1,0,0.5], 'Empty': [0.1,0.1,0.1,1]}.get(tile.get('type'), [0.5,0.5,0.5,1])
             if obj:
                 child.text, child.color = obj[:3], (1,0.5,0.5,1) if '#' in obj and obj.split('#')[0].strip() in ENEMY_DATA else (0.5,1,0.5,1)
             elif furn:
