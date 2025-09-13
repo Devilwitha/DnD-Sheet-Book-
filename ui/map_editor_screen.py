@@ -41,7 +41,14 @@ class MapEditorScreen(Screen):
     def load_existing_map(self, map_data):
         """Loads map data passed from another screen."""
         self.map_data = map_data
-        self.map_data['tiles'] = {eval(k): v for k, v in self.map_data['tiles'].items()}
+
+        # Check if the keys need conversion from string to tuple
+        if self.map_data and self.map_data.get('tiles'):
+            # Get an example key to check its type
+            first_key = next(iter(self.map_data['tiles']), None)
+            if isinstance(first_key, str):
+                self.map_data['tiles'] = {eval(k): v for k, v in self.map_data['tiles'].items()}
+
         self.ids.rows_input.text = str(self.map_data.get('rows', 10))
         self.ids.cols_input.text = str(self.map_data.get('cols', 10))
         self.recreate_grid_from_data()
