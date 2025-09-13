@@ -103,8 +103,6 @@ class MapEditorScreen(Screen):
             return
 
         # If it's not a right-click, proceed with the normal left-click logic
-        if not touch.grab_current == instance:
-            return
 
         # This part now only handles left-clicks
         paint_tool = self.ids.tile_type_spinner.text
