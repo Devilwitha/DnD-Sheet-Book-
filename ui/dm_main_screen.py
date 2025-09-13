@@ -445,18 +445,30 @@ class DMMainScreen(Screen):
 
     def broadcast_map_data(self):
         if self.map_data:
-            # Create a copy for players that doesn't reveal mimic or trigger status
-            player_map_data = json.loads(json.dumps(self.map_data)) # Deep copy
-            for tile in player_map_data['tiles'].values():
-                # Hide mimics
-                if tile.get('furniture'):
-                    tile['furniture'].pop('is_mimic', None)
-                # Hide triggers
-                if tile.get('type') == 'Trigger':
-                    tile['type'] = 'Floor'
-                    tile.pop('trigger_message', None)
+            # Manually create a deep copy that is safe for players and JSON
+            player_map_data = {
+                'rows': self.map_data.get('rows'),
+                'cols': self.map_data.get('cols'),
+                'enemies': self.map_data.get('enemies', []), # Pass enemy list
+                'tiles': {}
+            }
 
-            player_map_data['tiles'] = {str(k): v for k, v in player_map_data['tiles'].items()}
+            for pos, tile_data in self.map_data['tiles'].items():
+                # Copy the tile data
+                tile_copy = tile_data.copy()
+
+                # Hide mimics by making a copy of the furniture dict
+                if 'furniture' in tile_copy and tile_copy['furniture']:
+                    tile_copy['furniture'] = tile_copy['furniture'].copy()
+                    tile_copy['furniture'].pop('is_mimic', None)
+
+                # Hide triggers
+                if tile_copy.get('type') == 'Trigger':
+                    tile_copy['type'] = 'Floor'
+                    tile_copy.pop('trigger_message', None)
+
+                # Use a string key for the new dictionary
+                player_map_data['tiles'][str(pos)] = tile_copy
 
             self.network_manager.broadcast_message("MAP_DATA", player_map_data)
             self.update_map_view()
