@@ -85,27 +85,40 @@ class MapEditorScreen(Screen):
         for r in range(rows):
             for c in range(cols):
                 tile_button = Button()
-                # We need on_touch_down to detect right-clicks
-                tile_button.bind(on_touch_down=partial(self.on_tile_click, r, c))
+                # Bind to the method without partial, so it passes the instance and touch
+                tile_button.bind(on_touch_down=self.on_tile_click)
                 grid.add_widget(tile_button)
         self.update_grid_visuals()
 
-    def on_tile_click(self, row, col, instance, touch):
-        # Stop the event from propagating further
+    def on_tile_click(self, instance, touch):
+        # This callback is bound to on_touch_down. We only care about when the touch is *on* our button.
+        if not instance.collide_point(*touch.pos):
+            return False
+
         if touch.is_mouse_scrolling:
-            return
+            return False
+
+        # Calculate row and col based on the button's index in the grid
+        grid = self.ids.map_grid
+        try:
+            index = grid.children.index(instance)
+            row = (len(grid.children) - 1 - index) // grid.cols
+            col = (len(grid.children) - 1 - index) % grid.cols
+        except (ValueError, AttributeError):
+            print("[ERROR] Could not determine tile coordinates from click.")
+            return False
 
         # Handle right-click for context menu
         if touch.button == 'right':
+            instance.state = 'normal' # Prevent button from looking "stuck"
             tile_data = self.map_data['tiles'].get((row, col))
             if tile_data and tile_data.get('furniture'):
                 self.open_object_context_menu(tile_data)
-            return
+            return True # Consume the event
 
-        # If it's not a right-click, proceed with the normal left-click logic
-
-        # This part now only handles left-clicks
-        paint_tool = self.ids.tile_type_spinner.text
+        # Handle left-click for painting/placing
+        if touch.button == 'left':
+            paint_tool = self.ids.tile_type_spinner.text
         enemy_to_place = self.ids.enemy_spinner.text
         player_to_place = self.ids.player_spinner.text
         furniture_to_place = self.ids.furniture_spinner.text
