@@ -568,10 +568,19 @@ class DMMainScreen(Screen):
                 elif tile_data.get('type') == 'Trigger': bg_color = [1, 1, 0, 0.5] # Visible to DM
                 tile_button.background_color = bg_color
                 obj = tile_data.get('object')
+                furn = tile_data.get('furniture')
                 if obj:
                     tile_button.text = obj[:3]
                     if obj in [e.name for e in self.enemies]: tile_button.color = (1, 0.5, 0.5, 1)
                     else: tile_button.color = (0.5, 1, 0.5, 1)
+                elif furn:
+                    tile_button.text = furn['type'][:2]
+                    if furn.get('is_mimic'):
+                        tile_button.color = (1, 0.5, 1, 1) # Purple
+                    elif furn.get('is_enchanted'):
+                        tile_button.color = (0.5, 1, 1, 1) # Cyan
+                    else:
+                        tile_button.color = (0.7, 0.7, 0.7, 1)
                 grid.add_widget(tile_button)
 
     def on_tile_click(self, row, col, instance):
