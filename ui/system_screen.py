@@ -83,15 +83,38 @@ class SystemScreen(Screen):
         popup.open()
 
     def update_app(self):
-        self.popup = create_styled_popup(title='Update', content=Label(text='Suche nach Updates...'), size_hint=(0.6, 0.4))
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text='Wählen Sie den Branch für das Update:', font_size='20sp'))
+
+        btn_layout = BoxLayout(spacing=10, size_hint_y=None, height=80)
+        main_btn = Button(text="Main", on_press=lambda x: self.start_update("main"), font_size='20sp')
+        beta_btn = Button(text="Beta", on_press=lambda x: self.start_update("beta"), font_size='20sp')
+
+        btn_layout.add_widget(main_btn)
+        btn_layout.add_widget(beta_btn)
+        content.add_widget(btn_layout)
+
+        cancel_layout = BoxLayout(spacing=10, size_hint_y=None, height=80)
+        cancel_btn = Button(text="Abbrechen", on_press=lambda x: self.branch_popup.dismiss(), font_size='20sp')
+        cancel_layout.add_widget(cancel_btn)
+        content.add_widget(cancel_layout)
+
+        apply_styles_to_widget(content)
+
+        self.branch_popup = create_styled_popup(title="Update Branch auswählen", content=content, size_hint=(0.6, 0.6))
+        self.branch_popup.open()
+
+    def start_update(self, branch):
+        self.branch_popup.dismiss()
+        self.popup = create_styled_popup(title='Update', content=Label(text=f'Update für Branch "{branch}" wird vorbereitet...'), size_hint=(0.6, 0.4))
         self.popup.auto_dismiss = False
         self.popup.open()
-        Clock.schedule_once(self._update_task, 0.1)
+        Clock.schedule_once(lambda dt: self._update_task(branch), 0.1)
 
-    def _update_task(self, dt):
+    def _update_task(self, branch):
         try:
-            self.popup.content.text = "Updater wird gestartet...\nDie Anwendung wird sich nun schließen."
-            subprocess.Popen([sys.executable, "updater.py"])
+            self.popup.content.text = f"Updater für Branch '{branch}' wird gestartet...\nDie Anwendung wird sich nun schließen."
+            subprocess.Popen([sys.executable, "updater.py", branch])
             Clock.schedule_once(lambda x: App.get_running_app().stop(), 0.5)
         except Exception as e:
             self.popup.content.text = f"Fehler beim Starten des Updaters:\n{e}"
