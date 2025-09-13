@@ -678,29 +678,22 @@ class DMMainScreen(Screen):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
 
         load_button = Button(text="Load Map")
-        create_button = Button(text="Create New Map")
-        edit_button = Button(text="Edit Existing Map")
+        open_editor_button = Button(text="Open Map Editor (Current Map)")
 
         content.add_widget(load_button)
-        content.add_widget(create_button)
-        content.add_widget(edit_button)
+        content.add_widget(open_editor_button)
 
-        popup = create_styled_popup(title="Map Options", content=content, size_hint=(0.6, 0.5))
+        popup = create_styled_popup(title="Map Options", content=content, size_hint=(0.6, 0.4))
 
-        def go_to_editor(instance, map_data=None):
+        def go_to_editor(instance):
             editor_screen = self.manager.get_screen('map_editor')
-            if map_data:
-                editor_screen.load_existing_map(map_data)
+            # Pass the current map to the editor so it can be edited
+            editor_screen.preloaded_map_data = self.map_data
             self.app.change_screen('map_editor', source_screen=self.name)
             popup.dismiss()
 
-        def select_map_to_edit(instance):
-            self.select_map_to_edit_popup(go_to_editor)
-            popup.dismiss()
-
         load_button.bind(on_press=lambda x: (self.load_map_popup(), popup.dismiss()))
-        create_button.bind(on_press=go_to_editor)
-        edit_button.bind(on_press=select_map_to_edit)
+        open_editor_button.bind(on_press=go_to_editor)
 
         popup.open()
 
