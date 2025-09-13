@@ -29,6 +29,8 @@ from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.floatlayout import FloatLayout
 from kivy.clock import Clock
+import logging
+from utils.logger import setup_logger
 from utils.helpers import save_settings
 from core.character import Character
 from core.network_manager import NetworkManager
@@ -138,7 +140,11 @@ class DnDApp(App):
 
     def change_screen(self, screen_name, transition_direction='left', is_go_back=False):
         """Changes the screen and manages the navigation history."""
+        logging.info(f"[NAV] Attempting to change screen to: {screen_name}")
         current_screen = self.root.children[0].current
+        logging.info(f"[NAV] Current screen is: {current_screen}")
+        logging.info(f"[NAV] History before change: {self.screen_history}")
+
         if screen_name != current_screen:
             if not is_go_back:
                 # Add the current screen to history if it's not already at the top
@@ -151,14 +157,24 @@ class DnDApp(App):
 
             self.root.children[0].transition.direction = transition_direction
             self.root.children[0].current = screen_name
+            logging.info(f"[NAV] History after change: {self.screen_history}")
+        else:
+            logging.info("[NAV] Screen change ignored (already on that screen).")
 
     def go_back_screen(self):
         """Navigates to the previous screen in the history."""
+        logging.info("[NAV] Go back called.")
+        logging.info(f"[NAV] History before back: {self.screen_history}")
         if self.screen_history:
             previous_screen = self.screen_history.pop()
+            logging.info(f"[NAV] Popped '{previous_screen}' from history.")
+            logging.info(f"[NAV] History after back: {self.screen_history}")
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
+        else:
+            logging.info("[NAV] History empty, cannot go back.")
 
     def build(self):
+        setup_logger()
         Builder.load_file('ui/splashscreen.kv')
         Builder.load_file('ui/mainmenu.kv')
         Builder.load_file('ui/charactercreator.kv')

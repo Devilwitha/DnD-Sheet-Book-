@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from functools import partial
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
@@ -22,6 +23,23 @@ class DMSpielScreen(Screen):
         app.loaded_session_data = None
         apply_background(self)
         apply_styles_to_widget(self)
+
+        is_windows = sys.platform.startswith('win')
+
+        dm_buttons = ['host_dm_btn', 'prepare_dm_btn', 'load_session_btn']
+        for btn_id in dm_buttons:
+            button = self.ids.get(btn_id)
+            if button:
+                if not is_windows:
+                    button.size_hint_y = None
+                    button.height = 0
+                    button.opacity = 0
+                    button.disabled = True
+                else:
+                    button.size_hint_y = None
+                    button.height = 80
+                    button.opacity = 1
+                    button.disabled = False
 
     def host_dm(self):
         self.manager.current = 'dm_lobby'
