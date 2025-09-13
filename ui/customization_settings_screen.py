@@ -30,7 +30,6 @@ class CustomizationSettingsScreen(Screen):
         self.ids.transparency_slider.value = settings.get('button_transparency', 1.0)
         self.ids.transparency_label.text = f"Button Transparenz: {int(self.ids.transparency_slider.value * 100)}%"
         self.ids.transparency_switch.active = settings.get('transparency_enabled', True)
-        self.ids.keyboard_switch.active = settings.get('keyboard_enabled', sys.platform.startswith('linux'))
         self.ids.font_color_switch.active = settings.get('font_color_enabled', False)
         self.ids.popup_color_switch.active = settings.get('popup_color_enabled', False)
         self.ids.button_font_color_switch.active = settings.get('button_font_color_enabled', False)
@@ -48,12 +47,6 @@ class CustomizationSettingsScreen(Screen):
         settings['transparency_enabled'] = value
         save_settings(settings)
         apply_styles_to_widget(self.manager)
-
-    def on_keyboard_toggle(self, value):
-        settings = load_settings()
-        settings['keyboard_enabled'] = value
-        save_settings(settings)
-        self.show_popup("Neustart erforderlich", "Die Änderung an der Bildschirmtastatur\nwird nach einem Neustart der Anwendung wirksam.")
 
     def on_font_color_toggle(self, value):
         settings = load_settings()
