@@ -95,13 +95,7 @@ class MapEditorScreen(Screen):
     def on_tile_touch_down(self, row, col, instance, touch):
         if instance.collide_point(*touch.pos):
             if touch.button == 'right':
-                tile_data = self.map_data['tiles'].get((row, col))
-                if tile_data:
-                    tile_data['type'] = 'Floor'
-                    tile_data['object'] = None
-                    tile_data['furniture'] = None
-                    tile_data.pop('trigger_message', None)
-                    self.update_grid_visuals()
+                self.show_tile_context_menu(row, col)
                 return
 
             # If it's not a right-click, proceed with the normal logic
@@ -292,3 +286,52 @@ class MapEditorScreen(Screen):
         if self.map_data.get('tiles'):
              self.app.edited_map_data = self.map_data
         self.app.go_back_screen()
+
+    def show_tile_context_menu(self, row, col):
+        tile_data = self.map_data['tiles'].get((row, col))
+        if not tile_data:
+            return
+
+        content = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
+        content.bind(minimum_height=content.setter('height'))
+
+        reset_button = Button(text="Reset Tile", size_hint_y=None, height=44)
+
+        popup = create_styled_popup(title=f"Options for Tile ({row}, {col})", content=content, size_hint=(0.5, 0.5))
+
+        def reset_action(instance):
+            self.reset_tile(row, col)
+            popup.dismiss()
+
+        reset_button.bind(on_press=reset_action)
+        content.add_widget(reset_button)
+
+        if tile_data.get('furniture'):
+            is_mimic = tile_data['furniture'].get('is_mimic', False)
+            mimic_button_text = "Remove Mimic Flag" if is_mimic else "Flag as Mimic"
+            mimic_button = Button(text=mimic_button_text, size_hint_y=None, height=44)
+
+            def mimic_action(instance):
+                self.toggle_mimic(row, col)
+                popup.dismiss()
+
+            mimic_button.bind(on_press=mimic_action)
+            content.add_widget(mimic_button)
+
+        popup.open()
+
+    def toggle_mimic(self, row, col):
+        tile_data = self.map_data['tiles'].get((row, col))
+        if tile_data and tile_data.get('furniture'):
+            is_mimic = tile_data['furniture'].get('is_mimic', False)
+            tile_data['furniture']['is_mimic'] = not is_mimic
+            self.update_grid_visuals()
+
+    def reset_tile(self, row, col):
+        tile_data = self.map_data['tiles'].get((row, col))
+        if tile_data:
+            tile_data['type'] = 'Floor'
+            tile_data['object'] = None
+            tile_data['furniture'] = None
+            tile_data.pop('trigger_message', None)
+            self.update_grid_visuals()
