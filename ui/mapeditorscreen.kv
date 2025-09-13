@@ -77,6 +77,28 @@
                 size_hint_y: None
                 height: 44
 
+            Label:
+                text: "Place Furniture"
+                font_size: '18sp'
+                size_hint_y: None
+                height: 30
+
+            Spinner:
+                id: furniture_spinner
+                text: "None"
+                values: ["None", "Chest", "Table", "Statue", "Altar", "Bookshelf"]
+                size_hint_y: None
+                height: 44
+
+            BoxLayout:
+                size_hint_y: None
+                height: 30
+                Label:
+                    text: "Is Mimic/Enchanted:"
+                CheckBox:
+                    id: mimic_checkbox
+                    size_hint_x: 0.3
+
             Button:
                 text: "Save Map"
                 on_press: root.save_map()
