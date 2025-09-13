@@ -225,10 +225,15 @@ class DMMainScreen(Screen):
 
             self.broadcast_map_data()
             self.update_ui()
+        elif furniture.get('is_enchanted'):
+            self.log_message(f"{player_name} interagiert mit dem verzauberten {furn_type} bei {pos}!")
+            # Here you could add logic for enchanted items.
+            # For now, just a log message and maybe sending a message to the player.
+            player_addr = self.network_manager.get_client_addr_by_name(player_name)
+            if player_addr:
+                self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': f"The {furn_type} hums with a faint magical energy."})
         else:
             self.log_message(f"{player_name} interagiert mit {furn_type} bei {pos}.")
-            # Here you could add logic for normal chests, enchanted items etc.
-            # For now, just a log message.
 
     def update_ui(self):
         self.update_online_players_list()
@@ -508,6 +513,7 @@ class DMMainScreen(Screen):
                 if 'furniture' in tile_copy and tile_copy['furniture']:
                     tile_copy['furniture'] = tile_copy['furniture'].copy()
                     tile_copy['furniture'].pop('is_mimic', None)
+                    tile_copy['furniture'].pop('is_enchanted', None)
 
                 # Hide triggers
                 if tile_copy.get('type') == 'Trigger':

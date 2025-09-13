@@ -55,6 +55,7 @@ from ui.player_character_sheet import PlayerCharacterSheet
 from ui.player_waiting_screen import PlayerWaitingScreen
 from ui.map_editor_screen import MapEditorScreen
 from ui.player_map_screen import PlayerMapScreen
+from ui.map_editor_info_screen import MapEditorInfoScreen
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
@@ -168,6 +169,7 @@ class DnDApp(App):
         Builder.load_file('ui/playercharactersheet.kv')
         Builder.load_file('ui/mapeditorscreen.kv')
         Builder.load_file('ui/playermapscreen.kv')
+        Builder.load_file('ui/mapeditorinfoscreen.kv')
 
         if sys.platform.startswith('win'):
             Window.fullscreen = False
@@ -201,6 +203,7 @@ class DnDApp(App):
         sm.add_widget(PlayerCharacterSheet(name='player_sheet'))
         sm.add_widget(MapEditorScreen(name='map_editor'))
         sm.add_widget(PlayerMapScreen(name='player_map'))
+        sm.add_widget(MapEditorInfoScreen(name='map_editor_info'))
 
 
         root.add_widget(sm)

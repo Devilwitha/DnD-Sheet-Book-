@@ -85,11 +85,28 @@ class MapEditorScreen(Screen):
         for r in range(rows):
             for c in range(cols):
                 tile_button = Button()
-                tile_button.bind(on_press=partial(self.on_tile_click, r, c))
+                # We need on_touch_down to detect right-clicks
+                tile_button.bind(on_touch_down=partial(self.on_tile_click, r, c))
                 grid.add_widget(tile_button)
         self.update_grid_visuals()
 
-    def on_tile_click(self, row, col, instance):
+    def on_tile_click(self, row, col, instance, touch):
+        # Stop the event from propagating further
+        if touch.is_mouse_scrolling:
+            return
+
+        # Handle right-click for context menu
+        if touch.button == 'right':
+            tile_data = self.map_data['tiles'].get((row, col))
+            if tile_data and tile_data.get('furniture'):
+                self.open_object_context_menu(tile_data)
+            return
+
+        # If it's not a right-click, proceed with the normal left-click logic
+        if not touch.grab_current == instance:
+            return
+
+        # This part now only handles left-clicks
         paint_tool = self.ids.tile_type_spinner.text
         enemy_to_place = self.ids.enemy_spinner.text
         player_to_place = self.ids.player_spinner.text
@@ -206,6 +223,31 @@ class MapEditorScreen(Screen):
         save_btn.bind(on_press=save_action)
         popup.open()
 
+    def open_object_context_menu(self, tile_data):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+
+        mimic_btn = Button(text="Mark as Mimic")
+        enchanted_btn = Button(text="Mark as Enchanted")
+        clear_btn = Button(text="Clear Flags")
+
+        content.add_widget(mimic_btn)
+        content.add_widget(enchanted_btn)
+        content.add_widget(clear_btn)
+
+        popup = create_styled_popup(title="Object Options", content=content, size_hint=(0.4, 0.4))
+
+        def set_flag(is_mimic=False, is_enchanted=False):
+            tile_data['furniture']['is_mimic'] = is_mimic
+            tile_data['furniture']['is_enchanted'] = is_enchanted
+            self.update_grid_visuals()
+            popup.dismiss()
+
+        mimic_btn.bind(on_press=lambda x: set_flag(is_mimic=True))
+        enchanted_btn.bind(on_press=lambda x: set_flag(is_enchanted=True))
+        clear_btn.bind(on_press=lambda x: set_flag())
+
+        popup.open()
+
     def update_grid_visuals(self):
         grid = self.ids.map_grid
         if not grid.children or not self.map_data: return
@@ -218,7 +260,13 @@ class MapEditorScreen(Screen):
             if obj:
                 child.text, child.color = obj[:3], (1,0.5,0.5,1) if '#' in obj and obj.split('#')[0].strip() in ENEMY_DATA else (0.5,1,0.5,1)
             elif furn:
-                child.text, child.color = furn['type'][:2], (1,0.5,1,1) if furn.get('is_mimic') else (0.7,0.7,0.7,1)
+                child.text = furn['type'][:2]
+                if furn.get('is_mimic'):
+                    child.color = (1, 0.5, 1, 1) # Purple
+                elif furn.get('is_enchanted'):
+                    child.color = (0.5, 1, 1, 1) # Cyan
+                else:
+                    child.color = (0.7, 0.7, 0.7, 1)
             child.background_color = bg
 
     def do_save(self, filename):
