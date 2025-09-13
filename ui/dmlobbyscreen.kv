@@ -26,6 +26,34 @@
                 size_hint_y: None
                 height: self.minimum_height
 
+        Button:
+            text: "Map vorbereiten"
+            on_press: root.prepare_map()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "Custom Hintergrund setzen"
+            on_press: root.set_custom_background()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        BoxLayout:
+            size_hint_y: None
+            height: 80
+            spacing: 10
+            TextInput:
+                id: welcome_message_input
+                hint_text: "Willkommensnachricht eingeben"
+                font_size: '20sp'
+                multiline: False
+            Button:
+                text: "Senden"
+                size_hint_x: 0.3
+                on_press: root.trigger_send_welcome_message()
+
         BoxLayout:
             size_hint_y: 1.0
 

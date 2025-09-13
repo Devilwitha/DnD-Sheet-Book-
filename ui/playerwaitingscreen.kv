@@ -3,24 +3,20 @@
         orientation: 'vertical'
         padding: 50
         spacing: 20
-        Label:
-            id: waiting_label
-            text: "Verbindung wird hergestellt..."
-            font_size: '24sp'
+        ScrollView:
+            size_hint_y: 0.3
+            Label:
+                id: waiting_label
+                text: "Verbindung wird hergestellt..."
+                font_size: '24sp'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
         Label:
             id: summary_label
             font_size: '16sp'
             text: ""
             size_hint_y: 0.2
-        Label:
-            text: "Verbundene Spieler:"
-            size_hint_y: 0.1
-        ScrollView:
-            GridLayout:
-                id: player_list
-                cols: 1
-                size_hint_y: None
-                height: self.minimum_height
         Button:
             text: "Verbindung abbrechen"
             on_press: root.network_manager.shutdown()

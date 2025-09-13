@@ -1,9 +1,15 @@
+import base64
+import os
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from kivy.app import App
+from kivy.uix.image import Image
+from kivy.graphics import Rectangle
+from kivy.core.image import Image as CoreImage
 from utils.helpers import apply_background, apply_styles_to_widget
 from core.character import Character
 from queue import Empty
+import io
 
 class PlayerWaitingScreen(Screen):
     """A screen for the player to wait in while the DM prepares the game."""
@@ -53,10 +59,37 @@ class PlayerWaitingScreen(Screen):
                     self.proceed_to_game()
                     return # Stop checking for messages here
                 elif msg_type == 'GAME_STATE_UPDATE':
-                    self.update_player_list(payload.get('players', []))
+                    pass # Player list is hidden
+                elif msg_type == 'SET_BACKGROUND':
+                    self.set_background_from_data(payload.get('image'))
+                elif msg_type == 'SET_WELCOME_MESSAGE':
+                    self.ids.waiting_label.text = payload.get('message', '')
 
         except Empty:
             pass
+
+    def set_background_from_data(self, image_base64):
+        if not image_base64: return
+        try:
+            image_data = base64.b64decode(image_base64)
+            data = io.BytesIO(image_data)
+            img = CoreImage(data, ext="png").texture
+
+            # Ensure the background is drawn on the canvas.before
+            with self.canvas.before:
+                self.canvas.before.clear() # Clear previous background
+                self.bg_rect = Rectangle(texture=img, size=self.size, pos=self.pos)
+
+            # Bind the background to update on size/pos changes
+            self.bind(size=self._update_bg_rect, pos=self._update_bg_rect)
+
+        except Exception as e:
+            print(f"Error setting background from data: {e}")
+
+    def _update_bg_rect(self, instance, value):
+        if hasattr(self, 'bg_rect'):
+            self.bg_rect.pos = instance.pos
+            self.bg_rect.size = instance.size
 
     def proceed_to_game(self):
         # The character and connection are already managed by the app/network_manager
@@ -81,9 +114,3 @@ class PlayerWaitingScreen(Screen):
         if self.manager.current != 'player_sheet':
             self.network_manager.shutdown()
 
-    def update_player_list(self, players):
-        """Updates the player list UI."""
-        player_list_widget = self.ids.player_list
-        player_list_widget.clear_widgets()
-        for player_name in players:
-            player_list_widget.add_widget(Label(text=player_name, size_hint_y=None, height=30))

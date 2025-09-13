@@ -1,7 +1,11 @@
 import json
+import os
+import base64
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
+from kivy.uix.popup import Popup
+from kivy.uix.filechooser import FileChooserListView
 from kivy.clock import Clock
 from utils.helpers import apply_background, apply_styles_to_widget
 from queue import Empty
@@ -110,6 +114,36 @@ class DMLobbyScreen(Screen):
 
         self.is_starting_game = True
         self.manager.current = 'dm_main'
+
+    def prepare_map(self):
+        """Switches to the map editor screen."""
+        self.manager.current = 'map_editor'
+
+    def set_custom_background(self):
+        """Opens a file chooser to select a custom background image."""
+        content = FileChooserListView(path=os.path.expanduser("~"), filters=['*.png', '*.jpg', '*.jpeg'])
+        content.bind(selection=self._on_background_selected)
+        self.popup = Popup(title="Select Background Image", content=content, size_hint=(0.9, 0.9))
+        self.popup.open()
+
+    def _on_background_selected(self, instance, selection):
+        if selection:
+            filepath = selection[0]
+            with open(filepath, 'rb') as f:
+                image_data = f.read()
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
+            self.network_manager.broadcast_message('SET_BACKGROUND', {'image': image_base64})
+            self.popup.dismiss()
+
+    def send_welcome_message(self, message_text):
+        """Sends the welcome message to all clients."""
+        if message_text:
+            self.network_manager.broadcast_message('SET_WELCOME_MESSAGE', {'message': message_text})
+
+    def trigger_send_welcome_message(self):
+        """Gets text from input and calls send_welcome_message."""
+        welcome_text = self.ids.welcome_message_input.text
+        self.send_welcome_message(welcome_text)
 
     def go_back(self):
         self.manager.current = 'dm_spiel'
