@@ -42,6 +42,8 @@ from ui.level_up_screen import LevelUpScreen
 from ui.character_editor import CharacterEditor
 from ui.info_screen import InfoScreen
 from ui.settings_screen import SettingsScreen
+from ui.background_settings_screen import BackgroundSettingsScreen
+from ui.customization_settings_screen import CustomizationSettingsScreen
 from ui.splash_screen import SplashScreen
 from ui.system_screen import SystemScreen
 from ui.changelog_screen import ChangelogScreen
@@ -155,6 +157,8 @@ class DnDApp(App):
         Builder.load_file('ui/levelupscreen.kv')
         Builder.load_file('ui/optionsscreen.kv')
         Builder.load_file('ui/settingsscreen.kv')
+        Builder.load_file('ui/backgroundsettingsscreen.kv')
+        Builder.load_file('ui/customizationsettingsscreen.kv')
         Builder.load_file('ui/systemscreen.kv')
         Builder.load_file('ui/changelogscreen.kv')
         Builder.load_file('ui/infoscreen.kv')
@@ -187,6 +191,8 @@ class DnDApp(App):
         sm.add_widget(CharacterSheet(name='sheet'))
         sm.add_widget(OptionsScreen(name='options'))
         sm.add_widget(SettingsScreen(name='settings'))
+        sm.add_widget(BackgroundSettingsScreen(name='background_settings'))
+        sm.add_widget(CustomizationSettingsScreen(name='customization_settings'))
         sm.add_widget(SystemScreen(name='system'))
         sm.add_widget(ChangelogScreen(name='changelog'))
         sm.add_widget(InfoScreen(name='info'))

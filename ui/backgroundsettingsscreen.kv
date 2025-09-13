@@ -1,0 +1,55 @@
+<BackgroundSettingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Hintergrund Einstellungen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        # Content will be added here later
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            size_hint_y: None
+            height: self.minimum_height
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                Label:
+                    text: "Hintergrund anzeigen"
+                Switch:
+                    id: background_switch
+                    on_active: root.on_background_toggle(self.active)
+
+            Button:
+                text: "Allgemeiner Hintergrund"
+                size_hint_y: None
+                height: 50
+                on_press: root.show_background_chooser('background_path')
+
+            Button:
+                text: "Charaktererstellung Hintergrund"
+                size_hint_y: None
+                height: 50
+                on_press: root.show_background_chooser('cs_creator_background_path')
+
+            Button:
+                text: "Charakterbogen Hintergrund"
+                size_hint_y: None
+                height: 50
+                on_press: root.show_background_chooser('cs_sheet_background_path')
+
+        BoxLayout:
+            size_hint_y: 1.0 # Spacer
+
+        Button:
+            text: "Zurück"
+            on_press: root.go_back()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
