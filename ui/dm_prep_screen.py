@@ -8,15 +8,23 @@ from kivy.uix.boxlayout import BoxLayout
 from core.enemy import Enemy
 from utils.helpers import apply_background, apply_styles_to_widget
 
+from kivy.app import App
+
 class DMPrepScreen(Screen):
     """Screen for the DM to prepare the game."""
     def __init__(self, **kwargs):
         super(DMPrepScreen, self).__init__(**kwargs)
         self.enemy_list = []
+        self.map_data = None
+        self.app = App.get_running_app()
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        if hasattr(self.app, 'edited_map_data') and self.app.edited_map_data:
+            self.map_data = self.app.edited_map_data
+            self.app.edited_map_data = None # Clear it after use
+            print("[INFO] DM Prep Screen received updated map data.")
 
     def update_enemy_list_ui(self):
         enemy_list_widget = self.ids.enemy_list_view
@@ -91,4 +99,23 @@ class DMPrepScreen(Screen):
             print(f"[!] Error loading enemy list: {e}")
 
     def open_map_editor(self):
+        map_editor_screen = self.manager.get_screen('map_editor')
+        map_editor_screen.preloaded_map_data = self.map_data
         self.manager.current = 'map_editor'
+
+    def host_session(self):
+        """Gathers all prepared data and transitions to the lobby."""
+        session_data = {
+            'map_data': self.map_data,
+            'enemies': [enemy.to_dict() for enemy in self.enemy_list],
+            'notes': self.ids.session_notes.text,
+            'type': 'prepared' # Distinguish from a saved/loaded session
+        }
+
+        if not session_data['map_data']:
+            # Maybe show a popup to the user
+            print("[WARN] No map data to host with.")
+            # For now, we'll allow it, but a popup would be better UX
+
+        self.app.prepared_session_data = session_data
+        self.manager.current = 'dm_lobby'

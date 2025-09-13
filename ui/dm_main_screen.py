@@ -58,12 +58,22 @@ class DMMainScreen(Screen):
             self.update_event = None
 
     def load_state_from_manager(self):
+        session = None
         if self.app.loaded_session_data:
             session = self.app.loaded_session_data
+            self.app.loaded_session_data = None # Clear after use
+        elif hasattr(self.app, 'prepared_session_data') and self.app.prepared_session_data:
+            session = self.app.prepared_session_data
+            self.app.prepared_session_data = None # Clear after use
+
+        if session:
             self.offline_players = session.get('offline_players', [])
             self.enemies = [Enemy.from_dict(e) for e in session.get('enemies', [])]
-            self.ids.log_output.text = session.get('log', '')
-            self.app.loaded_session_data = None
+            self.map_data = session.get('map_data', None)
+            log_text = session.get('log', "Neue Sitzung gestartet.\n")
+            if session.get('type') == 'prepared':
+                log_text += f"Notizen: {session.get('notes', '')}\n"
+            self.ids.log_output.text = log_text
         else:
             self.ids.log_output.text = "Neue Sitzung gestartet.\n"
 
@@ -103,9 +113,56 @@ class DMMainScreen(Screen):
                 # Now, broadcast the entire updated map state.
                 self.log_message(f"Broadcasting updated map data after move.")
                 self.broadcast_map_data()
+            elif msg_type == 'INTERACT_WITH_OBJECT':
+                pos = tuple(payload['pos'])
+                player_name = self.network_manager.clients[source]['character'].name
+                self.handle_interaction(player_name, pos)
 
         except Empty:
             pass
+
+    def handle_interaction(self, player_name, pos):
+        if not self.map_data or pos not in self.map_data['tiles']:
+            return
+
+        tile = self.map_data['tiles'][pos]
+        furniture = tile.get('furniture')
+
+        if not furniture:
+            return
+
+        furn_type = furniture['type']
+
+        if furniture.get('is_mimic'):
+            self.log_message(f"MIMIC! Die {furn_type} bei {pos} entpuppt sich als Mimic, als {player_name} interagiert!")
+
+            # Remove furniture
+            tile['furniture'] = None
+
+            # Create and add mimic enemy
+            mimic_data = ENEMY_DATA.get('Mimic', {'hp': 30, 'ac': 12, 'attacks': [{'name': 'Biss', 'damage': '1d8+3'}]})
+
+            count = 1
+            for enemy in self.enemies:
+                if enemy.name.startswith('Mimic'):
+                    try:
+                        num = int(enemy.name.split('#')[-1])
+                        if num >= count: count = num + 1
+                    except (ValueError, IndexError): continue
+
+            unique_name = f"Mimic #{count}"
+            new_enemy = Enemy(name=unique_name, hp=mimic_data['hp'], ac=mimic_data['ac'], attacks=mimic_data['attacks'])
+            self.enemies.append(new_enemy)
+
+            # Place mimic on map
+            tile['object'] = new_enemy.name
+
+            self.broadcast_map_data()
+            self.update_ui()
+        else:
+            self.log_message(f"{player_name} interagiert mit {furn_type} bei {pos}.")
+            # Here you could add logic for normal chests, enchanted items etc.
+            # For now, just a log message.
 
     def update_ui(self):
         self.update_online_players_list()
@@ -113,6 +170,7 @@ class DMMainScreen(Screen):
         self.update_enemies_list_ui()
         if self.map_data:
             self.update_map_view()
+            self.update_objects_list_ui()
 
     def update_online_players_list(self):
         player_list_widget = self.ids.online_players_list
@@ -349,10 +407,43 @@ class DMMainScreen(Screen):
 
     def broadcast_map_data(self):
         if self.map_data:
-            map_data_str_keys = self.map_data.copy()
-            map_data_str_keys['tiles'] = {str(k): v for k, v in self.map_data['tiles'].items()}
-            self.network_manager.broadcast_message("MAP_DATA", map_data_str_keys)
+            # Create a copy for players that doesn't reveal mimic or trigger status
+            player_map_data = json.loads(json.dumps(self.map_data)) # Deep copy
+            for tile in player_map_data['tiles'].values():
+                # Hide mimics
+                if tile.get('furniture'):
+                    tile['furniture'].pop('is_mimic', None)
+                # Hide triggers
+                if tile.get('type') == 'Trigger':
+                    tile['type'] = 'Floor'
+                    tile.pop('trigger_message', None)
+
+            player_map_data['tiles'] = {str(k): v for k, v in player_map_data['tiles'].items()}
+
+            self.network_manager.broadcast_message("MAP_DATA", player_map_data)
             self.update_map_view()
+            self.update_objects_list_ui()
+
+    def update_objects_list_ui(self):
+        objects_list_widget = self.ids.objects_list
+        objects_list_widget.clear_widgets()
+        if not self.map_data or not self.map_data.get('tiles'):
+            return
+
+        for pos, tile_data in self.map_data['tiles'].items():
+            if tile_data.get('furniture'):
+                furn = tile_data['furniture']
+                furn_type = furn['type']
+                is_mimic = furn.get('is_mimic', False)
+
+                text = f"{furn_type} at {pos}"
+                if is_mimic:
+                    text += " (Mimic!)"
+
+                label = Label(text=text, size_hint_y=None, height=30)
+                if is_mimic:
+                    label.color = (1, 0.5, 1, 1) # Purple
+                objects_list_widget.add_widget(label)
 
     def update_map_view(self):
         grid = self.ids.dm_map_grid
@@ -371,6 +462,7 @@ class DMMainScreen(Screen):
                     bg_color = [0.9, 0.9, 0.2, 1] # Highlight color
                 elif tile_data.get('type') == 'Wall': bg_color = [0.2, 0.2, 0.2, 1]
                 elif tile_data.get('type') == 'Door': bg_color = [0.6, 0.3, 0.1, 1]
+                elif tile_data.get('type') == 'Trigger': bg_color = [1, 1, 0, 0.5] # Visible to DM
                 tile_button.background_color = bg_color
                 obj = tile_data.get('object')
                 if obj:
@@ -418,6 +510,30 @@ class DMMainScreen(Screen):
             self.map_data['tiles'][from_pos]['object'] = None
             self.map_data['tiles'][to_pos]['object'] = obj_name
             self.log_message(f"{obj_name} moved from {from_pos} to {to_pos}")
+
+            # Check for trigger after the move is complete
+            self.check_for_trigger(obj_name, to_pos)
+
+    def check_for_trigger(self, obj_name, pos):
+        tile = self.map_data['tiles'].get(pos)
+        if not tile or tile.get('type') != 'Trigger':
+            return
+
+        message = tile.get('trigger_message')
+        if not message:
+            return
+
+        # Find the player's address to send them a direct message
+        player_addr = None
+        with self.network_manager.lock:
+            for addr, client_info in self.network_manager.clients.items():
+                if client_info['character'].name == obj_name:
+                    player_addr = addr
+                    break
+
+        if player_addr:
+            self.log_message(f"Trigger ausgelöst bei {pos} von {obj_name}. Sende Nachricht.")
+            self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
 
     def show_map_options_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)

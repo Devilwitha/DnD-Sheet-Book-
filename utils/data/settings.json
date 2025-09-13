@@ -7,5 +7,33 @@
     "cs_sheet_background_path": "osbackground/csbg.png",
     "keyboard_enabled": false,
     "window_width": 487,
-    "window_height": 720
+    "window_height": 720,
+    "font_color_enabled": false,
+    "custom_font_color": [
+        1,
+        1,
+        1,
+        1
+    ],
+    "popup_color_enabled": false,
+    "custom_popup_color": [
+        0.1,
+        0.1,
+        0.1,
+        0.9
+    ],
+    "button_font_color_enabled": false,
+    "custom_button_font_color": [
+        1,
+        1,
+        1,
+        1
+    ],
+    "button_bg_color_enabled": false,
+    "custom_button_bg_color": [
+        1,
+        1,
+        1,
+        1
+    ]
 }

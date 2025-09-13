@@ -35,10 +35,12 @@ class DMLobbyScreen(Screen):
             for addr, client_info in self.network_manager.clients.items():
                 self.add_player_to_list(addr, client_info['character'])
 
-        # Check for loaded session data from the app instance
+        # Check for loaded or prepared session data from the app instance
         if self.app.loaded_session_data:
             self.ids.lobby_title.text = "DM Lobby (Geladene Sitzung)"
             # You could show expected players here if desired
+        elif hasattr(self.app, 'prepared_session_data') and self.app.prepared_session_data:
+            self.ids.lobby_title.text = "DM Lobby (Vorbereitete Sitzung)"
         else:
             self.ids.lobby_title.text = "DM Lobby"
 
@@ -124,3 +126,5 @@ class DMLobbyScreen(Screen):
             self.network_manager.shutdown() # Use the generic shutdown
             if self.app.loaded_session_data:
                 self.app.loaded_session_data = None # Clear session data
+            if hasattr(self.app, 'prepared_session_data'):
+                self.app.prepared_session_data = None # Clear prepared data

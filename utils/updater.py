@@ -3,7 +3,7 @@ import os
 import sys
 import time
 
-def run_update():
+def run_update(branch='main'):
     """
     This script is called by main.py to perform an update.
     It waits for the main app to close, then pulls the latest code,
@@ -18,9 +18,9 @@ def run_update():
         # Use --all to fetch all remote branches
         subprocess.run(["git", "fetch", "--all"], check=True, capture_output=True, text=True)
         
-        print("Forcing update by resetting local branch...")
+        print(f"Forcing update by resetting local branch to origin/{branch}...")
         # Reset the local branch to match the remote, discarding local changes
-        subprocess.run(["git", "reset", "--hard", "origin/main"], check=True, capture_output=True, text=True)
+        subprocess.run(["git", "reset", "--hard", f"origin/{branch}"], check=True, capture_output=True, text=True)
 
         # Step 2: Install Dependencies
         print("Installing/updating Python dependencies...")
@@ -53,4 +53,7 @@ def run_update():
         subprocess.Popen([sys.executable, "main.py"])
 
 if __name__ == "__main__":
-    run_update()
+    branch_arg = 'main'
+    if len(sys.argv) > 1:
+        branch_arg = sys.argv[1]
+    run_update(branch=branch_arg)

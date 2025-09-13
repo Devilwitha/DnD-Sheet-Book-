@@ -64,6 +64,75 @@ class DnDApp(App):
         self.loaded_session_data = None
         self.source_screen = None # For back navigation
         self.edited_map_data = None # To pass map data from editor to DM screen
+        self.player_game_loop = None
+
+    def start_player_gameloop(self):
+        if self.player_game_loop:
+            self.player_game_loop.cancel()
+        self.player_game_loop = Clock.schedule_interval(self.check_for_player_updates, 0.5)
+
+    def stop_player_gameloop(self):
+        if self.player_game_loop:
+            self.player_game_loop.cancel()
+            self.player_game_loop = None
+
+    def check_for_player_updates(self, dt):
+        from utils.helpers import create_styled_popup
+        from kivy.uix.label import Label
+        from queue import Empty
+
+        if not self.network_manager.running and self.network_manager.mode == 'idle':
+            self.handle_disconnect("Verbindung zum DM verloren.")
+            return
+
+        try:
+            while True:
+                source, message = self.network_manager.incoming_messages.get_nowait()
+                msg_type = message.get('type')
+                payload = message.get('payload')
+                sm = self.root.children[0]
+
+                if msg_type == 'KICK':
+                    self.handle_disconnect("Du wurdest vom DM gekickt.")
+                    return
+                elif msg_type == 'MAP_DATA':
+                    if sm.has_screen('player_map'):
+                        sm.get_screen('player_map').set_map_data(payload)
+                    if sm.has_screen('player_sheet'):
+                        sm.get_screen('player_sheet').map_data = payload
+                        sm.get_screen('player_sheet').ids.view_map_button.disabled = False
+                elif msg_type == 'TRIGGER_MESSAGE':
+                    create_styled_popup(
+                        title="!",
+                        content=Label(text=payload.get('message', '...')),
+                        size_hint=(0.7, 0.5)
+                    ).open()
+                elif msg_type == 'GAME_STATE_UPDATE':
+                    if sm.has_screen('player_sheet'):
+                        sm.get_screen('player_sheet').update_player_list(payload.get('players', []))
+                        sm.get_screen('player_sheet').update_initiative_order(payload.get('initiative', []))
+                elif msg_type == 'SET_CHARACTER_DATA':
+                    self.character = Character.from_dict(payload)
+                    if sm.has_screen('player_sheet'):
+                        sm.get_screen('player_sheet').character = self.character
+                        sm.get_screen('player_sheet').update_sheet()
+                    create_styled_popup(title="Update", content=Label(text="Dein Charakter wurde vom DM aktualisiert."), size_hint=(0.6, 0.4)).open()
+                elif msg_type == 'SAVE_YOUR_CHARACTER':
+                    if sm.has_screen('player_sheet'):
+                        sm.get_screen('player_sheet').save_character()
+        except Empty:
+            pass
+
+    def handle_disconnect(self, message):
+        from utils.helpers import create_styled_popup
+        from kivy.uix.label import Label
+
+        self.stop_player_gameloop()
+        if self.network_manager.running:
+            self.network_manager.shutdown()
+
+        create_styled_popup(title="Verbindung getrennt", content=Label(text=message), size_hint=(0.7, 0.4)).open()
+        self.change_screen('main')
 
     def change_screen(self, screen_name, source_screen=None):
         """Changes the screen and sets the source screen for back navigation."""
