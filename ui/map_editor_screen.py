@@ -140,7 +140,7 @@ class MapEditorScreen(Screen):
         content.add_widget(Label(text="Trigger Message:"))
         message_input = TextInput(
             hint_text="Enter trigger message...",
-            text=tile_data.get('trigger_message', ''),
+            text=tile_data.get('trigger_message') or '',
             multiline=True,
             size_hint_y=0.4
         )
