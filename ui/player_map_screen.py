@@ -109,7 +109,9 @@ class PlayerMapScreen(Screen):
                     else:
                         tile_button.color = (0.5, 0.5, 1, 1) # Blue for other players
                 elif furniture:
-                    tile_button.text = furniture['type'][:2]
+                    # Defensive coding: ensure type exists and is a string before slicing
+                    furn_type = str(furniture.get('type', '??'))
+                    tile_button.text = furn_type[:2]
                     tile_button.color = (0.7, 0.7, 0.7, 1) # Grey for furniture
 
                 grid.add_widget(tile_button)

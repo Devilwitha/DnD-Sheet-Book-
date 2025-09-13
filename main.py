@@ -121,6 +121,12 @@ class DnDApp(App):
                 elif msg_type == 'SAVE_YOUR_CHARACTER':
                     if sm.has_screen('player_sheet'):
                         sm.get_screen('player_sheet').save_character()
+                elif msg_type == 'GAME_START':
+                    # This is a fallback handler. The main logic is in the waiting screen,
+                    # but if this loop gets the message first due to a race condition,
+                    # we handle it here to ensure the game starts.
+                    if sm.current == 'player_waiting':
+                        sm.current = 'player_sheet'
         except Empty:
             pass
 
