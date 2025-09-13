@@ -51,13 +51,10 @@ class SystemScreen(Screen):
                     button.disabled = True
 
     def go_to_screen(self, screen_name):
-        self.app.change_screen(screen_name, source_screen=self.name)
+        self.app.change_screen(screen_name)
 
     def go_back(self):
-        if self.app.source_screen:
-            self.app.change_screen(self.app.source_screen)
-        else:
-            self.app.change_screen('options') # Fallback
+        self.app.go_back_screen()
 
     def on_keyboard_toggle(self, value):
         settings = load_settings()

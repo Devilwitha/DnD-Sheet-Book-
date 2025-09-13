@@ -459,12 +459,7 @@ class CharacterSheet(Screen):
 
     def go_back(self):
         """Navigates back to the source screen and clears the source."""
-        app = App.get_running_app()
-        if hasattr(app, 'source_screen') and app.source_screen:
-            self.manager.current = app.source_screen
-            app.source_screen = None # Clear the source after using it
-        else:
-            self.manager.current = 'main' # Fallback
+        self.app.go_back_screen()
 
     def show_short_rest_popup(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)

@@ -33,16 +33,13 @@ class SettingsScreen(Screen):
         apply_styles_to_widget(self)
 
     def go_back(self):
-        if self.app.source_screen:
-            self.app.change_screen(self.app.source_screen)
-        else:
-            self.app.change_screen('options') # Fallback
+        self.app.go_back_screen()
 
     def open_background_settings(self):
-        self.manager.current = 'background_settings'
+        self.app.change_screen('background_settings')
 
     def open_customization_settings(self):
-        self.manager.current = 'customization_settings'
+        self.app.change_screen('customization_settings')
 
     def show_popup(self, title, message):
         popup = create_styled_popup(title=title, content=Label(text=message), size_hint=(0.7, 0.5))

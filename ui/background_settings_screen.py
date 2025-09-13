@@ -76,4 +76,4 @@ class BackgroundSettingsScreen(Screen):
         popup.open()
 
     def go_back(self):
-        self.manager.current = 'settings'
+        self.app.go_back_screen()
