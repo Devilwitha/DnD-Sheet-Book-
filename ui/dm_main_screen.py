@@ -635,18 +635,26 @@ class DMMainScreen(Screen):
             if message:
                 self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
 
-            # Grant items if they exist
+            # Grant items and currency if they exist
             items_to_grant = tile.get('trigger_items', [])
-            if items_to_grant:
+            currency_to_grant = tile.get('trigger_currency', {})
+
+            if items_to_grant or currency_to_grant:
+                granted_items_str_list = []
                 with self.network_manager.lock:
                     char = self.network_manager.clients[player_addr]['character']
-                    granted_items_str_list = []
+
                     for item in items_to_grant:
                         char.add_item(item['name'], item['quantity'])
                         granted_items_str_list.append(f"{item['quantity']}x {item['name']}")
 
-                granted_items_str = ", ".join(granted_items_str_list)
-                self.log_message(f"{obj_name} erhält: {granted_items_str}.")
+                    for code, amount in currency_to_grant.items():
+                        char.add_item(code, amount) # The add_item method handles currency
+                        granted_items_str_list.append(f"{amount} {code}")
+
+                if granted_items_str_list:
+                    granted_items_str = ", ".join(granted_items_str_list)
+                    self.log_message(f"{obj_name} erhält: {granted_items_str}.")
 
                 # Send updated character data to the player
                 self.network_manager.send_message(player_addr, 'SET_CHARACTER_DATA', char.to_dict())

@@ -72,7 +72,7 @@ class MapEditorScreen(Screen):
         self.map_data = {'rows': rows, 'cols': cols, 'tiles': {}}
         for r in range(rows):
             for c in range(cols):
-                self.map_data['tiles'][(r, c)] = {'type': 'Floor', 'object': None, 'furniture': None, 'trigger_message': None, 'trigger_items': []}
+                self.map_data['tiles'][(r, c)] = {'type': 'Floor', 'object': None, 'furniture': None, 'trigger_message': None, 'trigger_items': [], 'trigger_currency': {}}
         self.current_map_filename = None
         self.recreate_grid_from_data()
 
@@ -147,17 +147,22 @@ class MapEditorScreen(Screen):
         content.add_widget(message_input)
 
         content.add_widget(Label(text="Items to Grant (Name,Qty; Name,Qty):"))
-        # Reconstruct item string for editing
         items_str = "; ".join([f"{item['name']},{item['quantity']}" for item in tile_data.get('trigger_items', [])])
-        items_input = TextInput(
-            hint_text="Health Potion,1; Gold,50",
-            text=items_str,
-            multiline=False,
-            size_hint_y=0.2
-        )
+        items_input = TextInput(hint_text="Health Potion,1", text=items_str, multiline=False, size_hint_y=None, height=40)
         content.add_widget(items_input)
 
-        save_btn = Button(text="Save Trigger", size_hint_y=0.2)
+        content.add_widget(Label(text="Currency to Grant:"))
+        currency_layout = GridLayout(cols=2, spacing=10, size_hint_y=None, height=150)
+        currency_inputs = {}
+        for code in ["KP", "SP", "EP", "GM", "PP"]:
+            currency_layout.add_widget(Label(text=f"{code}:"))
+            existing_val = str(tile_data.get('trigger_currency', {}).get(code, 0))
+            text_input = TextInput(text=existing_val, input_filter='int')
+            currency_inputs[code] = text_input
+            currency_layout.add_widget(text_input)
+        content.add_widget(currency_layout)
+
+        save_btn = Button(text="Save Trigger", size_hint_y=None, height=50)
         content.add_widget(save_btn)
 
         popup = create_styled_popup(title="Set Trigger Data", content=content, size_hint=(0.8, 0.6))
@@ -183,6 +188,18 @@ class MapEditorScreen(Screen):
                     print(f"[WARN] Could not parse trigger items string: {e}")
 
             tile_data['trigger_items'] = items_to_add
+
+            # Parse currency
+            currency_to_add = {}
+            for code, text_input in currency_inputs.items():
+                try:
+                    amount = int(text_input.text)
+                    if amount > 0:
+                        currency_to_add[code] = amount
+                except ValueError:
+                    continue # Ignore invalid numbers
+            tile_data['trigger_currency'] = currency_to_add
+
             self.update_grid_visuals()
             popup.dismiss()
 
