@@ -4,6 +4,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from kivy.app import App
 from kivy.uix.image import Image
+from kivy.graphics import Rectangle
 from kivy.core.image import Image as CoreImage
 from utils.helpers import apply_background, apply_styles_to_widget
 from core.character import Character
@@ -62,7 +63,7 @@ class PlayerWaitingScreen(Screen):
                 elif msg_type == 'SET_BACKGROUND':
                     self.set_background_from_data(payload.get('image'))
                 elif msg_type == 'SET_WELCOME_MESSAGE':
-                    self.ids.welcome_message_label.text = payload.get('message', '')
+                    self.ids.waiting_label.text = payload.get('message', '')
 
         except Empty:
             pass
@@ -72,12 +73,23 @@ class PlayerWaitingScreen(Screen):
         try:
             image_data = base64.b64decode(image_base64)
             data = io.BytesIO(image_data)
-            img = CoreImage(data, ext="png").texture # Assumes png, but works for jpg too
+            img = CoreImage(data, ext="png").texture
+
+            # Ensure the background is drawn on the canvas.before
             with self.canvas.before:
-                self.canvas.before.clear()
-                Image(texture=img, size=self.size, allow_stretch=True, keep_ratio=False)
+                self.canvas.before.clear() # Clear previous background
+                self.bg_rect = Rectangle(texture=img, size=self.size, pos=self.pos)
+
+            # Bind the background to update on size/pos changes
+            self.bind(size=self._update_bg_rect, pos=self._update_bg_rect)
+
         except Exception as e:
             print(f"Error setting background from data: {e}")
+
+    def _update_bg_rect(self, instance, value):
+        if hasattr(self, 'bg_rect'):
+            self.bg_rect.pos = instance.pos
+            self.bg_rect.size = instance.size
 
     def proceed_to_game(self):
         # The character and connection are already managed by the app/network_manager

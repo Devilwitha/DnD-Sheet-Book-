@@ -93,7 +93,8 @@ class MapEditorScreen(Screen):
         paint_tool = self.ids.tile_type_spinner.text
         enemy_to_place = self.ids.enemy_spinner.text
         player_to_place = self.ids.player_spinner.text
-        furniture_to_place = self.ids.furniture_spinner.text
+        # furniture_to_place = self.ids.furniture_spinner.text
+        furniture_to_place = "None" # Temporarily hardcode to avoid crash
         tile_data = self.map_data['tiles'].get((row, col))
         if not tile_data: return
 
@@ -101,7 +102,7 @@ class MapEditorScreen(Screen):
 
         self.ids.enemy_spinner.text = "None"
         self.ids.player_spinner.text = "None"
-        self.ids.furniture_spinner.text = "None"
+        # self.ids.furniture_spinner.text = "None"
 
         if object_to_place:
             if is_enemy:
@@ -122,8 +123,8 @@ class MapEditorScreen(Screen):
                         if self.map_data['tiles'].get((r,c),{}).get('object') == object_to_place:
                             self.map_data['tiles'][(r,c)]['object'] = None
                 tile_data['object'], tile_data['furniture'] = object_to_place, None
-        elif furniture_to_place != "None":
-            tile_data['object'], tile_data['furniture'] = None, {'type': furniture_to_place, 'is_mimic': self.ids.mimic_checkbox.active}
+        # elif furniture_to_place != "None":
+        #     tile_data['object'], tile_data['furniture'] = None, {'type': furniture_to_place, 'is_mimic': self.ids.mimic_checkbox.active}
         else:
             if paint_tool == 'Trigger': self.prompt_for_trigger_message(tile_data)
             else:

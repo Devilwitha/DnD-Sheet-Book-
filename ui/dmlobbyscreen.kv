@@ -40,14 +40,19 @@
             height: 80
             font_size: '20sp'
 
-        TextInput:
-            id: welcome_message_input
-            hint_text: "Willkommensnachricht eingeben"
+        BoxLayout:
             size_hint_y: None
             height: 80
-            font_size: '20sp'
-            multiline: False
-            on_text: root.send_welcome_message(self.text)
+            spacing: 10
+            TextInput:
+                id: welcome_message_input
+                hint_text: "Willkommensnachricht eingeben"
+                font_size: '20sp'
+                multiline: False
+            Button:
+                text: "Senden"
+                size_hint_x: 0.3
+                on_press: root.trigger_send_welcome_message()
 
         BoxLayout:
             size_hint_y: 1.0

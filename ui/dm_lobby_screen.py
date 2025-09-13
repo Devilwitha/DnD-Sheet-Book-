@@ -140,6 +140,11 @@ class DMLobbyScreen(Screen):
         if message_text:
             self.network_manager.broadcast_message('SET_WELCOME_MESSAGE', {'message': message_text})
 
+    def trigger_send_welcome_message(self):
+        """Gets text from input and calls send_welcome_message."""
+        welcome_text = self.ids.welcome_message_input.text
+        self.send_welcome_message(welcome_text)
+
     def go_back(self):
         self.manager.current = 'dm_spiel'
 

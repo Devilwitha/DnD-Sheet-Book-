@@ -3,15 +3,15 @@
         orientation: 'vertical'
         padding: 50
         spacing: 20
-        Label:
-            id: waiting_label
-            text: "Verbindung wird hergestellt..."
-            font_size: '24sp'
-        Label:
-            id: welcome_message_label
-            text: ""
-            font_size: '18sp'
-            size_hint_y: 0.2
+        ScrollView:
+            size_hint_y: 0.3
+            Label:
+                id: waiting_label
+                text: "Verbindung wird hergestellt..."
+                font_size: '24sp'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
         Label:
             id: summary_label
             font_size: '16sp'
