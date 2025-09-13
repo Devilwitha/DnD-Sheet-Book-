@@ -138,7 +138,11 @@ class DnDApp(App):
 
     def change_screen(self, screen_name, transition_direction='left'):
         """Changes the screen and manages the navigation history."""
+        print(f"[NAV] Attempting to change screen to: {screen_name}")
         current_screen = self.root.children[0].current
+        print(f"[NAV] Current screen is: {current_screen}")
+        print(f"[NAV] History before change: {self.screen_history}")
+
         if screen_name != current_screen:
             # Add the current screen to history if it's not already at the top
             if not self.screen_history or self.screen_history[-1] != current_screen:
@@ -150,12 +154,21 @@ class DnDApp(App):
 
             self.root.children[0].transition.direction = transition_direction
             self.root.children[0].current = screen_name
+            print(f"[NAV] History after change: {self.screen_history}")
+        else:
+            print("[NAV] Screen change ignored (already on that screen).")
 
     def go_back_screen(self):
         """Navigates to the previous screen in the history."""
+        print("[NAV] Go back called.")
+        print(f"[NAV] History before back: {self.screen_history}")
         if self.screen_history:
             previous_screen = self.screen_history.pop()
+            print(f"[NAV] Popped '{previous_screen}' from history.")
+            print(f"[NAV] History after back: {self.screen_history}")
             self.change_screen(previous_screen, transition_direction='right')
+        else:
+            print("[NAV] History empty, cannot go back.")
 
     def build(self):
         Builder.load_file('ui/splashscreen.kv')
