@@ -136,9 +136,56 @@ class DMMainScreen(Screen):
                 pos = tuple(payload['pos'])
                 player_name = self.network_manager.clients[source]['character'].name
                 self.handle_interaction(player_name, pos)
+            elif msg_type == 'PLAYER_ATTACK':
+                player_name = self.network_manager.clients[source]['character'].name
+                self.handle_player_attack(player_name, payload)
 
         except Empty:
             pass
+
+    def handle_player_attack(self, player_name, payload):
+        enemy_name = payload.get('enemy_name')
+        attack_roll = payload.get('attack_roll')
+        damage = payload.get('damage')
+        details = payload.get('details', '') # For auto-roll logging
+
+        target_enemy = None
+        for enemy in self.enemies:
+            if enemy.name == enemy_name:
+                target_enemy = enemy
+                break
+
+        if not target_enemy:
+            self.log_message(f"[ERROR] {player_name} attacked {enemy_name}, but it could not be found.")
+            return
+
+        # Log the attack attempt
+        if payload['type'] == 'auto':
+            self.log_message(f"{player_name} greift {enemy_name} an... ({details})")
+        else:
+            self.log_message(f"{player_name} greift {enemy_name} an... (Manuelle Eingabe: {attack_roll})")
+
+        # Check if the attack hits
+        if attack_roll >= target_enemy.ac:
+            target_enemy.hp -= damage
+            self.log_message(f"GETROFFEN! {enemy_name} erleidet {damage} Schaden. Verbleibende HP: {target_enemy.hp}")
+
+            if target_enemy.hp <= 0:
+                self.log_message(f"{enemy_name} wurde besiegt!")
+                self.enemies.remove(target_enemy)
+
+                # Remove from map
+                for pos, tile in self.map_data['tiles'].items():
+                    if tile.get('object') == enemy_name:
+                        tile['object'] = None
+                        break
+
+                self.broadcast_map_data()
+        else:
+            self.log_message(f"VERFEHLT! Der Angriff auf {enemy_name} geht daneben.")
+
+        # Update the UI for the DM
+        self.update_enemies_list_ui()
 
     def handle_interaction(self, player_name, pos):
         if not self.map_data or pos not in self.map_data['tiles']:
