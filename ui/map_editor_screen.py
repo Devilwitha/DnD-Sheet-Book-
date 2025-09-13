@@ -85,13 +85,25 @@ class MapEditorScreen(Screen):
         for r in range(rows):
             for c in range(cols):
                 tile_button = Button()
-                tile_button.bind(on_press=partial(self.on_tile_click, r, c))
+                tile_button.bind(on_touch_down=partial(self.on_tile_touch_down, r, c))
                 grid.add_widget(tile_button)
         self.update_grid_visuals()
 
-    def on_tile_click(self, row, col, instance):
-        paint_tool = self.ids.tile_type_spinner.text
-        enemy_to_place = self.ids.enemy_spinner.text
+    def on_tile_touch_down(self, row, col, instance, touch):
+        if instance.collide_point(*touch.pos):
+            if touch.button == 'right':
+                tile_data = self.map_data['tiles'].get((row, col))
+                if tile_data:
+                    tile_data['type'] = 'Floor'
+                    tile_data['object'] = None
+                    tile_data['furniture'] = None
+                    tile_data.pop('trigger_message', None)
+                    self.update_grid_visuals()
+                return
+
+            # If it's not a right-click, proceed with the normal logic
+            paint_tool = self.ids.tile_type_spinner.text
+            enemy_to_place = self.ids.enemy_spinner.text
         player_to_place = self.ids.player_spinner.text
         furniture_to_place = self.ids.furniture_spinner.text
         tile_data = self.map_data['tiles'].get((row, col))
@@ -254,10 +266,25 @@ class MapEditorScreen(Screen):
         self.custom_enemy_list = None
         self.populate_spinners()
 
+    def show_info_popup(self):
+        info_text = (
+            "[b]Map Editor Bedienung[/b]\n\n"
+            "- [b]Grid erstellen:[/b] Geben Sie die gewünschte Anzahl an Zeilen und Spalten ein und klicken Sie auf 'Create Grid'.\n\n"
+            "- [b]Malen:[/b] Wählen Sie einen Kacheltyp (Floor, Wall, Door) aus dem 'Paint Tool' Dropdown-Menü und klicken Sie auf die Kacheln, um sie zu malen.\n\n"
+            "- [b]Gegner/Spieler platzieren:[/b] Wählen Sie einen Gegner oder Spieler aus den entsprechenden Dropdown-Menüs aus. Klicken Sie dann auf eine Kachel, um ihn zu platzieren.\n\n"
+            "- [b]Speichern/Laden:[/b] Verwenden Sie die 'Save Map' und 'Load Map' Buttons, um Ihren Fortschritt zu speichern und zu laden.\n\n"
+            "- [b]Gegnerlisten:[/b] Sie können benutzerdefinierte Gegnerlisten laden, um die 'Place Enemy' Auswahl zu füllen."
+        )
+        content = ScrollView()
+        label = Label(text=info_text, markup=True, size_hint_y=None, padding=(10, 10))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
+        content.add_widget(label)
+        create_styled_popup(title="Map Editor Info", content=content, size_hint=(0.8, 0.8)).open()
+
     def go_back(self):
         if self.map_data.get('tiles'):
              self.app.edited_map_data = self.map_data
-        if self.app.source_screen:
-            self.app.change_screen(self.app.source_screen)
-        else:
-            self.app.change_screen('dm_prep')
+        self.app.go_back_screen()

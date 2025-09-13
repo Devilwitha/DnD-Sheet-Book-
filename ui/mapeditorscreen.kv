@@ -111,6 +111,12 @@
                 size_hint_y: 1.0 # Spacer
 
             Button:
+                text: "Info"
+                on_press: root.show_info_popup()
+                size_hint_y: None
+                height: 44
+
+            Button:
                 text: "Zurück"
                 on_press: root.go_back()
                 size_hint_y: None
