@@ -62,6 +62,9 @@ class MapEditorScreen(Screen):
             print(f"[WARN] Could not get player list for map editor: {e}")
         self.ids.player_spinner.values = ["None"] + sorted(player_names)
 
+        furniture_items = ["None", "Table", "Chair", "Chest", "Bed", "Barrel", "Bookcase"]
+        self.ids.furniture_spinner.values = sorted(furniture_items)
+
     def create_grid(self):
         try:
             rows = int(self.ids.rows_input.text)
@@ -104,8 +107,8 @@ class MapEditorScreen(Screen):
             # If it's not a right-click, proceed with the normal logic
             paint_tool = self.ids.tile_type_spinner.text
             enemy_to_place = self.ids.enemy_spinner.text
-        player_to_place = self.ids.player_spinner.text
-        furniture_to_place = self.ids.furniture_spinner.text
+            player_to_place = self.ids.player_spinner.text
+            furniture_to_place = self.ids.furniture_spinner.text
         tile_data = self.map_data['tiles'].get((row, col))
         if not tile_data: return
 
