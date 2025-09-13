@@ -31,6 +31,22 @@ class PlayerCharacterSheet(Screen):
         # The character should be set by the app's global loop or waiting screen
         self.character = self.app.character
         self.update_sheet()
+        # Start the main game loop when entering this screen
+        self.app.start_player_gameloop()
+
+    def on_leave(self, *args):
+        # Stop the main game loop if we are leaving the game (e.g. disconnect)
+        # We don't want to stop it if we are just navigating to the map screen.
+        if self.manager.current not in ['player_map']:
+             self.app.stop_player_gameloop()
+        # Start the main game loop when entering this screen
+        self.app.start_player_gameloop()
+
+    def on_leave(self, *args):
+        # Stop the main game loop if we are leaving the game (e.g. disconnect)
+        # We don't want to stop it if we are just navigating to the map screen.
+        if self.manager.current not in ['player_map']:
+             self.app.stop_player_gameloop()
 
     def view_map(self):
         # The map data is now managed by the global loop

@@ -1,6 +1,7 @@
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from kivy.app import App
+from kivy.uix.label import Label
 from utils.helpers import apply_background, apply_styles_to_widget
 from core.character import Character
 from queue import Empty
@@ -59,8 +60,9 @@ class PlayerWaitingScreen(Screen):
             pass
 
     def proceed_to_game(self):
-        # The character and connection are already managed by the app/network_manager
-        self.app.start_player_gameloop()
+        # The character and connection are already managed by the app/network_manager.
+        # This screen's only job is to wait for the GAME_START signal and change the screen.
+        # The new screen will be responsible for starting the main game loop.
         self.manager.current = 'player_sheet'
 
     def handle_disconnect(self, message):
