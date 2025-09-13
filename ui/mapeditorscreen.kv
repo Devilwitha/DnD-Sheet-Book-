@@ -47,54 +47,63 @@
             Spinner:
                 id: tile_type_spinner
                 text: "Floor"
-                values: ["Floor", "Wall", "Door", "Trigger"]
+                values: ["Floor", "Wall", "Door"]
                 size_hint_y: None
                 height: 44
 
             Label:
-                text: "Place Object"
+                text: "Place Enemy"
                 font_size: '18sp'
                 size_hint_y: None
                 height: 30
 
             Spinner:
-                id: object_spinner
+                id: enemy_spinner
                 text: "None"
-                values: ["None"] # Will be populated with enemies/players
+                values: ["None"]
                 size_hint_y: None
                 height: 44
 
             Label:
-                text: "Place Furniture"
+                text: "Place Player"
                 font_size: '18sp'
                 size_hint_y: None
                 height: 30
 
             Spinner:
-                id: furniture_spinner
+                id: player_spinner
                 text: "None"
-                values: ["None", "Chest", "Table", "Statue", "Altar", "Bookshelf"]
+                values: ["None"]
                 size_hint_y: None
                 height: 44
-
-            BoxLayout:
-                size_hint_y: None
-                height: 30
-                Label:
-                    text: "Is Mimic/Enchanted:"
-                CheckBox:
-                    id: mimic_checkbox
-                    size_hint_x: 0.3
 
             Button:
                 text: "Save Map"
-                on_press: root.save_map_popup()
+                on_press: root.save_map()
+                size_hint_y: None
+                height: 44
+
+            Button:
+                text: "Save Map As..."
+                on_press: root.save_map_as_popup()
                 size_hint_y: None
                 height: 44
 
             Button:
                 text: "Load Map"
                 on_press: root.load_map_popup()
+                size_hint_y: None
+                height: 44
+
+            Button:
+                text: "Load Enemy List"
+                on_press: root.load_enemy_list_popup()
+                size_hint_y: None
+                height: 44
+
+            Button:
+                text: "Reset Enemy List"
+                on_press: root.reset_enemy_list()
                 size_hint_y: None
                 height: 44
 

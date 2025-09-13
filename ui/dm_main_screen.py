@@ -68,8 +68,27 @@ class DMMainScreen(Screen):
 
         if session:
             self.offline_players = session.get('offline_players', [])
-            self.enemies = [Enemy.from_dict(e) for e in session.get('enemies', [])]
             self.map_data = session.get('map_data', None)
+
+            # Prioritize loading enemies from the map data if it exists and has an enemy list
+            if self.map_data and 'enemies' in self.map_data:
+                self.enemies.clear()
+                for enemy_name in self.map_data['enemies']:
+                    base_name = enemy_name.split('#')[0].strip()
+                    if base_name in ENEMY_DATA:
+                        enemy_stats = ENEMY_DATA[base_name]
+                        new_enemy = Enemy(
+                            name=enemy_name,
+                            hp=enemy_stats['hp'],
+                            ac=enemy_stats['ac'],
+                            attacks=enemy_stats['attacks']
+                        )
+                        self.enemies.append(new_enemy)
+                self.log_message("Feindliste automatisch von der Karte geladen.")
+            else:
+                # Fallback to the session's enemy list
+                self.enemies = [Enemy.from_dict(e) for e in session.get('enemies', [])]
+
             log_text = session.get('log', "Neue Sitzung gestartet.\n")
             if session.get('type') == 'prepared':
                 log_text += f"Notizen: {session.get('notes', '')}\n"
@@ -117,9 +136,56 @@ class DMMainScreen(Screen):
                 pos = tuple(payload['pos'])
                 player_name = self.network_manager.clients[source]['character'].name
                 self.handle_interaction(player_name, pos)
+            elif msg_type == 'PLAYER_ATTACK':
+                player_name = self.network_manager.clients[source]['character'].name
+                self.handle_player_attack(player_name, payload)
 
         except Empty:
             pass
+
+    def handle_player_attack(self, player_name, payload):
+        enemy_name = payload.get('enemy_name')
+        attack_roll = payload.get('attack_roll')
+        damage = payload.get('damage')
+        details = payload.get('details', '') # For auto-roll logging
+
+        target_enemy = None
+        for enemy in self.enemies:
+            if enemy.name == enemy_name:
+                target_enemy = enemy
+                break
+
+        if not target_enemy:
+            self.log_message(f"[ERROR] {player_name} attacked {enemy_name}, but it could not be found.")
+            return
+
+        # Log the attack attempt
+        if payload['type'] == 'auto':
+            self.log_message(f"{player_name} greift {enemy_name} an... ({details})")
+        else:
+            self.log_message(f"{player_name} greift {enemy_name} an... (Manuelle Eingabe: {attack_roll})")
+
+        # Check if the attack hits
+        if attack_roll >= target_enemy.ac:
+            target_enemy.hp -= damage
+            self.log_message(f"GETROFFEN! {enemy_name} erleidet {damage} Schaden. Verbleibende HP: {target_enemy.hp}")
+
+            if target_enemy.hp <= 0:
+                self.log_message(f"{enemy_name} wurde besiegt!")
+                self.enemies.remove(target_enemy)
+
+                # Remove from map
+                for pos, tile in self.map_data['tiles'].items():
+                    if tile.get('object') == enemy_name:
+                        tile['object'] = None
+                        break
+
+                self.broadcast_map_data()
+        else:
+            self.log_message(f"VERFEHLT! Der Angriff auf {enemy_name} geht daneben.")
+
+        # Update the UI for the DM
+        self.update_enemies_list_ui()
 
     def handle_interaction(self, player_name, pos):
         if not self.map_data or pos not in self.map_data['tiles']:
@@ -397,9 +463,28 @@ class DMMainScreen(Screen):
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
+
             self.map_data = loaded_data
             self.map_data['tiles'] = {eval(k): v for k, v in loaded_data['tiles'].items()}
             self.log_message(f"Map '{filename}' loaded.")
+
+            # Auto-load enemies from map file
+            if 'enemies' in loaded_data:
+                self.enemies.clear()
+                for enemy_name in loaded_data['enemies']:
+                    base_name = enemy_name.split('#')[0].strip()
+                    if base_name in ENEMY_DATA:
+                        enemy_stats = ENEMY_DATA[base_name]
+                        new_enemy = Enemy(
+                            name=enemy_name,
+                            hp=enemy_stats['hp'],
+                            ac=enemy_stats['ac'],
+                            attacks=enemy_stats['attacks']
+                        )
+                        self.enemies.append(new_enemy)
+                self.log_message(f"Feindliste automatisch von der Karte geladen.")
+                self.update_enemies_list_ui()
+
             self.broadcast_map_data()
             if hasattr(self, 'load_map_popup_widget'): self.load_map_popup_widget.dismiss()
         except Exception as e:
@@ -407,18 +492,30 @@ class DMMainScreen(Screen):
 
     def broadcast_map_data(self):
         if self.map_data:
-            # Create a copy for players that doesn't reveal mimic or trigger status
-            player_map_data = json.loads(json.dumps(self.map_data)) # Deep copy
-            for tile in player_map_data['tiles'].values():
-                # Hide mimics
-                if tile.get('furniture'):
-                    tile['furniture'].pop('is_mimic', None)
-                # Hide triggers
-                if tile.get('type') == 'Trigger':
-                    tile['type'] = 'Floor'
-                    tile.pop('trigger_message', None)
+            # Manually create a deep copy that is safe for players and JSON
+            player_map_data = {
+                'rows': self.map_data.get('rows'),
+                'cols': self.map_data.get('cols'),
+                'enemies': self.map_data.get('enemies', []), # Pass enemy list
+                'tiles': {}
+            }
 
-            player_map_data['tiles'] = {str(k): v for k, v in player_map_data['tiles'].items()}
+            for pos, tile_data in self.map_data['tiles'].items():
+                # Copy the tile data
+                tile_copy = tile_data.copy()
+
+                # Hide mimics by making a copy of the furniture dict
+                if 'furniture' in tile_copy and tile_copy['furniture']:
+                    tile_copy['furniture'] = tile_copy['furniture'].copy()
+                    tile_copy['furniture'].pop('is_mimic', None)
+
+                # Hide triggers
+                if tile_copy.get('type') == 'Trigger':
+                    tile_copy['type'] = 'Floor'
+                    tile_copy.pop('trigger_message', None)
+
+                # Use a string key for the new dictionary
+                player_map_data['tiles'][str(pos)] = tile_copy
 
             self.network_manager.broadcast_message("MAP_DATA", player_map_data)
             self.update_map_view()
