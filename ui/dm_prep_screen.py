@@ -101,7 +101,7 @@ class DMPrepScreen(Screen):
     def open_map_editor(self):
         map_editor_screen = self.manager.get_screen('map_editor')
         map_editor_screen.preloaded_map_data = self.map_data
-        self.manager.current = 'map_editor'
+        self.app.change_screen('map_editor')
 
     def host_session(self):
         """Gathers all prepared data and transitions to the lobby."""

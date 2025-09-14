@@ -70,10 +70,8 @@ class BackgroundSettingsScreen(Screen):
         popup.open()
 
     def show_popup(self, title, message):
-        # This is a helper method that might be needed.
-        # It can be removed if not used.
         popup = create_styled_popup(title=title, content=Label(text=message), size_hint=(0.7, 0.5))
         popup.open()
 
     def go_back(self):
-        self.manager.current = 'settings'
+        self.app.go_back_screen()

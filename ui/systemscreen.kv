@@ -21,20 +21,21 @@
 
         Button:
             id: wifi_button
-            text: "Wifi"
-            on_press: root.show_wifi_popup()
+            text: "WLAN"
+            on_press: root.open_wifi_settings()
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         BoxLayout:
             size_hint_y: None
-            height: 40
+            height: 80
             Label:
-                text: "Bildschirmtastatur an/aus"
+                text: "On-Screen Keyboard"
+                font_size: '20sp'
             Switch:
                 id: keyboard_switch
-                on_active: root.on_keyboard_toggle(self.active)
+                on_active: root.toggle_keyboard(self.active)
 
         Button:
             text: "Changelog"

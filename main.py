@@ -64,7 +64,7 @@ class DnDApp(App):
         super(DnDApp, self).__init__(**kwargs)
         self.network_manager = NetworkManager()
         self.loaded_session_data = None
-        self.source_screen = None # For back navigation
+        self.screen_history = [] # For back navigation
         self.edited_map_data = None # To pass map data from editor to DM screen
         self.player_game_loop = None
 
@@ -136,16 +136,27 @@ class DnDApp(App):
         create_styled_popup(title="Verbindung getrennt", content=Label(text=message), size_hint=(0.7, 0.4)).open()
         self.change_screen('main')
 
-    def change_screen(self, screen_name, source_screen=None):
-        """Changes the screen and sets the source screen for back navigation."""
-        if source_screen:
-            self.source_screen = source_screen
-        # It's a good practice to clear the source screen if not provided,
-        # to avoid accidental 'back' to a wrong screen.
-        elif screen_name in ['main', 'dm_spiel', 'player_sheet']:
-             self.source_screen = None
+    def change_screen(self, screen_name, transition_direction='left', is_go_back=False):
+        """Changes the screen and manages the navigation history."""
+        current_screen = self.root.children[0].current
+        if screen_name != current_screen:
+            if not is_go_back:
+                # Add the current screen to history if it's not already at the top
+                if not self.screen_history or self.screen_history[-1] != current_screen:
+                    self.screen_history.append(current_screen)
 
-        self.root.children[0].current = screen_name
+            # Reset history for main screens
+            if screen_name in ['main', 'dm_spiel', 'player_sheet']:
+                self.screen_history = []
+
+            self.root.children[0].transition.direction = transition_direction
+            self.root.children[0].current = screen_name
+
+    def go_back_screen(self):
+        """Navigates to the previous screen in the history."""
+        if self.screen_history:
+            previous_screen = self.screen_history.pop()
+            self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
         Builder.load_file('ui/splashscreen.kv')

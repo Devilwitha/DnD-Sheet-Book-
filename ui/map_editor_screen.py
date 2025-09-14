@@ -13,6 +13,7 @@ from functools import partial
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 from utils.data_manager import ENEMY_DATA
 from kivy.app import App
+from kivy.uix.checkbox import CheckBox
 
 class MapEditorScreen(Screen):
     """Screen for creating and editing maps."""
@@ -62,6 +63,9 @@ class MapEditorScreen(Screen):
             print(f"[WARN] Could not get player list for map editor: {e}")
         self.ids.player_spinner.values = ["None"] + sorted(player_names)
 
+        furniture_items = ["None", "Table", "Chair", "Chest", "Bed", "Barrel", "Bookcase"]
+        self.ids.furniture_spinner.values = sorted(furniture_items)
+
     def create_grid(self):
         try:
             rows = int(self.ids.rows_input.text)
@@ -85,52 +89,59 @@ class MapEditorScreen(Screen):
         for r in range(rows):
             for c in range(cols):
                 tile_button = Button()
-                tile_button.bind(on_press=partial(self.on_tile_click, r, c))
+                tile_button.bind(on_touch_down=partial(self.on_tile_touch_down, r, c))
                 grid.add_widget(tile_button)
         self.update_grid_visuals()
 
-    def on_tile_click(self, row, col, instance):
-        paint_tool = self.ids.tile_type_spinner.text
-        enemy_to_place = self.ids.enemy_spinner.text
-        player_to_place = self.ids.player_spinner.text
-        furniture_to_place = self.ids.furniture_spinner.text
-        tile_data = self.map_data['tiles'].get((row, col))
-        if not tile_data: return
+    def on_tile_touch_down(self, row, col, instance, touch):
+        if instance.collide_point(*touch.pos):
+            if touch.button == 'right':
+                self.show_tile_context_menu(row, col)
+                return
 
-        object_to_place, is_enemy = (player_to_place, False) if player_to_place != "None" else (enemy_to_place, True) if enemy_to_place != "None" else (None, False)
+            # If it's not a right-click, proceed with the normal logic
+            paint_tool = self.ids.tile_type_spinner.text
+            enemy_to_place = self.ids.enemy_spinner.text
+            player_to_place = self.ids.player_spinner.text
+            furniture_to_place = self.ids.furniture_spinner.text
 
-        self.ids.enemy_spinner.text = "None"
-        self.ids.player_spinner.text = "None"
-        self.ids.furniture_spinner.text = "None"
+            tile_data = self.map_data['tiles'].get((row, col))
+            if not tile_data: return
 
-        if object_to_place:
-            if is_enemy:
-                base_name, highest_num = object_to_place, 0
-                for r in range(self.map_data['rows']):
-                    for c in range(self.map_data['cols']):
-                        obj = self.map_data['tiles'].get((r, c), {}).get('object')
-                        if obj and obj.startswith(base_name):
-                            try:
-                                num = int(obj.split('#')[-1])
-                                if num > highest_num: highest_num = num
-                            except (ValueError, IndexError):
-                                if obj == base_name and highest_num == 0: highest_num = 1
-                tile_data['object'], tile_data['furniture'] = f"{base_name} #{highest_num + 1}", None
-            else: # Player
-                for r in range(self.map_data['rows']):
-                    for c in range(self.map_data['cols']):
-                        if self.map_data['tiles'].get((r,c),{}).get('object') == object_to_place:
-                            self.map_data['tiles'][(r,c)]['object'] = None
-                tile_data['object'], tile_data['furniture'] = object_to_place, None
-        elif furniture_to_place != "None":
-            tile_data['object'], tile_data['furniture'] = None, {'type': furniture_to_place, 'is_mimic': self.ids.mimic_checkbox.active}
-        else:
-            if paint_tool == 'Trigger': self.prompt_for_trigger_message(tile_data)
+            object_to_place, is_enemy = (player_to_place, False) if player_to_place != "None" else (enemy_to_place, True) if enemy_to_place != "None" else (None, False)
+
+            self.ids.enemy_spinner.text = "None"
+            self.ids.player_spinner.text = "None"
+            self.ids.furniture_spinner.text = "None"
+
+            if object_to_place:
+                if is_enemy:
+                    base_name, highest_num = object_to_place, 0
+                    for r in range(self.map_data['rows']):
+                        for c in range(self.map_data['cols']):
+                            obj = self.map_data['tiles'].get((r, c), {}).get('object')
+                            if obj and obj.startswith(base_name):
+                                try:
+                                    num = int(obj.split('#')[-1])
+                                    if num > highest_num: highest_num = num
+                                except (ValueError, IndexError):
+                                    if obj == base_name and highest_num == 0: highest_num = 1
+                    tile_data['object'], tile_data['furniture'] = f"{base_name} #{highest_num + 1}", None
+                else: # Player
+                    for r in range(self.map_data['rows']):
+                        for c in range(self.map_data['cols']):
+                            if self.map_data['tiles'].get((r,c),{}).get('object') == object_to_place:
+                                self.map_data['tiles'][(r,c)]['object'] = None
+                    tile_data['object'], tile_data['furniture'] = object_to_place, None
+            elif furniture_to_place != "None":
+                tile_data['object'], tile_data['furniture'] = None, {'type': furniture_to_place, 'is_mimic': self.ids.mimic_checkbox.active}
             else:
-                tile_data['type'] = paint_tool
-                tile_data.pop('trigger_message', None)
-                if paint_tool == 'Wall': tile_data['object'], tile_data['furniture'] = None, None
-        self.update_grid_visuals()
+                if paint_tool == 'Trigger': self.prompt_for_trigger_message(tile_data)
+                else:
+                    tile_data['type'] = paint_tool
+                    tile_data.pop('trigger_message', None)
+                    if paint_tool == 'Wall': tile_data['object'], tile_data['furniture'] = None, None
+            self.update_grid_visuals()
 
     def prompt_for_trigger_message(self, tile_data):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
@@ -257,7 +268,72 @@ class MapEditorScreen(Screen):
     def go_back(self):
         if self.map_data.get('tiles'):
              self.app.edited_map_data = self.map_data
-        if self.app.source_screen:
-            self.app.change_screen(self.app.source_screen)
-        else:
-            self.app.change_screen('dm_prep')
+        self.app.go_back_screen()
+
+    def show_info_popup(self):
+        info_text = (
+            "[b]Map Editor Bedienung[/b]\n\n"
+            "- [b]Grid erstellen:[/b] Geben Sie die gewünschte Anzahl an Zeilen und Spalten ein und klicken Sie auf 'Create Grid'.\n\n"
+            "- [b]Malen:[/b] Wählen Sie einen Kacheltyp (Floor, Wall, Door) aus dem 'Paint Tool' Dropdown-Menü und klicken Sie auf die Kacheln, um sie zu malen.\n\n"
+            "- [b]Gegner/Spieler platzieren:[/b] Wählen Sie einen Gegner oder Spieler aus den entsprechenden Dropdown-Menüs aus. Klicken Sie dann auf eine Kachel, um ihn zu platzieren.\n\n"
+            "- [b]Rechtsklick:[/b] Öffnet ein Kontextmenü für die ausgewählte Kachel.\n\n"
+            "- [b]Speichern/Laden:[/b] Verwenden Sie die 'Save Map' und 'Load Map' Buttons, um Ihren Fortschritt zu speichern und zu laden.\n\n"
+            "- [b]Gegnerlisten:[/b] Sie können benutzerdefinierte Gegnerlisten laden, um die 'Place Enemy' Auswahl zu füllen."
+        )
+        content = ScrollView()
+        label = Label(text=info_text, markup=True, size_hint_y=None, padding=(10, 10))
+        label.bind(
+            width=lambda *x: label.setter('text_size')(label, (label.width, None)),
+            texture_size=lambda *x: label.setter('height')(label, label.texture_size[1])
+        )
+        content.add_widget(label)
+        create_styled_popup(title="Map Editor Info", content=content, size_hint=(0.8, 0.8)).open()
+
+    def show_tile_context_menu(self, row, col):
+        tile_data = self.map_data['tiles'].get((row, col))
+        if not tile_data:
+            return
+
+        content = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
+        content.bind(minimum_height=content.setter('height'))
+
+        reset_button = Button(text="Reset Tile", size_hint_y=None, height=44)
+
+        popup = create_styled_popup(title=f"Options for Tile ({row}, {col})", content=content, size_hint=(0.5, 0.5))
+
+        def reset_action(instance):
+            self.reset_tile(row, col)
+            popup.dismiss()
+
+        reset_button.bind(on_press=reset_action)
+        content.add_widget(reset_button)
+
+        if tile_data.get('furniture'):
+            is_mimic = tile_data['furniture'].get('is_mimic', False)
+            mimic_button_text = "Remove Mimic Flag" if is_mimic else "Flag as Mimic"
+            mimic_button = Button(text=mimic_button_text, size_hint_y=None, height=44)
+
+            def mimic_action(instance):
+                self.toggle_mimic(row, col)
+                popup.dismiss()
+
+            mimic_button.bind(on_press=mimic_action)
+            content.add_widget(mimic_button)
+
+        popup.open()
+
+    def toggle_mimic(self, row, col):
+        tile_data = self.map_data['tiles'].get((row, col))
+        if tile_data and tile_data.get('furniture'):
+            is_mimic = tile_data['furniture'].get('is_mimic', False)
+            tile_data['furniture']['is_mimic'] = not is_mimic
+            self.update_grid_visuals()
+
+    def reset_tile(self, row, col):
+        tile_data = self.map_data['tiles'].get((row, col))
+        if tile_data:
+            tile_data['type'] = 'Floor'
+            tile_data['object'] = None
+            tile_data['furniture'] = None
+            tile_data.pop('trigger_message', None)
+            self.update_grid_visuals()

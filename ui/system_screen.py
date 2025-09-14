@@ -9,9 +9,13 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
+from kivy.uix.textinput import TextInput
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
 
 from utils.helpers import (
-    apply_styles_to_widget, apply_background, create_styled_popup
+    apply_styles_to_widget, apply_background, create_styled_popup,
+    load_settings, save_settings
 )
 
 
@@ -24,46 +28,41 @@ class SystemScreen(Screen):
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        settings = load_settings()
+        self.ids.keyboard_switch.active = settings.get('keyboard_enabled', sys.platform.startswith('linux'))
 
-        if not sys.platform.startswith('linux'):
-            # Hide shutdown button
-            self.ids.shutdown_button.size_hint_y = None
-            self.ids.shutdown_button.height = 0
-            self.ids.shutdown_button.opacity = 0
-            self.ids.shutdown_button.disabled = True
-            # Hide restart button
-            self.ids.restart_button.size_hint_y = None
-            self.ids.restart_button.height = 0
-            self.ids.restart_button.opacity = 0
-            self.ids.restart_button.disabled = True
-            # Hide update button
-            self.ids.update_button.size_hint_y = None
-            self.ids.update_button.height = 0
-            self.ids.update_button.opacity = 0
-            self.ids.update_button.disabled = True
-        else:
-            # Ensure buttons are visible on Linux
-            self.ids.shutdown_button.size_hint_y = None
-            self.ids.shutdown_button.height = 80
-            self.ids.shutdown_button.opacity = 1
-            self.ids.shutdown_button.disabled = False
-            self.ids.restart_button.size_hint_y = None
-            self.ids.restart_button.height = 80
-            self.ids.restart_button.opacity = 1
-            self.ids.restart_button.disabled = False
-            self.ids.update_button.size_hint_y = None
-            self.ids.update_button.height = 80
-            self.ids.update_button.opacity = 1
-            self.ids.update_button.disabled = False
+        is_linux = sys.platform.startswith('linux')
+
+        linux_only_buttons = ['shutdown_button', 'restart_button', 'update_button', 'wifi_button']
+
+        for btn_id in linux_only_buttons:
+            button = self.ids.get(btn_id)
+            if button:
+                if is_linux:
+                    button.size_hint_y = None
+                    button.height = 80
+                    button.opacity = 1
+                    button.disabled = False
+                else:
+                    button.size_hint_y = None
+                    button.height = 0
+                    button.opacity = 0
+                    button.disabled = True
 
     def go_to_screen(self, screen_name):
-        self.app.change_screen(screen_name, source_screen=self.name)
+        self.app.change_screen(screen_name)
 
     def go_back(self):
-        if self.app.source_screen:
-            self.app.change_screen(self.app.source_screen)
-        else:
-            self.app.change_screen('options') # Fallback
+        self.app.go_back_screen()
+
+    def open_wifi_settings(self):
+        self.show_wifi_popup()
+
+    def toggle_keyboard(self, value):
+        settings = load_settings()
+        settings['keyboard_enabled'] = value
+        save_settings(settings)
+        self.show_popup("Neustart erforderlich", "Die Änderung an der Bildschirmtastatur\nwird nach einem Neustart der Anwendung wirksam.")
 
     def shutdown_system(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
@@ -97,18 +96,14 @@ class SystemScreen(Screen):
     def update_app(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         content.add_widget(Label(text='Wählen Sie den Branch für das Update:', height=80, font_size='20sp'))
-
         btn_layout = BoxLayout(spacing=10)
         main_btn = Button(text="Main", on_press=lambda x: self._start_update('main'), height=80, font_size='20sp')
         beta_btn = Button(text="Beta", on_press=lambda x: self._start_update('beta'), height=80, font_size='20sp')
-
         btn_layout.add_widget(main_btn)
         btn_layout.add_widget(beta_btn)
         content.add_widget(btn_layout)
-
         cancel_btn = Button(text="Abbrechen", on_press=lambda x: self.branch_popup.dismiss(), height=80, font_size='20sp')
         content.add_widget(cancel_btn)
-
         apply_styles_to_widget(content)
         self.branch_popup = create_styled_popup(title="Update Branch wählen", content=content, size_hint=(0.6, 0.6))
         self.branch_popup.open()
@@ -168,3 +163,108 @@ class SystemScreen(Screen):
                 self.show_popup("Nicht unterstützt", f"Neustart wird auf '{sys.platform}' nicht unterstützt.")
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Neustarten:\n{e}")
+
+    def _get_wifi_status(self):
+        if not sys.platform.startswith('linux'):
+            return "N/A", "N/A"
+        try:
+            result = subprocess.check_output(['nmcli', '-t', '-f', 'ACTIVE,SSID,SIGNAL', 'dev', 'wifi'], encoding='utf-8')
+            for line in result.strip().split('\n'):
+                if line.startswith('yes:'):
+                    parts = line.split(':')
+                    return parts[1], f"{parts[2]}%"
+        except Exception as e:
+            print(f"Error getting wifi status with nmcli: {e}")
+            try:
+                result = subprocess.check_output(['iwconfig'], encoding='utf-8')
+                ssid, signal = "Not Connected", "0"
+                for line in result.split('\n'):
+                    if "ESSID:" in line:
+                        ssid = line.split('ESSID:"')[1].split('"')[0]
+                    if "Signal level=" in line:
+                        signal_dbm = int(line.split('Signal level=')[1].split(' dBm')[0])
+                        signal = str(2 * (signal_dbm + 100)) if -100 <= signal_dbm <= -50 else "100" if signal_dbm > -50 else "0"
+                return ssid, f"{signal}%"
+            except Exception as e_iw:
+                print(f"Error getting wifi status with iwconfig: {e_iw}")
+                return "Error", "Error"
+        return "Not Connected", "0%"
+
+    def show_wifi_popup(self):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text='Wifi Status'))
+        ssid, signal = self._get_wifi_status()
+        self.wifi_status_label = Label(text=f'SSID: {ssid}\nSignal: {signal}')
+        content.add_widget(self.wifi_status_label)
+        refresh_button = Button(text="Refresh Status", size_hint_y=None, height=50, on_press=self.refresh_wifi_status)
+        content.add_widget(refresh_button)
+        scan_button = Button(text="Scan for networks", size_hint_y=None, height=50, on_press=self.scan_for_wifi)
+        content.add_widget(scan_button)
+        close_button = Button(text="Close", size_hint_y=None, height=50)
+        self.wifi_popup = create_styled_popup(title="Wifi Settings", content=content, size_hint=(0.8, 0.8))
+        close_button.bind(on_press=self.wifi_popup.dismiss)
+        content.add_widget(close_button)
+        self.wifi_popup.open()
+
+    def refresh_wifi_status(self, instance):
+        ssid, signal = self._get_wifi_status()
+        self.wifi_status_label.text = f'SSID: {ssid}\nSignal: {signal}'
+
+    def scan_for_wifi(self, instance):
+        if not sys.platform.startswith('linux'):
+            self.show_popup("Error", "WiFi scanning is only available on Linux.")
+            return
+        try:
+            result = subprocess.check_output(['nmcli', '-t', '-f', 'SSID,SIGNAL', 'dev', 'wifi', 'list', '--rescan', 'yes'], encoding='utf-8')
+            networks = [line.split(':') for line in result.strip().split('\n')]
+        except Exception as e:
+            print(f"Error scanning for wifi: {e}")
+            self.show_popup("Error", "Could not scan for WiFi networks.\nPlease ensure 'nmcli' is installed.")
+            return
+        content = BoxLayout(orientation='vertical', spacing=10)
+        scroll = ScrollView()
+        grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        grid.bind(minimum_height=grid.setter('height'))
+        for ssid, signal in networks:
+            if ssid:
+                btn = Button(text=f"{ssid} ({signal}%)", size_hint_y=None, height=40, on_press=lambda x, ssid=ssid: self._prompt_for_password(ssid))
+                grid.add_widget(btn)
+        scroll.add_widget(grid)
+        content.add_widget(scroll)
+        close_button = Button(text="Close", size_hint_y=None, height=50)
+        scan_popup = create_styled_popup(title="Available Networks", content=content, size_hint=(0.8, 0.8))
+        close_button.bind(on_press=scan_popup.dismiss)
+        content.add_widget(close_button)
+        scan_popup.open()
+
+    def _prompt_for_password(self, ssid):
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content.add_widget(Label(text=f"Enter password for {ssid}"))
+        password_input = TextInput(multiline=False, password=True)
+        content.add_widget(password_input)
+        connect_button = Button(text="Connect")
+        cancel_button = Button(text="Cancel")
+        button_layout = BoxLayout(spacing=10, size_hint_y=None, height=50)
+        button_layout.add_widget(connect_button)
+        button_layout.add_widget(cancel_button)
+        content.add_widget(button_layout)
+        password_popup = create_styled_popup(title="Password", content=content, size_hint=(0.7, 0.5))
+        def connect(instance):
+            password = password_input.text
+            password_popup.dismiss()
+            self._connect_to_wifi(ssid, password)
+        connect_button.bind(on_press=connect)
+        cancel_button.bind(on_press=password_popup.dismiss)
+        password_popup.open()
+
+    def _connect_to_wifi(self, ssid, password):
+        try:
+            command = ['nmcli', 'dev', 'wifi', 'connect', ssid]
+            if password:
+                command.extend(['password', password])
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            self.show_popup("Success", f"Successfully connected to {ssid}")
+            self.refresh_wifi_status(None)
+        except Exception as e:
+            print(f"Error connecting to wifi: {e}")
+            self.show_popup("Error", f"Failed to connect to {ssid}.\nSee console for details.")
