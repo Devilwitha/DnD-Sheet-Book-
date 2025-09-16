@@ -4,6 +4,7 @@ from queue import Queue, Empty
 import socket
 import time
 
+
 # Mock the zeroconf library before it's even imported by the module we're testing
 import sys
 mock_zeroconf = MagicMock()
