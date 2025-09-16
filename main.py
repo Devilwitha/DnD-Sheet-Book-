@@ -61,6 +61,7 @@ from ui.player_map_screen import PlayerMapScreen
 
 class DnDApp(App):
     """Haupt-App-Klasse."""
+    resource_path = resource_path
     def __init__(self, **kwargs):
         super(DnDApp, self).__init__(**kwargs)
         self.network_manager = NetworkManager()
@@ -175,7 +176,6 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
-        Builder.global_ns['resource_path'] = resource_path
         Builder.load_file(resource_path('ui/splashscreen.kv'))
         Builder.load_file(resource_path('ui/mainmenu.kv'))
         Builder.load_file(resource_path('ui/charactercreator.kv'))
