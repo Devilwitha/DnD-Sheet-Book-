@@ -26,15 +26,15 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-      
-      # NEUER, VERBESSERTER SCHRITT
-      - name: Install Android SDK components
+
+      - name: Accept Android licenses
+        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+
+      - name: Install and move Build Tools
         run: |
-          echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0" --sdk_root=$ANDROID_SDK_ROOT
-          echo "--- Listing installed packages ---"
-          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --list_installed
-          echo "--- Listing contents of build-tools directory ---"
-          ls -la $ANDROID_SDK_ROOT/build-tools/
+          sdkmanager "build-tools;34.0.0"
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools
+          mv $ANDROID_SDK_ROOT/build-tools $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools/
 
       - name: Install dependencies
         run: |
