@@ -26,6 +26,8 @@ jobs:
 
       - name: Build with PyInstaller
         shell: pwsh
+        env:
+          KIVY_GL_BACKEND: mock
         run: |
           pyinstaller --noconfirm --onefile --windowed --name DnDApp main.py `
           --add-data "ui;ui" `
