@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock, call
 from queue import Queue, Empty
 import socket
+import time
 
 # Mock the zeroconf library before it's even imported by the module we're testing
 import sys
@@ -38,6 +39,12 @@ def test_start_server(mock_socket_constructor, network_manager):
     # Mock getsockname to return a dummy host/port
     mock_server_socket.getsockname.return_value = ("127.0.0.1", 12345)
     mock_dgram_socket.getsockname.return_value = ("192.168.1.100", 54321)
+    # Mock accept to block for a moment then raise an error, keeping the thread
+    # alive for the assertions but ensuring it stops cleanly.
+    def sleep_then_error(*args):
+        time.sleep(0.5)
+        raise OSError("Test complete, stopping thread")
+    mock_server_socket.accept.side_effect = sleep_then_error
 
     # Start the server
     network_manager.start_server()
