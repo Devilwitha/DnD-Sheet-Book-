@@ -27,12 +27,6 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Manually accept Android licenses
-        run: |
-          mkdir -p $ANDROID_SDK_ROOT/licenses
-          echo "24333f8a63b6825ea9c5514f83c272964db54815" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
-          echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_SDK_ROOT/licenses/android-sdk-preview-license
-
       - name: Install Dependencies
         run: |
           sudo apt-get update
@@ -42,10 +36,16 @@ jobs:
           pip install -r requirements.txt
           pip install buildozer
 
-      - name: Install and Clean Build Tools
+      - name: Prepare Buildozer Environment
         run: |
-          sdkmanager "build-tools;34.0.0"
-          find $ANDROID_SDK_ROOT/build-tools -mindepth 1 -maxdepth 1 ! -name '34.0.0' -exec rm -rf {} +
+          buildozer android release || true
+
+      - name: Manually Accept Licenses and Install Build Tools
+        run: |
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo "24333f8a63b6825ea9c5514f83c272964db54815" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --sdk_root=~/.buildozer/android/platform/android-sdk "build-tools;29.0.0"
+          find ~/.buildozer/android/platform/android-sdk/build-tools/ -mindepth 1 -maxdepth 1 ! -name '29.0.0' -exec rm -rf {} +
 
       - name: Build with Buildozer
         run: |
