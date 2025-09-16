@@ -13,7 +13,9 @@ from queue import Empty
 
 from core.character import Character
 from core.enemy import Enemy
-from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, roll_dice
+from core.game_manager import GameManager
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from utils.non_ui_helpers import roll_dice
 from functools import partial
 from utils.data_manager import ENEMY_DATA
 from kivy.uix.scrollview import ScrollView
@@ -25,18 +27,10 @@ class DMMainScreen(Screen):
         super(DMMainScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.network_manager = self.app.network_manager
+        self.game_manager = GameManager(logger_func=self.log_message)
         self.update_event = None
-        self.offline_players = []
-        self.enemies = []
-        self.initiative_order = []
-        self.map_data = None
         self.selected_object = None
         self.highlighted_tiles = []
-        self.session_players = {}
-        # New attributes for combat
-        self.current_turn_index = -1
-        self.current_turn_pos = None
-        self.turn_action_state = {}
         self._map_widget_bound = False
 
     def on_pre_enter(self, *args):
@@ -49,7 +43,7 @@ class DMMainScreen(Screen):
             self._map_widget_bound = True
 
         if self.app.edited_map_data:
-            self.map_data = self.app.edited_map_data
+            self.game_manager.map_data = self.app.edited_map_data
             self.app.edited_map_data = None
             self.log_message("Zuletzt bearbeitete Karte geladen.")
             self.update_map_widget()
@@ -58,7 +52,6 @@ class DMMainScreen(Screen):
             self.network_manager.broadcast_message("GAME_START", "Das Spiel beginnt!")
             self.load_state_from_manager()
 
-        # This will trigger the first full UI update including the map
         self.update_ui()
         self.update_event = Clock.schedule_interval(self.check_for_updates, 0.2)
 
@@ -77,26 +70,26 @@ class DMMainScreen(Screen):
             self.app.prepared_session_data = None
 
         if session:
-            self.offline_players = session.get('offline_players', [])
-            self.session_players = session.get('online_players', {})
-            self.map_data = session.get('map_data', None)
-            # create_map_grid is no longer needed, update_ui will handle the map widget
-            if self.map_data and 'enemies' in self.map_data:
-                self.enemies.clear()
-                for enemy_name in self.map_data['enemies']:
+            self.game_manager.offline_players = session.get('offline_players', [])
+
+            # online_players from session are now just a list of character dicts
+            # The real online players are managed by NetworkManager
+            self.game_manager.online_players = {} # Will be populated by NetworkManager joins
+
+            self.game_manager.map_data = session.get('map_data', None)
+
+            if self.game_manager.map_data and 'enemies' in self.game_manager.map_data:
+                self.game_manager.enemies.clear()
+                for enemy_name in self.game_manager.map_data['enemies']:
                     base_name = enemy_name.split('#')[0].strip()
                     if base_name in ENEMY_DATA:
                         enemy_stats = ENEMY_DATA[base_name]
-                        new_enemy = Enemy(
-                            name=enemy_name,
-                            hp=enemy_stats['hp'],
-                            armor_class=enemy_stats.get('ac', 10),
-                            attacks=enemy_stats['attacks']
-                        )
-                        self.enemies.append(new_enemy)
+                        new_enemy = Enemy(name=enemy_name, hp=enemy_stats['hp'], armor_class=enemy_stats.get('ac', 10), attacks=enemy_stats['attacks'])
+                        self.game_manager.enemies.append(new_enemy)
                 self.log_message("Feindliste automatisch von der Karte geladen.")
             else:
-                self.enemies = [Enemy.from_dict(e) for e in session.get('enemies', [])]
+                self.game_manager.enemies = [Enemy.from_dict(e) for e in session.get('enemies', [])]
+
             log_text = session.get('log', "Neue Sitzung gestartet.\n")
             if session.get('type') == 'prepared':
                 log_text += f"Notizen: {session.get('notes', '')}\n"
@@ -110,111 +103,77 @@ class DMMainScreen(Screen):
             if not isinstance(item, tuple) or len(item) != 2: return
 
             source, message = item
-            if source in ['PLAYER_JOINED', 'PLAYER_LEFT']:
-                # ... (original logic remains)
+            if source == 'PLAYER_JOINED':
+                char = message['char']
+                self.game_manager.online_players[char.name] = char
+                self.update_ui()
+                return
+            if source == 'PLAYER_LEFT':
+                char_name = message['name']
+                if char_name in self.game_manager.online_players:
+                    del self.game_manager.online_players[char_name]
+                self.update_ui()
                 return
 
             msg_type = message.get('type')
             payload = message.get('payload')
+            player_char = self.network_manager.clients[source]['character']
 
             if msg_type == 'MOVE_OBJECT':
-                self.move_object(payload['name'], tuple(payload['to_pos']))
+                success, reason = self.game_manager.move_object(payload['name'], tuple(payload['to_pos']))
+                if success:
+                    self.update_ui()
+                    self.broadcast_map_data()
+                    self.check_for_trigger(payload['name'], tuple(payload['to_pos']))
+                else:
+                    self.network_manager.send_message(source, "ERROR", reason)
+
             elif msg_type == 'PLAYER_ATTACK':
-                player_name = self.network_manager.clients[source]['character'].name
-                self.handle_player_attack(player_name, payload)
+                result = self.game_manager.handle_attack(
+                    attacker_name=player_char.name,
+                    target_name=payload.get('enemy_name'),
+                    attack_roll=payload.get('attack_roll'),
+                    damage_roll=payload.get('damage')
+                )
+                if result.get('success'):
+                    self.update_ui()
+                    self.broadcast_game_state()
+                else:
+                    self.network_manager.send_message(source, "ERROR", result.get('reason'))
+
             elif msg_type == 'END_TURN':
-                player_name = self.network_manager.clients[source]['character'].name
-                current_char_name = "N/A"
-                if self.initiative_order and self.current_turn_index < len(self.initiative_order):
-                    current_char_name = self.initiative_order[self.current_turn_index][1]
-                self.log_message(f"[DEBUG] End turn request from '{player_name}'. Current turn is '{current_char_name}'.")
-                if current_char_name == player_name:
+                current_turn_name = self.game_manager.get_current_turn_info()['name']
+                if current_turn_name == player_char.name:
                     self.end_turn()
                 else:
-                    self.log_message(f"Warning: {player_name} tried to end turn, but it's not their turn.")
+                    self.log_message(f"Warning: {player_char.name} tried to end turn, but it's not their turn.")
+
             elif msg_type == 'INTERACT_WITH_OBJECT':
-                player_name = self.network_manager.clients[source]['character'].name
-                self.handle_interaction(player_name, tuple(payload['pos']))
+                self.handle_interaction(player_char.name, tuple(payload['pos']))
         except Empty:
             pass
 
     def get_character_or_enemy_by_name(self, name):
-        with self.network_manager.lock:
-            for client in self.network_manager.clients.values():
-                if client['character'].name == name:
-                    return client['character']
-        for enemy in self.enemies:
-            if enemy.name == name:
-                return enemy
-        return None
+        return self.game_manager.get_character_or_enemy_by_name(name)
 
     def handle_character_death(self, character_name):
-        self.log_message(f"{character_name} wurde besiegt!")
-
-        defeated_index = -1
-        for i, (_, name) in enumerate(self.initiative_order):
-            if name == character_name:
-                defeated_index = i
-                break
-
-        char_or_enemy = self.get_character_or_enemy_by_name(character_name)
-        if isinstance(char_or_enemy, Enemy):
-            self.enemies.remove(char_or_enemy)
-
-        self.initiative_order = [item for item in self.initiative_order if item[1] != character_name]
-
-        if defeated_index != -1 and defeated_index <= self.current_turn_index:
-            self.current_turn_index -= 1
-
-        for pos, tile in self.map_data['tiles'].items():
-            if tile.get('object') == character_name:
-                tile['object'] = None
-                break
-
-        if not any(isinstance(self.get_character_or_enemy_by_name(name), Enemy) for _, name in self.initiative_order):
-            self.log_message("SIEG! Alle Feinde wurden besiegt!")
-            self.network_manager.broadcast_message("VICTORY", "Alle Feinde wurden besiegt!")
-            self.current_turn_index = -1
-
+        # This method is now fully handled by the game manager
+        # The UI update and broadcast calls will happen in the calling method
+        outcome = self.game_manager.handle_character_death(character_name)
+        if outcome == "VICTORY":
+             self.network_manager.broadcast_message("VICTORY", "Alle Feinde wurden besiegt!")
         self.update_ui()
         self.broadcast_map_data()
         self.broadcast_game_state()
 
     def handle_player_attack(self, player_name, payload):
-        if not self.initiative_order or self.current_turn_index < 0 or self.initiative_order[self.current_turn_index][1] != player_name:
-            client_addr = self.network_manager.get_client_addr_by_name(player_name)
-            if client_addr: self.network_manager.send_message(client_addr, "ERROR", "Du kannst nicht außerhalb deiner Runde angreifen.")
-            return
-
-        if self.turn_action_state.get('attacks_left', 0) <= 0:
-            client_addr = self.network_manager.get_client_addr_by_name(player_name)
-            if client_addr: self.network_manager.send_message(client_addr, "ERROR", "Du hast keine Angriffe mehr.")
-            return
-
-        enemy_name = payload.get('enemy_name')
-        target_enemy = self.get_character_or_enemy_by_name(enemy_name)
-        if not target_enemy: return
-
-        attack_roll = payload.get('attack_roll')
-        damage = payload.get('damage')
-
-        self.log_message(f"{player_name} greift {enemy_name} an...")
-        if attack_roll >= target_enemy.armor_class:
-            target_enemy.hp -= damage
-            self.log_message(f"GETROFFEN! {enemy_name} erleidet {damage} Schaden. Verbleibende HP: {target_enemy.hp}")
-            if target_enemy.hp <= 0:
-                self.handle_character_death(enemy_name)
-        else:
-            self.log_message("VERFEHLT!")
-
-        self.turn_action_state['attacks_left'] -= 1
-        self.update_ui()
+        # This is now handled in check_for_updates
+        pass
 
     def handle_interaction(self, player_name, pos):
-        # (Restoring original handle_interaction method)
-        if not self.map_data or pos not in self.map_data['tiles']:
+        if not self.game_manager.map_data or pos not in self.game_manager.map_data['tiles']:
             return
-        tile = self.map_data['tiles'][pos]
+        tile = self.game_manager.map_data['tiles'][pos]
         furniture = tile.get('furniture')
         if not furniture: return
         furn_type = furniture['type']
@@ -223,7 +182,7 @@ class DMMainScreen(Screen):
             tile['furniture'] = None
             mimic_data = ENEMY_DATA.get('Mimic', {'hp': 30, 'ac': 12, 'attacks': [{'name': 'Biss', 'damage': '1d8+3'}]})
             count = 1
-            for enemy in self.enemies:
+            for enemy in self.game_manager.enemies:
                 if enemy.name.startswith('Mimic'):
                     try:
                         num = int(enemy.name.split('#')[-1])
@@ -231,7 +190,7 @@ class DMMainScreen(Screen):
                     except (ValueError, IndexError): continue
             unique_name = f"Mimic #{count}"
             new_enemy = Enemy(name=unique_name, hp=mimic_data['hp'], armor_class=mimic_data['ac'], attacks=mimic_data['attacks'])
-            self.enemies.append(new_enemy)
+            self.game_manager.enemies.append(new_enemy)
             tile['object'] = new_enemy.name
             self.update_ui()
             self.broadcast_map_data()
@@ -239,104 +198,74 @@ class DMMainScreen(Screen):
             self.log_message(f"{player_name} interagiert mit {furn_type} bei {pos}.")
 
     def update_ui(self):
-        # This updates non-map related UI parts
         self.update_online_players_list()
         self.update_offline_players_list()
         self.update_enemies_list_ui()
         self.update_initiative_ui()
-        if self.map_data:
+        if self.game_manager.map_data:
             self.update_objects_list_ui()
-            self.update_map_widget() # And also update the map widget
+            self.update_map_widget()
 
     def update_map_widget(self):
-        if self.map_data:
+        if self.game_manager.map_data:
+            current_turn_info = self.game_manager.get_current_turn_info()
             map_widget = self.ids.dm_map_grid
             map_widget.set_data(
-                map_data=self.map_data,
+                map_data=self.game_manager.map_data,
                 highlighted_tiles=self.highlighted_tiles,
-                current_turn_pos=self.current_turn_pos
+                current_turn_pos=current_turn_info['pos']
             )
 
     def log_message(self, message):
-        self.ids.log_output.text += f"{message}\n"
+        # A check to prevent errors during __init__
+        if hasattr(self, 'ids') and self.ids.get('log_output'):
+            self.ids.log_output.text += f"{message}\n"
+        else:
+            print(f"LOG: {message}")
 
     def roll_initiative_for_all(self):
-        self.initiative_order = []
+        # Update game manager with current combatants
         with self.network_manager.lock:
-            for client_info in self.network_manager.clients.values():
-                char = client_info['character']
-                roll = random.randint(1, 20) + char.initiative
-                self.initiative_order.append((roll, char.name))
-        for enemy in self.enemies:
-            roll = random.randint(1, 20)
-            self.initiative_order.append((roll, enemy.name))
+            self.game_manager.online_players = {c['character'].name: c['character'] for c in self.network_manager.clients.values()}
 
-        self.initiative_order.sort(key=lambda x: x[0], reverse=True)
-        log_msg = "Initiativereihenfolge:\n" + "\n".join([f"{roll}: {name}" for roll, name in self.initiative_order])
+        # The enemies list is already managed by the screen, so we pass it
+        # No, wait, it should be managed by the game manager. Refactoring this.
+        # self.game_manager.enemies is the source of truth.
+
+        initiative_order = self.game_manager.roll_initiative_for_all()
+
+        log_msg = "Initiativereihenfolge:\n" + "\n".join([f"{roll}: {name}" for roll, name in initiative_order])
         self.log_message(log_msg)
 
-        if self.initiative_order:
-            self.current_turn_index = 0
-            self.start_next_turn()
-        else:
-            self.current_turn_index = -1
         self.update_initiative_ui()
         self.broadcast_game_state()
 
     def end_turn(self):
-        if not self.initiative_order: return
-        self.current_turn_index = (self.current_turn_index + 1) % len(self.initiative_order)
-        self.start_next_turn()
-
-    def start_next_turn(self):
-        if not self.initiative_order or self.current_turn_index == -1:
-            self.current_turn_pos = None
-            self.update_map_widget()
-            return
-
-        _, current_char_name = self.initiative_order[self.current_turn_index]
-        self.current_turn_pos = None
-        if self.map_data and self.map_data.get('tiles'):
-            for pos, tile in self.map_data['tiles'].items():
-                if tile.get('object') == current_char_name:
-                    self.current_turn_pos = pos
-                    break
-
-        character = self.get_character_or_enemy_by_name(current_char_name)
-        if character:
-            self.turn_action_state = {
-                'movement_left': character.speed,
-                'attacks_left': character.actions_per_turn
-            }
-
-        self.log_message(f"Nächster Zug: {current_char_name} at {self.current_turn_pos}")
+        self.game_manager.end_turn()
         self.update_ui()
         self.broadcast_game_state()
 
-    def broadcast_game_state(self):
-        with self.network_manager.lock:
-            player_names = [c['character'].name for c in self.network_manager.clients.values()]
+    def start_next_turn(self):
+        # This is now handled internally by game_manager on roll_initiative and end_turn
+        pass
 
-        current_turn_name = None
-        if self.current_turn_index != -1 and self.initiative_order:
-            current_turn_name = self.initiative_order[self.current_turn_index][1]
+    def broadcast_game_state(self):
+        current_turn_info = self.game_manager.get_current_turn_info()
         state = {
-            'players': player_names,
-            'initiative': self.initiative_order,
-            'current_turn': current_turn_name,
-            'current_turn_pos': self.current_turn_pos,
-            'turn_action_state': self.turn_action_state
+            'players': list(self.game_manager.online_players.keys()),
+            'initiative': self.game_manager.initiative_order,
+            'current_turn': current_turn_info['name'],
+            'current_turn_pos': current_turn_info['pos'],
+            'turn_action_state': current_turn_info['state']
         }
         self.network_manager.broadcast_message("GAME_STATE_UPDATE", state)
 
     def update_initiative_ui(self):
         initiative_list_widget = self.ids.initiative_list
         initiative_list_widget.clear_widgets()
-        current_turn_name = None
-        if self.current_turn_index != -1 and self.initiative_order:
-            current_turn_name = self.initiative_order[self.current_turn_index][1]
+        current_turn_name = self.game_manager.get_current_turn_info()['name']
 
-        for i, (roll, name) in enumerate(self.initiative_order):
+        for i, (roll, name) in enumerate(self.game_manager.initiative_order):
             text = f"{roll}: {name}"
             label = Label(text=text, size_hint_y=None, height=30)
             if name == current_turn_name:
@@ -347,7 +276,7 @@ class DMMainScreen(Screen):
 
     def create_enemy_instance(self, name, data, instance):
         count = 1
-        for enemy in self.enemies:
+        for enemy in self.game_manager.enemies:
             if enemy.name.startswith(name):
                 try:
                     num = int(enemy.name.split('#')[-1])
@@ -355,7 +284,7 @@ class DMMainScreen(Screen):
                 except (ValueError, IndexError): continue
         unique_name = f"{name} #{count}"
         new_enemy = Enemy(name=unique_name, hp=data['hp'], armor_class=data['ac'], attacks=data['attacks'])
-        self.enemies.append(new_enemy)
+        self.game_manager.enemies.append(new_enemy)
         self.update_enemies_list_ui()
         self.log_message(f"Gegner '{unique_name}' hinzugefügt.")
         if hasattr(self, 'enemy_popup'): self.enemy_popup.dismiss()
@@ -374,18 +303,17 @@ class DMMainScreen(Screen):
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
-            self.map_data = loaded_data
-            self.map_data['tiles'] = {eval(k): v for k, v in loaded_data['tiles'].items()}
+            self.game_manager.map_data = loaded_data
+            self.game_manager.map_data['tiles'] = {eval(k): v for k, v in loaded_data['tiles'].items()}
             self.log_message(f"Map '{filename}' geladen.")
-            # create_map_grid is no longer needed, update_ui will handle the map widget
             if 'enemies' in loaded_data:
-                self.enemies.clear()
+                self.game_manager.enemies.clear()
                 for enemy_name in loaded_data['enemies']:
                     base_name = enemy_name.split('#')[0].strip()
                     if base_name in ENEMY_DATA:
                         enemy_stats = ENEMY_DATA[base_name]
                         new_enemy = Enemy(name=enemy_name, hp=enemy_stats['hp'], armor_class=enemy_stats['ac'], attacks=enemy_stats['attacks'])
-                        self.enemies.append(new_enemy)
+                        self.game_manager.enemies.append(new_enemy)
                 self.log_message(f"Feindliste automatisch von der Karte geladen.")
             self.update_ui()
             self.broadcast_map_data()
@@ -395,14 +323,15 @@ class DMMainScreen(Screen):
             create_styled_popup(title="Load Error", content=Label(text=f"Error loading map:\n{e}"), size_hint=(0.7, 0.5)).open()
 
     def broadcast_map_data(self):
-        if self.map_data:
+        if self.game_manager.map_data:
+            map_data = self.game_manager.map_data
             player_map_data = {
-                'rows': self.map_data.get('rows'),
-                'cols': self.map_data.get('cols'),
-                'enemies': self.map_data.get('enemies', []),
+                'rows': map_data.get('rows'),
+                'cols': map_data.get('cols'),
+                'enemies': map_data.get('enemies', []),
                 'tiles': {}
             }
-            for pos, tile_data in self.map_data['tiles'].items():
+            for pos, tile_data in map_data['tiles'].items():
                 tile_copy = tile_data.copy()
                 if 'furniture' in tile_copy and tile_copy['furniture']:
                     tile_copy['furniture'] = tile_copy['furniture'].copy()
@@ -413,13 +342,9 @@ class DMMainScreen(Screen):
                 player_map_data['tiles'][str(pos)] = tile_copy
             self.network_manager.broadcast_message("MAP_DATA", player_map_data)
 
-    # create_map_grid and update_map_view are now handled by MapGridWidget
-
     def handle_tile_click(self, instance, touch, row, col):
-        """Callback for the custom on_tile_click event from MapGridWidget."""
         if not self.ids.dm_map_grid.collide_point(*touch.pos):
             return False
-
         if not touch.is_mouse_scrolling:
             if touch.button == 'left':
                 self.handle_left_click(row, col)
@@ -431,20 +356,22 @@ class DMMainScreen(Screen):
             self.move_object(self.selected_object['name'], (row, col))
         else:
             self.highlighted_tiles = []
-            tile_data = self.map_data['tiles'].get((row, col))
-            if tile_data and tile_data.get('object'):
-                obj_name = tile_data['object']
-                self.selected_object = {'name': obj_name, 'pos': (row, col)}
-                self.highlight_movement_range(obj_name, row, col)
-            else:
-                self.selected_object = None
+            if self.game_manager.map_data:
+                tile_data = self.game_manager.map_data['tiles'].get((row, col))
+                if tile_data and tile_data.get('object'):
+                    obj_name = tile_data['object']
+                    self.selected_object = {'name': obj_name, 'pos': (row, col)}
+                    self.highlight_movement_range(obj_name, row, col)
+                else:
+                    self.selected_object = None
             self.update_map_widget()
 
     def handle_right_click(self, row, col):
         if not self.selected_object:
             self.log_message("Aktion: Wähle zuerst einen Charakter aus, der angreifen soll (Linksklick).")
             return
-        tile_data = self.map_data['tiles'].get((row, col))
+        if not self.game_manager.map_data: return
+        tile_data = self.game_manager.map_data['tiles'].get((row, col))
         if not tile_data or not tile_data.get('object'):
             self.log_message("Aktion: Du musst auf ein Feld mit einem Ziel klicken.")
             return
@@ -456,23 +383,15 @@ class DMMainScreen(Screen):
         self.dm_attack(attacker_name, target_name)
 
     def dm_attack(self, attacker_name, target_name):
-        if not self.initiative_order:
+        current_turn_name = self.game_manager.get_current_turn_info()['name']
+        if not current_turn_name:
             self.log_message("FEHLER: Der Kampf hat noch nicht begonnen. Würfle zuerst Initiative.")
             return
-        if self.initiative_order and self.current_turn_index >= 0:
-            current_turn_name = self.initiative_order[self.current_turn_index][1]
-            if attacker_name != current_turn_name:
-                self.log_message(f"FEHLER: {attacker_name} kann nicht angreifen, weil {current_turn_name} am Zug ist.")
-                return
-
-        if self.turn_action_state.get('attacks_left', 0) <= 0:
-            self.log_message(f"AKTION: {attacker_name} hat keine Angriffe mehr in dieser Runde.")
+        if attacker_name != current_turn_name:
+            self.log_message(f"FEHLER: {attacker_name} kann nicht angreifen, weil {current_turn_name} am Zug ist.")
             return
 
-        attacker = self.get_character_or_enemy_by_name(attacker_name)
-        target = self.get_character_or_enemy_by_name(target_name)
-        if not attacker or not target: return
-
+        attacker = self.game_manager.get_character_or_enemy_by_name(attacker_name)
         if not isinstance(attacker, Enemy):
             self.log_message("FEHLER: Nur Gegner können vom DM zu Angriffen befehligt werden.")
             return
@@ -483,8 +402,9 @@ class DMMainScreen(Screen):
             return
 
         if len(attacks) == 1:
-            self._execute_dm_attack(attacker, target, attacks[0])
+            self._execute_dm_attack(attacker, target_name, attacks[0])
         else:
+            # Attack choice popup
             content = BoxLayout(orientation='vertical', spacing=10)
             scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
             scroll_content.bind(minimum_height=scroll_content.setter('height'))
@@ -494,7 +414,7 @@ class DMMainScreen(Screen):
                 btn = Button(text=btn_text, size_hint_y=None, height=44)
                 def on_attack_chosen(instance, chosen_attack=attack):
                     popup.dismiss()
-                    self._execute_dm_attack(attacker, target, chosen_attack)
+                    self._execute_dm_attack(attacker, target_name, chosen_attack)
                 btn.bind(on_press=on_attack_chosen)
                 scroll_content.add_widget(btn)
             scroll_view = ScrollView()
@@ -502,100 +422,51 @@ class DMMainScreen(Screen):
             content.add_widget(scroll_view)
             popup.open()
 
-    def _execute_dm_attack(self, attacker, target, attack):
-        attack_roll = random.randint(1, 20)
-        total_attack = attack_roll + attack.get('to_hit', 0)
-        self.log_message(f"{attacker.name} greift {target.name} mit {attack['name']} an! Wurf: {attack_roll} + {attack.get('to_hit', 0)} = {total_attack}")
-        if total_attack >= target.armor_class:
-            damage = roll_dice(attack.get('damage', '1d4'))
-
-            remaining_hp = 0
-            if isinstance(target, Character):
-                target.hit_points -= damage
-                remaining_hp = target.hit_points
-            else: # It's an Enemy
-                target.hp -= damage
-                remaining_hp = target.hp
-
-            self.log_message(f"GETROFFEN! {target.name} erleidet {damage} Schaden. Verbleibende HP: {remaining_hp}")
-
-            if isinstance(target, Character):
-                client_addr = self.network_manager.get_client_addr_by_name(target.name)
-                if client_addr:
-                    self.network_manager.send_message(client_addr, "SET_CHARACTER_DATA", target.to_dict())
-
-            if remaining_hp <= 0:
-                self.handle_character_death(target.name)
+    def _execute_dm_attack(self, attacker, target_name, attack):
+        result = self.game_manager.handle_attack(attacker.name, target_name)
+        if result.get('success'):
+            self.update_ui()
+            self.broadcast_game_state()
         else:
-            self.log_message("VERFEHLT!")
-        self.turn_action_state['attacks_left'] -= 1
-        self.update_ui()
-        self.broadcast_map_data()
-        self.broadcast_game_state()
+            self.log_message(f"ERROR: {result.get('reason')}")
 
     def highlight_movement_range(self, obj_name, r_start, c_start):
-        movement_left = self.turn_action_state.get('movement_left', 0)
+        turn_state = self.game_manager.get_current_turn_info()['state']
+        movement_left = turn_state.get('movement_left', 0)
         self.highlighted_tiles = []
-        if movement_left <= 0: return
-        for r in range(self.map_data['rows']):
-            for c in range(self.map_data['cols']):
+        if movement_left <= 0 or not self.game_manager.map_data: return
+
+        for r in range(self.game_manager.map_data['rows']):
+            for c in range(self.game_manager.map_data['cols']):
                 dist = abs(r - r_start) + abs(c - c_start)
                 if 0 < dist <= movement_left:
-                    tile_data = self.map_data['tiles'].get((r,c))
+                    tile_data = self.game_manager.map_data['tiles'].get((r,c))
                     if tile_data and tile_data['type'] != 'Wall' and not tile_data.get('object'):
                         self.highlighted_tiles.append((r, c))
 
     def move_object(self, obj_name, to_pos):
-        if self.initiative_order and self.current_turn_index >= 0:
-            current_turn_name = self.initiative_order[self.current_turn_index][1]
-            if obj_name != current_turn_name:
-                self.log_message(f"FEHLER: {obj_name} hat versucht, sich außerhalb der Reihe zu bewegen.")
-                return
-        elif self.initiative_order:
-             self.log_message(f"FEHLER: {obj_name} hat versucht sich zu bewegen, aber niemand ist am Zug.")
-             return
-
-        from_pos = None
-        for pos, tile in self.map_data['tiles'].items():
-            if tile.get('object') == obj_name:
-                from_pos = pos
-                break
-
-        if from_pos:
-            dist = abs(to_pos[0] - from_pos[0]) + abs(to_pos[1] - from_pos[1])
-            movement_left = self.turn_action_state.get('movement_left', 0)
-            if dist > movement_left:
-                self.log_message(f"FEHLER: {obj_name} hat versucht, sich zu weit zu bewegen ({dist} > {movement_left}).")
-                return
-
-            self.map_data['tiles'][from_pos]['object'] = None
-            self.map_data['tiles'][to_pos]['object'] = obj_name
-            self.turn_action_state['movement_left'] -= dist
-            self.current_turn_pos = to_pos
-            self.log_message(f"{obj_name} von {from_pos} nach {to_pos} bewegt. Verbleibende Bewegung: {self.turn_action_state['movement_left']}")
-
+        success, reason = self.game_manager.move_object(obj_name, to_pos)
+        if success:
             self.selected_object = None
             self.highlighted_tiles = []
-
             self.update_ui()
             self.broadcast_map_data()
             self.check_for_trigger(obj_name, to_pos)
+        else:
+            self.log_message(f"FEHLER: {reason}")
 
-    # (Keep all original helper functions like add_offline_player, save_session, etc.)
     def update_online_players_list(self):
         online_players_widget = self.ids.online_players_list
         online_players_widget.clear_widgets()
-        with self.network_manager.lock:
-            sorted_clients = sorted(self.network_manager.clients.values(), key=lambda item: item['character'].name)
-            for client_info in sorted_clients:
-                char_name = client_info['character'].name
-                label = Label(text=char_name, size_hint_y=None, height=30)
-                online_players_widget.add_widget(label)
+        sorted_players = sorted(self.game_manager.online_players.values(), key=lambda char: char.name)
+        for char in sorted_players:
+            label = Label(text=char.name, size_hint_y=None, height=30)
+            online_players_widget.add_widget(label)
 
     def update_offline_players_list(self):
         offline_players_widget = self.ids.offline_players_list
         offline_players_widget.clear_widgets()
-        for player_name in sorted(self.offline_players):
+        for player_name in sorted(self.game_manager.offline_players):
             player_entry = BoxLayout(size_hint_y=None, height=40, spacing=5)
             label = Label(text=player_name)
             remove_button = Button(text="Entfernen", size_hint_x=0.4)
@@ -605,8 +476,8 @@ class DMMainScreen(Screen):
             offline_players_widget.add_widget(player_entry)
 
     def remove_offline_player(self, player_name, instance):
-        if player_name in self.offline_players:
-            self.offline_players.remove(player_name)
+        if player_name in self.game_manager.offline_players:
+            self.game_manager.offline_players.remove(player_name)
             self.update_offline_players_list()
             self.log_message(f"Offline-Spieler '{player_name}' entfernt.")
 
@@ -618,8 +489,8 @@ class DMMainScreen(Screen):
         popup = create_styled_popup(title="Offline-Spieler hinzufügen", content=content, size_hint=(0.6, 0.4))
         def do_add(instance):
             player_name = text_input.text.strip()
-            if player_name and player_name not in self.offline_players:
-                self.offline_players.append(player_name)
+            if player_name and player_name not in self.game_manager.offline_players:
+                self.game_manager.offline_players.append(player_name)
                 self.update_offline_players_list()
                 self.log_message(f"Offline-Spieler '{player_name}' hinzugefügt.")
                 popup.dismiss()
@@ -649,26 +520,25 @@ class DMMainScreen(Screen):
         popup = create_styled_popup(title="Sitzung speichern", content=content, size_hint=(0.7, 0.4))
         def do_save(instance):
             filename = text_input.text.strip()
-            if not filename:
-                return
+            if not filename: return
             filename = f"{filename}.json"
             saves_dir = "utils/data/sessions"
             os.makedirs(saves_dir, exist_ok=True)
             filepath = os.path.join(saves_dir, filename)
-            with self.network_manager.lock:
-                online_players = [client['character'].to_dict() for client in self.network_manager.clients.values()]
+
             map_data_to_save = None
-            if self.map_data:
-                map_data_to_save = self.map_data.copy()
-                map_data_to_save['tiles'] = {str(k): v for k, v in self.map_data['tiles'].items()}
+            if self.game_manager.map_data:
+                map_data_to_save = self.game_manager.map_data.copy()
+                map_data_to_save['tiles'] = {str(k): v for k, v in self.game_manager.map_data['tiles'].items()}
+
             session_data = {
-                'online_players': online_players,
-                'offline_players': self.offline_players,
-                'enemies': [enemy.to_dict() for enemy in self.enemies],
+                'online_players': [p.to_dict() for p in self.game_manager.online_players.values()],
+                'offline_players': self.game_manager.offline_players,
+                'enemies': [e.to_dict() for e in self.game_manager.enemies],
                 'map_data': map_data_to_save,
                 'log': self.ids.log_output.text,
-                'initiative_order': self.initiative_order,
-                'current_turn_index': self.current_turn_index,
+                'initiative_order': self.game_manager.initiative_order,
+                'current_turn_index': self.game_manager.current_turn_index,
             }
             try:
                 with open(filepath, 'w', encoding='utf-8') as f:
@@ -704,7 +574,7 @@ class DMMainScreen(Screen):
     def update_enemies_list_ui(self):
         enemy_list_widget = self.ids.enemies_list
         enemy_list_widget.clear_widgets()
-        for enemy in self.enemies:
+        for enemy in self.game_manager.enemies:
             enemy_entry = BoxLayout(size_hint_y=None, height=40)
             name_button = Button(text=enemy.name)
             name_button.bind(on_press=partial(self.show_enemy_stats, enemy))
@@ -714,17 +584,17 @@ class DMMainScreen(Screen):
             enemy_list_widget.add_widget(enemy_entry)
 
     def remove_enemy(self, enemy, instance):
-        if enemy in self.enemies:
-            self.enemies.remove(enemy)
+        if enemy in self.game_manager.enemies:
+            self.game_manager.enemies.remove(enemy)
             self.update_enemies_list_ui()
             self.log_message(f"Gegner '{enemy.name}' entfernt.")
 
     def update_objects_list_ui(self):
         objects_list_widget = self.ids.objects_list
         objects_list_widget.clear_widgets()
-        if not self.map_data or not self.map_data.get('tiles'):
+        if not self.game_manager.map_data or not self.game_manager.map_data.get('tiles'):
             return
-        for pos, tile_data in self.map_data['tiles'].items():
+        for pos, tile_data in self.game_manager.map_data['tiles'].items():
             if tile_data.get('furniture'):
                 furn = tile_data['furniture']
                 furn_type = furn['type']
@@ -738,30 +608,26 @@ class DMMainScreen(Screen):
                 objects_list_widget.add_widget(label)
 
     def check_for_trigger(self, obj_name, pos):
-        tile = self.map_data['tiles'].get(pos)
+        if not self.game_manager.map_data: return
+        tile = self.game_manager.map_data['tiles'].get(pos)
         if not tile or tile.get('type') != 'Trigger':
             return
         message = tile.get('trigger_message')
         if not message:
             return
-        player_addr = None
-        with self.network_manager.lock:
-            for addr, client_info in self.network_manager.clients.items():
-                if client_info['character'].name == obj_name:
-                    player_addr = addr
-                    break
-        if player_addr:
-            self.log_message(f"Trigger ausgelöst bei {pos} von {obj_name}. Sende Nachricht.")
-            self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
+
+        player_char = self.game_manager.get_character_or_enemy_by_name(obj_name)
+        if player_char and isinstance(player_char, Character):
+            player_addr = self.network_manager.get_client_addr_by_name(obj_name)
+            if player_addr:
+                self.log_message(f"Trigger ausgelöst bei {pos} von {obj_name}. Sende Nachricht.")
+                self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
 
     def _editor_callback(self, instance, map_data=None):
         editor_screen = self.manager.get_screen('map_editor')
         if not isinstance(map_data, dict):
             map_data = None
-        if map_data:
-            editor_screen.preloaded_map_data = map_data
-        else:
-            editor_screen.preloaded_map_data = None
+        editor_screen.preloaded_map_data = map_data or self.game_manager.map_data
         self.app.change_screen('map_editor')
 
     def create_new_map(self):
