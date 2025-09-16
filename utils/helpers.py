@@ -1,6 +1,16 @@
 import os
 import sys
 import json
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 import socket
 import random
 from kivy.uix.button import Button
@@ -9,7 +19,7 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, RoundedRectangle
 
-DATA_DIR = 'utils/data'
+DATA_DIR = resource_path('utils/data')
 SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
 
 def load_settings():
