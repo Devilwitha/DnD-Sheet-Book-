@@ -27,37 +27,32 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+          sudo apt-get install -y git zip unzip autoconf automake libtool build-essential pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev libltdl-dev autopoint
 
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "Cython==0.29.33"
-          pip install -r requirements.txt
-          pip install buildozer
-
-      - name: Set up Android SDK
-        run: |
-          wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
-          unzip commandlinetools-linux-8512546_latest.zip
-          mkdir -p android-sdk/cmdline-tools
-          mv cmdline-tools android-sdk/cmdline-tools/latest
-          echo "ANDROID_SDK_ROOT=$PWD/android-sdk" >> $GITHUB_ENV
-          echo "$PWD/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-
-      - name: Manually Accept Licenses and Install Build Tools
-        run: |
-          mkdir -p $ANDROID_SDK_ROOT/licenses
-          echo "24333f8a63b6825ea9c5514f83c272964db54815" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
-          yes | sdkmanager --licenses
-          sdkmanager "platforms;android-31" "build-tools;29.0.0"
+          python -m pip install "cython==0.29.36" virtualenv
+          python -m pip install -r requirements.txt
+          python -m pip install buildozer
 
       - name: Build with Buildozer
         run: |
           buildozer -v android debug
+          ls -l bin
+
+      - name: Get APK Name
+        id: get_apk_name
+        run: |
+          APK_NAME=$(ls bin/*.apk)
+          if [ -z "$APK_NAME" ]; then
+            echo "Fehler: Keine APK-Datei im bin-Verzeichnis gefunden."
+            exit 1
+          fi
+          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: dndapp-debug
-          path: bin/*.apk
+          path: ${{ env.APK_NAME }}
