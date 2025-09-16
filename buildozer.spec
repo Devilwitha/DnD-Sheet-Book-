@@ -8,6 +8,10 @@ version = 0.1
 requirements = python3,kivy,zeroconf
 orientation = landscape
 fullscreen = 1
+android.accept_licenses = True
+icon.filename = %(source.dir)s/logo/logo.png
+presplash.filename = %(source.dir)s/osbackground/splash.png
+android.permissions = INTERNET
 
 [buildozer]
 log_level = 2
