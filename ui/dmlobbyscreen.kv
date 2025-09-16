@@ -26,19 +26,41 @@
                 size_hint_y: None
                 height: self.minimum_height
 
+        Label:
+            text: "Sitzungs-Zusammenfassung:"
+            font_size: '20sp'
+            size_hint_y: None
+            height: 40
+
+        ScrollView:
+            size_hint_y: 1.5
+            Label:
+                id: summary_label
+                text: ""
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: self.width, None
+
         BoxLayout:
-            size_hint_y: 1.0
+            size_hint_y: 0.5
 
-        Button:
-            text: "Spiel starten"
-            on_press: root.start_game()
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
             size_hint_y: None
             height: 80
-            font_size: '20sp'
 
-        Button:
-            text: "Zurück"
-            on_press: root.go_back()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
+            Button:
+                text: "Spiel starten"
+                on_press: root.start_game()
+                font_size: '20sp'
+
+            Button:
+                text: "Hintergrund ändern"
+                on_press: root.change_background()
+                font_size: '20sp'
+
+            Button:
+                text: "Zurück"
+                on_press: root.go_back()
+                font_size: '20sp'

@@ -1,5 +1,5 @@
 {
-    "button_transparency": 0.25,
+    "button_transparency": 0.25310344827586206,
     "transparency_enabled": true,
     "background_enabled": false,
     "background_path": "osbackground/hmbg.png",
@@ -10,30 +10,30 @@
     "window_height": 720,
     "font_color_enabled": false,
     "custom_font_color": [
-        0.55,
         1,
-        0.09999999999999998,
+        0.8,
+        0.19999999999999996,
         1
     ],
     "popup_color_enabled": false,
     "custom_popup_color": [
-        0.6,
         1,
-        0.7,
+        0.5,
+        0.19999999999999996,
         0.9
     ],
     "button_font_color_enabled": false,
     "custom_button_font_color": [
-        0.30000000000000004,
-        0.4750000000000001,
         1,
+        0.09999999999999998,
+        0.09999999999999998,
         1
     ],
     "button_bg_color_enabled": false,
     "custom_button_bg_color": [
-        0.55,
-        0.09999999999999998,
         1,
+        0.09999999999999998,
+        0.775,
         1
     ]
 }

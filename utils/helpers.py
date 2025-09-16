@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import socket
+import random
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
@@ -114,12 +115,12 @@ def apply_styles_to_widget(widget):
 
     apply_to_children(widget)
 
-def create_styled_popup(title, content, size_hint):
+def create_styled_popup(title, content, size_hint, **kwargs):
     settings = load_settings()
     popup_color_enabled = settings.get('popup_color_enabled', False)
     custom_popup_color = settings.get('custom_popup_color', [0.1, 0.1, 0.1, 0.9])
 
-    popup = Popup(title=title, content=content, size_hint=size_hint)
+    popup = Popup(title=title, content=content, size_hint=size_hint, **kwargs)
     if popup_color_enabled:
         popup.background_color = custom_popup_color
         popup.background = ''
@@ -128,12 +129,16 @@ def create_styled_popup(title, content, size_hint):
 
     return popup
 
+from kivy.graphics import Rectangle
+
 def apply_background(screen):
     settings = load_settings()
 
-    old_bg = getattr(screen, '_background_image', None)
-    if old_bg and old_bg.parent:
-        screen.remove_widget(old_bg)
+    # Remove the old background if it exists
+    old_bg_rect = getattr(screen, '_background_rect', None)
+    if old_bg_rect:
+        screen.canvas.before.remove(old_bg_rect)
+        screen._background_rect = None
 
     if settings.get('background_enabled', True):
         bg_path = settings.get('background_path', 'osbackground/hmbg.png')
@@ -141,14 +146,45 @@ def apply_background(screen):
             bg_path = settings.get('cs_creator_background_path', bg_path)
         elif screen.name == 'sheet':
             bg_path = settings.get('cs_sheet_background_path', bg_path)
+        elif screen.name == 'dm_lobby' or screen.name == 'player_waiting':
+            bg_path = settings.get('lobby_background_path', bg_path)
 
         if os.path.exists(bg_path):
             try:
-                background = Image(source=bg_path, allow_stretch=True, keep_ratio=False)
-                screen._background_image = background
-                screen.add_widget(background, index=len(screen.children))
+                with screen.canvas.before:
+                    screen._background_rect = Rectangle(source=bg_path, size=screen.size, pos=screen.pos)
+
+                def update_rect(instance, value):
+                    if hasattr(instance, '_background_rect') and instance._background_rect:
+                        instance._background_rect.pos = instance.pos
+                        instance._background_rect.size = instance.size
+
+                screen.bind(pos=update_rect, size=update_rect)
+
             except Exception as e:
                 print(f"Fehler beim Laden des Hintergrundbildes: {e}")
+
+def roll_dice(dice_string):
+    """
+    Rolls dice based on a string like '1d8+2' or '2d6-1'.
+    Returns the integer result of the roll.
+    """
+    import re
+
+    match = re.match(r"(\d+)d(\d+)([+-]\d+)?", dice_string)
+    if not match:
+        raise ValueError(f"Invalid dice string format: {dice_string}")
+
+    num_dice = int(match.group(1))
+    dice_type = int(match.group(2))
+    modifier_str = match.group(3)
+
+    modifier = 0
+    if modifier_str:
+        modifier = int(modifier_str)
+
+    total = sum(random.randint(1, dice_type) for _ in range(num_dice)) + modifier
+    return total
 
 def get_local_ip():
     s = None

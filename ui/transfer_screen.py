@@ -26,8 +26,16 @@ class FileCheckBox(BoxLayout):
 class TransferScreen(Screen):
     """Screen for sending and receiving character files."""
     status_message = StringProperty("Wähle eine Aktion")
-    char_files = ListProperty([])
+    files_for_transfer = ListProperty([])
     discovered_services = ListProperty([])
+
+    DATA_TYPE_INFO = {
+        'characters': {'dir': 'saves', 'ext': '.char', 'name': 'Charaktere'},
+        'maps': {'dir': os.path.join('utils', 'data', 'maps'), 'ext': '.json', 'name': 'Karten'},
+        'enemies': {'dir': 'saves', 'ext': '.enemies', 'name': 'Gegnerlisten'},
+        'sessions': {'dir': 'saves', 'ext': '.session', 'name': 'Sitzungen'},
+        'logs': {'dir': 'logs', 'ext': '.log', 'name': 'Logs'},
+    }
 
     def __init__(self, **kwargs):
         super(TransferScreen, self).__init__(**kwargs)
@@ -35,6 +43,9 @@ class TransferScreen(Screen):
         self.zeroconf = Zeroconf()
         self.browser = None
         self.service_info = None
+        self.current_transfer_type = None
+        for info in self.DATA_TYPE_INFO.values():
+            os.makedirs(info['dir'], exist_ok=True)
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -55,16 +66,29 @@ class TransferScreen(Screen):
         self._update_service_list_ui()
 
     def _remove_service(self, name):
-        # Find service by name and remove
         service_to_remove = next((s for s in self.discovered_services if s.name == name), None)
         if service_to_remove:
             self.discovered_services.remove(service_to_remove)
         self._update_service_list_ui()
 
-    def list_char_files(self):
-        self.char_files = [f for f in os.listdir('.') if f.endswith('.char')]
-        if not self.char_files:
-            self.status_message = "Keine .char-Dateien gefunden."
+    def list_files_for_transfer(self, data_type):
+        self.current_transfer_type = data_type
+        info = self.DATA_TYPE_INFO.get(data_type)
+        if not info:
+            self.status_message = f"Unbekannter Datentyp: {data_type}"
+            self.files_for_transfer = []
+            return
+
+        try:
+            file_list = [f for f in os.listdir(info['dir']) if f.endswith(info['ext'])]
+            self.files_for_transfer = file_list
+            if not self.files_for_transfer:
+                self.status_message = f"Keine {info['name']} gefunden."
+            else:
+                self.status_message = f"Wähle {info['name']} zum Senden."
+        except FileNotFoundError:
+            self.files_for_transfer = []
+            self.status_message = f"Ordner nicht gefunden: {info['dir']}"
 
     def toggle_file_selection(self, file_path, is_active):
         if is_active:
@@ -78,23 +102,29 @@ class TransferScreen(Screen):
         if not self.selected_files:
             self.status_message = "Keine Dateien zum Senden ausgewählt."
             return
-
         self.status_message = "Starte Server... Warte auf Verbindung."
         threading.Thread(target=self._start_server).start()
 
     def _start_server(self):
         host = '0.0.0.0'
         port = 65432
+        info = self.DATA_TYPE_INFO.get(self.current_transfer_type)
+        if not info:
+            self.status_message = "Fehler: Transfertyp nicht gesetzt."
+            return
 
-        # Register Zeroconf service
         service_name = f"{platform.node()}._dndchar._tcp.local."
         local_ip = get_local_ip()
+        properties = {
+            b'user': platform.node().encode('utf-8'),
+            b'type': self.current_transfer_type.encode('utf-8')
+        }
         self.service_info = ServiceInfo(
             "_dndchar._tcp.local.",
             service_name,
             addresses=[socket.inet_aton(local_ip)],
             port=port,
-            properties={'user': platform.node()}
+            properties=properties
         )
         self.zeroconf.register_service(self.service_info, allow_name_change=True)
         self.status_message = f"Server gestartet, sichtbar als '{platform.node()}'"
@@ -106,14 +136,14 @@ class TransferScreen(Screen):
                 conn, addr = s.accept()
                 with conn:
                     self.status_message = f"Verbunden mit {addr}"
-                    # Send number of files
                     num_files = len(self.selected_files)
                     conn.sendall(str(num_files).encode('utf-8'))
                     time.sleep(0.1)
 
-                    for file_path in self.selected_files:
-                        conn.sendall(file_path.encode('utf-8'))
+                    for file_name in self.selected_files:
+                        conn.sendall(file_name.encode('utf-8'))
                         time.sleep(0.1)
+                        file_path = os.path.join(info['dir'], file_name)
                         with open(file_path, 'rb') as f:
                             data = f.read()
                             conn.sendall(str(len(data)).encode('utf-8'))
@@ -121,57 +151,57 @@ class TransferScreen(Screen):
                             conn.sendall(data)
                     self.status_message = f"{num_files} Dateien erfolgreich gesendet."
         finally:
-            self.zeroconf.unregister_service(self.service_info)
-            self.service_info = None
+            if self.service_info:
+                self.zeroconf.unregister_service(self.service_info)
+                self.service_info = None
             self.status_message = "Übertragung beendet."
-
 
     def connect_to_sender(self, service_info):
         host = socket.inet_ntoa(service_info.addresses[0])
         port = service_info.port
+        data_type = service_info.properties.get(b'type', b'characters').decode('utf-8')
         self.status_message = f"Verbinde mit {service_info.name}..."
-        threading.Thread(target=self._start_client, args=(host, port)).start()
+        threading.Thread(target=self._start_client, args=(host, port, data_type)).start()
         self.stop_service_browser()
 
-    def _start_client(self, host, port):
+    def _start_client(self, host, port, data_type):
+        info = self.DATA_TYPE_INFO.get(data_type)
+        if not info:
+            self.status_message = f"Fehler: Unbekannter Datentyp '{data_type}' vom Sender."
+            return
+
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.connect((host, port))
                 self.status_message = f"Verbunden mit Server {host}"
-
-                # Receive number of files
                 num_files_str = s.recv(1024).decode('utf-8')
                 num_files = int(num_files_str)
 
                 for _ in range(num_files):
-                    # Receive filename
                     filename = s.recv(1024).decode('utf-8')
-
-                    # Receive file size
                     filesize_str = s.recv(1024).decode('utf-8')
                     filesize = int(filesize_str)
-
-                    # Receive file content
                     data = b''
                     while len(data) < filesize:
                         packet = s.recv(4096)
-                        if not packet:
-                            break
+                        if not packet: break
                         data += packet
 
-                    with open(filename, 'wb') as f:
+                    save_dir = info['dir']
+                    os.makedirs(save_dir, exist_ok=True)
+                    file_path = os.path.join(save_dir, filename)
+                    with open(file_path, 'wb') as f:
                         f.write(data)
-                    self.status_message = f"Datei {filename} empfangen."
+                    self.status_message = f"Datei {filename} in {save_dir} empfangen."
 
             except Exception as e:
                 self.status_message = f"Fehler beim Empfangen: {e}"
 
-    def go_to_send_view(self):
-        self.list_char_files()
-        # Populate the file list
+    def go_to_send_view_with_type(self, data_type):
+        self.list_files_for_transfer(data_type)
         file_list_widget = self.ids.file_list
         file_list_widget.clear_widgets()
-        for f in self.char_files:
+        for f in self.files_for_transfer:
             cb = FileCheckBox(text=f, on_active=self.toggle_file_selection)
             file_list_widget.add_widget(cb)
         self.ids.transfer_sm.current = 'send'

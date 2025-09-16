@@ -1,3 +1,5 @@
+#:import MapGridWidget ui.custom_widgets.MapGridWidget
+
 <PlayerMapScreen>:
     BoxLayout:
         orientation: 'vertical'
@@ -10,10 +12,27 @@
             size_hint_y: None
             height: 80
 
-        GridLayout:
+        MapGridWidget:
             id: player_map_grid
-            cols: 10 # Default
-            spacing: 2
+
+        BoxLayout:
+            size_hint_y: None
+            height: 80
+            spacing: 10
+            orientation: 'horizontal'
+
+            Label:
+                id: turn_status_label
+                text: "Am Zug: Niemand"
+                font_size: '20sp'
+
+            Button:
+                id: end_turn_button
+                text: "Runde beenden"
+                on_press: root.end_turn()
+                font_size: '20sp'
+                disabled: True
+                opacity: 0.5
 
         Button:
             id: interact_button

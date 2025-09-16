@@ -1,3 +1,5 @@
+#:import MapGridWidget ui.custom_widgets.MapGridWidget
+
 <DMMainScreen>:
     BoxLayout:
         orientation: 'horizontal'
@@ -59,11 +61,9 @@
                     height: self.minimum_height
 
         # Center: Map
-        GridLayout:
+        MapGridWidget:
             id: dm_map_grid
             size_hint_x: 0.5
-            cols: 10 # Default
-            spacing: 2
 
         # Right side: Controls and Log
         BoxLayout:
@@ -84,6 +84,19 @@
                     cols: 1
                     size_hint_y: None
                     height: self.minimum_height
+
+            Label:
+                id: current_turn_label
+                text: "Am Zug: Niemand"
+                font_size: '18sp'
+                size_hint_y: None
+                height: 40
+
+            Button:
+                text: "Runde beenden"
+                on_press: root.end_turn()
+                size_hint_y: None
+                height: 44
 
             Button:
                 text: "Initiative für alle würfeln"
@@ -110,8 +123,20 @@
                 height: 44
 
             Button:
-                text: "Map"
-                on_press: root.show_map_options_popup()
+                text: "Karte laden"
+                on_press: root.load_map_popup()
+                size_hint_y: None
+                height: 44
+
+            Button:
+                text: "Neue Karte erstellen"
+                on_press: root.create_new_map()
+                size_hint_y: None
+                height: 44
+
+            Button:
+                text: "Karte bearbeiten"
+                on_press: root.edit_existing_map()
                 size_hint_y: None
                 height: 44
 

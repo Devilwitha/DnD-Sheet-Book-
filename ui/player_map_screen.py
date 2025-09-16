@@ -1,9 +1,14 @@
 from kivy.uix.screenmanager import Screen
 from kivy.uix.button import Button
 from kivy.graphics import Color, Rectangle
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
 from kivy.app import App
 from functools import partial
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.textinput import TextInput
+import random
 
 class PlayerMapScreen(Screen):
     """Screen for the player to view the game map."""
@@ -14,62 +19,72 @@ class PlayerMapScreen(Screen):
         self.highlighted_tiles = []
         self.app = App.get_running_app()
         self.interactable_pos = None
+        self.is_my_turn = False
+        self.current_turn_name = ""
+        self.current_turn_pos = None
+        # self.tile_widgets is no longer needed
+        self.turn_action_state = {}
+        self._map_widget_bound = False
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
-        if self.map_data:
-            self.update_map_view()
+        if not self._map_widget_bound:
+            self.ids.player_map_grid.bind(on_tile_click=self.handle_tile_click)
+            self._map_widget_bound = True
+        self.update_ui()
 
     def set_map_data(self, map_data):
-        # This function needs to be robust against None or empty map_data.
         if not map_data or not map_data.get('tiles'):
             self.map_data = map_data
-            self.update_map_view()
+            self.ids.player_map_grid.set_data(None, [], None)
             return
 
         tiles = map_data.get('tiles')
-        # If the dictionary is not empty, check the type of the first key.
         if tiles:
             first_key = next(iter(tiles), None)
             if isinstance(first_key, str):
-                # Keys are strings that need to be evaluated to tuples.
                 map_data['tiles'] = {eval(k): v for k, v in tiles.items()}
 
         self.map_data = map_data
-        self.update_map_view()
+        self.update_ui()
 
-    def update_map_view(self):
-        grid = self.ids.player_map_grid
-        grid.clear_widgets()
+    # create_map_grid and update_map_view are now handled by MapGridWidget
 
-        if not self.map_data: return
+    def update_ui(self):
+        self.update_turn_status_ui()
+        if self.map_data:
+            self.update_map_widget()
+            self.update_interact_button()
 
-        rows, cols, tiles = self.map_data['rows'], self.map_data['cols'], self.map_data['tiles']
-        grid.rows, grid.cols = rows, cols
+    def update_map_widget(self):
+        if self.map_data:
+            self.ids.player_map_grid.set_data(
+                map_data=self.map_data,
+                highlighted_tiles=self.highlighted_tiles,
+                current_turn_pos=self.current_turn_pos
+            )
 
+    def update_interact_button(self):
         my_char_name = self.app.character.name if self.app.character else ""
         my_pos = None
-        # First, find the player's character position
-        for pos, tile in tiles.items():
+        for pos, tile in self.map_data['tiles'].items():
             if tile.get('object') == my_char_name:
                 my_pos = pos
                 break
 
-        # Now, check for adjacent interactable furniture
         self.interactable_pos = None
         if my_pos:
-            r, c = my_pos
+            r_my, c_my = my_pos
             for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                check_pos = (r + dr, c + dc)
-                if check_pos in tiles and tiles[check_pos].get('furniture'):
+                check_pos = (r_my + dr, c_my + dc)
+                if check_pos in self.map_data['tiles'] and self.map_data['tiles'][check_pos].get('furniture'):
                     self.interactable_pos = check_pos
-                    break # Found one, that's enough
+                    break
 
-        # Update the interact button's visibility and text
         interact_btn = self.ids.interact_button
-        if self.interactable_pos:
-            furn_type = tiles[self.interactable_pos]['furniture']['type']
+        if self.interactable_pos and self.is_my_turn:
+            furn_type = self.map_data['tiles'][self.interactable_pos]['furniture']['type']
             interact_btn.text = f"Interagiere mit {furn_type}"
             interact_btn.height = 44
             interact_btn.opacity = 1
@@ -79,107 +94,108 @@ class PlayerMapScreen(Screen):
             interact_btn.opacity = 0
             interact_btn.disabled = True
 
-        # Finally, draw the grid
-        for r in range(rows):
-            for c in range(cols):
-                tile_button = Button()
-                tile_button.bind(on_press=partial(self.on_tile_click, r, c))
+    def update_game_state(self, game_state):
+        my_name = self.app.character.name if self.app.character else ""
+        self.current_turn_name = game_state.get('current_turn', '')
+        self.turn_action_state = game_state.get('turn_action_state', {})
 
-                tile_data = tiles.get((r, c))
-                if not tile_data: continue
+        pos_list = game_state.get('current_turn_pos')
+        self.current_turn_pos = tuple(pos_list) if pos_list else None
 
-                bg_color = [0.5, 0.5, 0.5, 1] # Floor
-                if (r,c) in self.highlighted_tiles:
-                    bg_color = [0.9, 0.9, 0.2, 1] # Highlight color
-                elif tile_data.get('type') == 'Wall': bg_color = [0.2, 0.2, 0.2, 1]
-                elif tile_data.get('type') == 'Door': bg_color = [0.6, 0.3, 0.1, 1]
+        was_my_turn = self.is_my_turn
+        self.is_my_turn = (self.current_turn_name == my_name)
 
-                tile_button.background_color = bg_color
-                tile_button.text = "" # Clear text
+        if self.is_my_turn and not was_my_turn:
+            self.show_turn_popup()
 
-                obj = tile_data.get('object')
-                furniture = tile_data.get('furniture')
+        if not self.is_my_turn:
+            self.selected_object = None
+            self.highlighted_tiles = []
 
-                if obj:
-                    tile_button.text = obj[:3]
-                    if obj == my_char_name:
-                        tile_button.color = (0.5, 1, 0.5, 1) # Green for self
-                    elif '#' in obj:
-                        tile_button.color = (1, 0.5, 0.5, 1) # Red for enemies
-                    else:
-                        tile_button.color = (0.5, 0.5, 1, 1) # Blue for other players
-                elif furniture:
-                    tile_button.text = furniture['type'][:2]
-                    tile_button.color = (0.7, 0.7, 0.7, 1) # Grey for furniture
+        self.update_ui()
 
-                grid.add_widget(tile_button)
+    def show_turn_popup(self):
+        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        content.add_widget(Label(text="Du bist am Zug!", font_size='20sp'))
 
-    def on_tile_click(self, row, col, instance):
+        dismiss_button = Button(text="OK", size_hint_y=None, height=44)
+        content.add_widget(dismiss_button)
+
+        popup = create_styled_popup(title="Dein Zug", content=content, size_hint=(0.5, 0.4), auto_dismiss=False)
+        dismiss_button.bind(on_press=popup.dismiss)
+
+        popup.open()
+
+    def update_turn_status_ui(self):
+        if not hasattr(self.ids, 'turn_status_label'): return
+        self.ids.turn_status_label.text = f"Am Zug: {self.current_turn_name}"
+        if self.is_my_turn:
+            self.ids.turn_status_label.color = (0.2, 1, 0.2, 1)
+            self.ids.end_turn_button.disabled = False
+            self.ids.end_turn_button.opacity = 1
+        else:
+            self.ids.turn_status_label.color = (1, 1, 1, 1)
+            self.ids.end_turn_button.disabled = True
+            self.ids.end_turn_button.opacity = 0.5
+
+    def handle_tile_click(self, instance, touch, row, col):
+        if self.ids.player_map_grid.collide_point(*touch.pos):
+            if touch.button == 'left':
+                self.on_tile_click(row, col)
+
+    def on_tile_click(self, row, col):
+        if not self.is_my_turn:
+            print("Cannot perform actions, it's not your turn.")
+            return
+
         my_char_name = self.app.character.name
 
         if self.selected_object and (row, col) in self.highlighted_tiles:
-            # Move action
-            # Convert tuple to list for JSON serialization
             payload = {'name': my_char_name, 'to_pos': [row, col]}
+            print(f"[CLIENT-MOVE] Sending MOVE_OBJECT: {payload}") # Using print as client has no log widget
             self.app.network_manager.send_to_dm("MOVE_OBJECT", payload)
+            # DO NOT update UI here. Wait for server confirmation.
+            # For better UX, we can give some feedback that the action is sent.
             self.selected_object = None
             self.highlighted_tiles = []
-            # Don't update view immediately, wait for server confirmation (MAP_DATA)
+            self.update_map_widget() # Redraw to remove highlights
         else:
             self.highlighted_tiles = []
-            tile_data = self.map_data['tiles'].get((row, col))
-            # Check if clicking on an enemy to attack
-            if self.selected_object and tile_data and tile_data.get('object') and tile_data.get('object') != my_char_name:
+            tile_data = self.map_data['tiles'].get((row, col), {})
+
+            if self.selected_object and tile_data.get('object') and tile_data.get('object') != my_char_name:
                 self.try_attack_enemy(self.selected_object['pos'], (row, col), tile_data['object'])
-            # Check if clicking on self to select
-            elif tile_data and tile_data.get('object') == my_char_name:
+
+            elif tile_data.get('object') == my_char_name:
                 self.selected_object = {'name': my_char_name, 'pos': (row, col)}
                 self.highlight_movement_range(row, col)
+
             else:
                 self.selected_object = None
-            self.update_map_view()
+
+            self.update_map_widget()
 
     def try_attack_enemy(self, from_pos, to_pos, enemy_name):
-        from utils.data_manager import WEAPON_DATA
-
-        weapon_name = self.app.character.equipped_weapon
-        weapon_info = WEAPON_DATA.get(weapon_name)
-        if not weapon_info:
-            print(f"[ATTACK] Weapon '{weapon_name}' not found in data.")
+        if not self.is_my_turn: return
+        if self.turn_action_state.get('attacks_left', 0) <= 0:
+            print("Client: No attacks left.")
             return
 
-        # Chebyshev distance for grid
-        dist = max(abs(from_pos[0] - to_pos[0]), abs(from_pos[1] - to_pos[1]))
+        from utils.data_manager import WEAPON_DATA
+        weapon_name = self.app.character.equipped_weapon
+        weapon_info = WEAPON_DATA.get(weapon_name, {})
 
-        weapon_type = weapon_info.get('type', 'Melee')
+        dist = max(abs(from_pos[0] - to_pos[0]), abs(from_pos[1] - to_pos[1]))
         weapon_range = weapon_info.get('range', 1)
 
-        attack_valid = False
-        if weapon_type == 'Melee' and dist <= weapon_range:
-            attack_valid = True
-        elif weapon_type == 'Ranged' and dist > 0: # Can't shoot self
-            # For now, we ignore disadvantage at close range for simplicity
-            attack_valid = True
-
-        if attack_valid:
-            print(f"Attack on {enemy_name} is valid. Opening attack popup...")
-            # TODO: Implement attack popup
+        if dist <= weapon_range:
             self.open_attack_popup(enemy_name, from_pos, to_pos)
         else:
-            print(f"Attack on {enemy_name} is out of range. Dist: {dist}, WeapRange: {weapon_range}")
+            print(f"Attack on {enemy_name} is out of range.")
 
     def open_attack_popup(self, enemy_name, player_pos, enemy_pos):
-        from kivy.uix.boxlayout import BoxLayout
-        from kivy.uix.gridlayout import GridLayout
-        from kivy.uix.textinput import TextInput
-        from kivy.uix.button import Button
-        from kivy.uix.label import Label
-        from utils.helpers import create_styled_popup
-        import random
-
         content = BoxLayout(orientation='vertical', padding=10, spacing=20)
 
-        # --- Manual Section ---
         manual_layout = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None, height=150)
         manual_layout.add_widget(Label(text="Manual Attack", font_size='18sp'))
 
@@ -196,7 +212,6 @@ class PlayerMapScreen(Screen):
         manual_layout.add_widget(manual_button)
         content.add_widget(manual_layout)
 
-        # --- Automatic Section ---
         auto_layout = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None, height=150)
         auto_layout.add_widget(Label(text="Automatic Attack", font_size='18sp'))
 
@@ -224,11 +239,9 @@ class PlayerMapScreen(Screen):
             weapon = WEAPON_DATA.get(char.equipped_weapon, {})
             ability_mod = (char.abilities.get(weapon.get('ability', 'Stärke'), 10) - 10) // 2
 
-            # Attack Roll
             attack_die_roll = random.randint(1, 20)
             attack_roll = attack_die_roll + ability_mod
 
-            # Damage Roll
             damage_str = weapon.get('damage', '1d4')
             num_dice, dice_type = map(int, damage_str.split('d'))
             damage_die_roll = sum(random.randint(1, dice_type) for _ in range(num_dice))
@@ -239,11 +252,9 @@ class PlayerMapScreen(Screen):
             payload = {'type': 'auto', 'enemy_name': enemy_name, 'attack_roll': attack_roll, 'damage': damage, 'details': result_label.text}
             self.app.network_manager.send_to_dm("PLAYER_ATTACK", payload)
 
-            # Disable buttons after action
             manual_button.disabled = True
             auto_button.disabled = True
             auto_button.text = "Attack Sent!"
-
 
         manual_button.bind(on_press=send_manual)
         auto_button.bind(on_press=roll_automatic)
@@ -251,25 +262,37 @@ class PlayerMapScreen(Screen):
         popup.open()
 
     def highlight_movement_range(self, r_start, c_start):
-        # Speed is 9m -> 6 squares
-        speed = 6
+        movement_left = self.turn_action_state.get('movement_left', 0)
         self.highlighted_tiles = []
+        if movement_left <= 0:
+            return
+
         for r in range(self.map_data['rows']):
             for c in range(self.map_data['cols']):
                 dist = abs(r - r_start) + abs(c - c_start)
-                if 0 < dist <= speed:
+                if 0 < dist <= movement_left:
                     tile_data = self.map_data['tiles'].get((r,c))
                     if tile_data and tile_data['type'] != 'Wall' and not tile_data.get('object'):
                         self.highlighted_tiles.append((r, c))
+
+    def end_turn(self):
+        if self.is_my_turn:
+            self.app.network_manager.send_to_dm("END_TURN", {})
+            print("Sent end turn request to DM.")
+        else:
+            print("Cannot end turn, it's not your turn.")
 
     def go_back(self):
         self.manager.current = 'player_sheet'
 
     def interact(self):
+        if not self.is_my_turn:
+            print("Cannot interact, it's not your turn.")
+            return
+
         if self.interactable_pos:
             self.app.network_manager.send_to_dm("INTERACT_WITH_OBJECT", {'pos': self.interactable_pos})
 
-            # Hide button immediately for responsiveness
             self.ids.interact_button.height = 0
             self.ids.interact_button.opacity = 0
             self.ids.interact_button.disabled = True

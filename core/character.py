@@ -15,7 +15,8 @@ class Character:
         self.abilities = self.base_abilities.copy()
         self.hit_points = 0
         self.max_hit_points = 0
-        self.speed = 0
+        self.speed = 6  # Default speed in squares
+        self.actions_per_turn = 1
         self.initiative = 0
         self.armor_class = 10
         self.inventory = []  # Geändert zu einer Liste von Dictionaries
@@ -57,7 +58,9 @@ class Character:
         for ability, bonus in bonuses.items():
             if ability in self.abilities:
                 self.abilities[ability] += bonus
-        self.speed = race_info.get("speed", 9)
+        # Speed in meters from data, converted to squares (1 square ~ 1.5m)
+        speed_in_meters = race_info.get("speed", 9)
+        self.speed = int(speed_in_meters / 1.5)
 
     def collect_proficiencies_and_languages(self):
         """Sammelt Kompetenzen und Sprachen von Rasse und Klasse."""
@@ -238,6 +241,7 @@ class Character:
             "hit_points": self.hit_points,
             "max_hit_points": self.max_hit_points,
             "speed": self.speed,
+            "actions_per_turn": getattr(self, 'actions_per_turn', 1),
             "initiative": self.initiative,
             "armor_class": self.armor_class,
             "inventory": self.inventory,

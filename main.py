@@ -113,6 +113,21 @@ class DnDApp(App):
                     if sm.has_screen('player_sheet'):
                         sm.get_screen('player_sheet').update_player_list(payload.get('players', []))
                         sm.get_screen('player_sheet').update_initiative_order(payload.get('initiative', []))
+                    if sm.has_screen('player_map'):
+                        sm.get_screen('player_map').update_game_state(payload)
+                elif msg_type == 'VICTORY':
+                    create_styled_popup(
+                        title="Sieg!",
+                        content=Label(text=payload),
+                        size_hint=(0.7, 0.5)
+                    ).open()
+                elif msg_type == 'ERROR':
+                    print(f"CLIENT_ERROR: {payload}")
+                    # create_styled_popup(
+                    #    title="Fehler",
+                    #    content=Label(text=payload),
+                    #    size_hint=(0.7, 0.5)
+                    # ).open()
                 elif msg_type == 'SET_CHARACTER_DATA':
                     self.character = Character.from_dict(payload)
                     if sm.has_screen('player_sheet'):

@@ -1,9 +1,12 @@
 import json
+import os
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.clock import Clock
-from utils.helpers import apply_background, apply_styles_to_widget
+from kivy.uix.popup import Popup
+from kivy.uix.filechooser import FileChooserListView
+from utils.helpers import apply_background, apply_styles_to_widget, load_settings, save_settings
 from queue import Empty
 
 class DMLobbyScreen(Screen):
@@ -38,7 +41,8 @@ class DMLobbyScreen(Screen):
         # Check for loaded or prepared session data from the app instance
         if self.app.loaded_session_data:
             self.ids.lobby_title.text = "DM Lobby (Geladene Sitzung)"
-            # You could show expected players here if desired
+            summary = self.app.loaded_session_data.get('summary', 'Keine Zusammenfassung für diese Sitzung gefunden.')
+            self.ids.summary_label.text = summary
         elif hasattr(self.app, 'prepared_session_data') and self.app.prepared_session_data:
             self.ids.lobby_title.text = "DM Lobby (Vorbereitete Sitzung)"
         else:
@@ -113,6 +117,36 @@ class DMLobbyScreen(Screen):
 
     def go_back(self):
         self.manager.current = 'dm_spiel'
+
+    def change_background(self):
+        """Opens a file chooser to select a new lobby background."""
+        content = FileChooserListView(path=os.path.expanduser("~"), filters=['*.png', '*.jpg', '*.jpeg'])
+        content.bind(on_submit=self._set_background)
+        self.popup = Popup(title="Choose a background image", content=content, size_hint=(0.9, 0.9))
+        self.popup.open()
+
+    def _set_background(self, instance, value, *args):
+        if value:
+            selected_file = value[0]
+            settings = load_settings()
+            settings['lobby_background_path'] = selected_file
+            save_settings(settings)
+            apply_background(self)
+
+            # Broadcast the background change to all players
+            try:
+                with open(selected_file, 'rb') as f:
+                    self.network_manager.broadcast_message('BACKGROUND_START', {'filename': os.path.basename(selected_file)})
+                    while True:
+                        chunk = f.read(4096)
+                        if not chunk:
+                            break
+                        self.network_manager.broadcast_message('BACKGROUND_CHUNK', chunk.hex())
+                    self.network_manager.broadcast_message('BACKGROUND_END', {})
+            except Exception as e:
+                print(f"Error reading and broadcasting background image: {e}")
+
+        self.popup.dismiss()
 
     def on_leave(self, *args):
         # Stop polling for updates when leaving the screen
