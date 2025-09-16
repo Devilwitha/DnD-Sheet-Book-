@@ -42,6 +42,11 @@ jobs:
           pip install -r requirements.txt
           pip install buildozer
 
+      - name: Install and Clean Build Tools
+        run: |
+          sdkmanager "build-tools;34.0.0"
+          find $ANDROID_SDK_ROOT/build-tools -mindepth 1 -maxdepth 1 ! -name '34.0.0' -exec rm -rf {} +
+
       - name: Build with Buildozer
         run: |
           buildozer -v android debug
