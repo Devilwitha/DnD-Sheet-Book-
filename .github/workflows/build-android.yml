@@ -2,9 +2,9 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main", "beta" ]
+    branches: [ "main", "beta", "android-windows-build" ]
   pull_request:
-    branches: [ "main", "beta" ]
+    branches: [ "main", "beta", "android-windows-build" ]
 
 jobs:
   build-android:
@@ -24,21 +24,35 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip autoconf automake libtool build-essential pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev libltdl-dev autopoint
 
-      - name: Install dependencies
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install buildozer cython
+          python -m pip install "cython==0.29.36" virtualenv
+          python -m pip install -r requirements.txt
+          python -m pip install buildozer
 
       - name: Build with Buildozer
         run: |
           buildozer -v android debug
+          ls -l bin
+
+      - name: Get APK Name
+        id: get_apk_name
+        run: |
+          APK_NAME=$(ls bin/*.apk)
+          if [ -z "$APK_NAME" ]; then
+            echo "Fehler: Keine APK-Datei im bin-Verzeichnis gefunden."
+            exit 1
+          fi
+          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: dndapp-debug
-          path: bin/*.apk
+          path: ${{ env.APK_NAME }}

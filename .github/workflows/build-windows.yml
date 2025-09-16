@@ -2,9 +2,9 @@ name: Build Windows Executable
 
 on:
   push:
-    branches: [ "main", "beta" ]
+    branches: [ "main", "beta", "android-windows-build" ]
   pull_request:
-    branches: [ "main", "beta" ]
+    branches: [ "main", "beta", "android-windows-build" ]
 
 jobs:
   build-windows:
@@ -29,17 +29,10 @@ jobs:
         env:
           KIVY_GL_BACKEND: mock
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name DnDApp main.py `
-          --add-data "ui;ui" `
-          --add-data "logo;logo" `
-          --add-data "osbackground;osbackground" `
-          --add-data "utils/data;utils/data" `
-          --add-data "core;core" `
-          --add-data "utils;utils" `
-          --add-data "version.txt;."
+          pyinstaller --noconfirm --windowed --name DnDApp main.py --add-data "ui;ui" --add-data "logo;logo" --add-data "osbackground;osbackground" --add-data "utils/data;utils/data" --add-data "core;core" --add-data "utils;utils" --add-data "version.txt;."
 
       - name: Upload Executable
         uses: actions/upload-artifact@v4
         with:
           name: dndapp-windows
-          path: dist/DnDApp.exe
+          path: dist/DnDApp

@@ -2,9 +2,9 @@ name: Python CI
 
 on:
   push:
-    branches: [ "main", "beta" ] # Adjust if your main branch has a different name
+    branches: [ "main", "beta", "android-windows-build" ]
   pull_request:
-    branches: [ "main", "beta" ]
+    branches: [ "main", "beta", "android-windows-build" ]
 
 jobs:
   build:
