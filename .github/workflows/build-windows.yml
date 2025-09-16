@@ -26,13 +26,13 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name DnDApp main.py ^
-          --add-data "ui;ui" ^
-          --add-data "logo;logo" ^
-          --add-data "osbackground;osbackground" ^
-          --add-data "utils/data;utils/data" ^
-          --add-data "core;core" ^
-          --add-data "utils;utils" ^
+          pyinstaller --noconfirm --onefile --windowed --name DnDApp main.py `
+          --add-data "ui;ui" `
+          --add-data "logo;logo" `
+          --add-data "osbackground;osbackground" `
+          --add-data "utils/data;utils/data" `
+          --add-data "core;core" `
+          --add-data "utils;utils" `
           --add-data "version.txt;."
 
       - name: Upload Executable
