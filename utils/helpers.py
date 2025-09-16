@@ -110,8 +110,8 @@ def apply_styles_to_widget(widget):
                 update_canvas(w, None)
             else:
                 w.canvas.before.clear()
-                w.background_normal = 'atlas://data/images/defaulttheme/button'
-                w.background_down = 'atlas://data/images/defaulttheme/button_pressed'
+                w.background_normal = 'atlas://' + resource_path('data/images/defaulttheme/button')
+                w.background_down = 'atlas://' + resource_path('data/images/defaulttheme/button_pressed')
                 w.background_color = (1, 1, 1, 1)
 
         elif isinstance(w, Label):
