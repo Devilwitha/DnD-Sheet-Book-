@@ -2,9 +2,9 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main", "beta", "android-windows-build" ]
+    branches: [ "main", "beta", "alpha" ]
   pull_request:
-    branches: [ "main", "beta", "android-windows-build" ]
+    branches: [ "main", "beta", "alpha" ]
 
 jobs:
   build-android:
