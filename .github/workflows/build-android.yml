@@ -27,20 +27,30 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          sudo apt-get install -y zipalign adb
+
       - name: Accept Android licenses
         run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
 
-      - name: Install and move Build Tools
-        run: |
-          sdkmanager "build-tools;34.0.0"
-          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools
-          mv $ANDROID_SDK_ROOT/build-tools $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools/
-
-      - name: Install dependencies
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install "Cython==0.29.33"
           pip install -r requirements.txt
-          pip install buildozer cython
+          pip install buildozer
+
+      - name: Prepare Buildozer
+        run: |
+          buildozer android release || true
+
+      - name: Install and Clean Build Tools
+        run: |
+          ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --sdk_root=~/.buildozer/android/platform/android-sdk "build-tools;29.0.0"
+          find ~/.buildozer/android/platform/android-sdk/build-tools/ -mindepth 1 -maxdepth 1 ! -name '29.0.0' -exec rm -rf {} +
 
       - name: Build with Buildozer
         run: |
