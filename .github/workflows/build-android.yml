@@ -24,28 +24,33 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+
+      - name: Install Python Dependencies
+        run: |
           python -m pip install --upgrade pip
           pip install "Cython==0.29.33"
           pip install -r requirements.txt
           pip install buildozer
 
-      - name: Prepare Buildozer Environment
+      - name: Set up Android SDK
         run: |
-          buildozer android release || true
+          wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
+          unzip commandlinetools-linux-8512546_latest.zip
+          mkdir -p android-sdk/cmdline-tools
+          mv cmdline-tools android-sdk/cmdline-tools/latest
+          echo "ANDROID_SDK_ROOT=$PWD/android-sdk" >> $GITHUB_ENV
+          echo "$PWD/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
 
       - name: Manually Accept Licenses and Install Build Tools
         run: |
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          echo "24333f8a63b6825ea9c5514f83c272964db54815" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --sdk_root=~/.buildozer/android/platform/android-sdk "build-tools;29.0.0"
-          find ~/.buildozer/android/platform/android-sdk/build-tools/ -mindepth 1 -maxdepth 1 ! -name '29.0.0' -exec rm -rf {} +
+          mkdir -p $ANDROID_SDK_ROOT/licenses
+          echo "24333f8a63b6825ea9c5514f83c272964db54815" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
+          yes | sdkmanager --licenses
+          sdkmanager "platforms;android-31" "build-tools;29.0.0"
 
       - name: Build with Buildozer
         run: |
