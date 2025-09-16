@@ -29,6 +29,13 @@ jobs:
 
       - name: Accept Android licenses
         run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+      
+      # NEUER DEBUGGING-SCHRITT HIER EINFÜGEN
+      - name: List SDK Contents (Debug)
+        run: |
+          echo "--- Listing contents of ANDROID_SDK_ROOT ---"
+          ls -R $ANDROID_SDK_ROOT
+          echo "-------------------------------------------"
 
       - name: Install dependencies
         run: |
