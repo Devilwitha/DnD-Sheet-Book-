@@ -25,6 +25,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build with PyInstaller
+        shell: pwsh
         run: |
           pyinstaller --noconfirm --onefile --windowed --name DnDApp main.py `
           --add-data "ui;ui" `
