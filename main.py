@@ -16,7 +16,8 @@ else:
 Config.set('graphics', 'rotation', 0)
 
 from kivy.core.window import Window
-Window.size = (settings.get('window_width', 1280), settings.get('window_height', 720))
+if sys.platform not in ('android', 'ios'):
+    Window.size = (settings.get('window_width', 1280), settings.get('window_height', 720))
 
 import socket
 import threading
