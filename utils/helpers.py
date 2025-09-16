@@ -2,6 +2,16 @@ import os
 import sys
 import json
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 import socket
 import random
 from kivy.uix.button import Button
@@ -10,7 +20,7 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, RoundedRectangle
 
-DATA_DIR = 'utils/data'
+DATA_DIR = resource_path('utils/data')
 SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
 
 def load_settings():
@@ -150,10 +160,11 @@ def apply_background(screen):
         elif screen.name == 'dm_lobby' or screen.name == 'player_waiting':
             bg_path = settings.get('lobby_background_path', bg_path)
 
-        if os.path.exists(bg_path):
+        res_bg_path = resource_path(bg_path)
+        if os.path.exists(res_bg_path):
             try:
                 with screen.canvas.before:
-                    screen._background_rect = Rectangle(source=bg_path, size=screen.size, pos=screen.pos)
+                    screen._background_rect = Rectangle(source=res_bg_path, size=screen.size, pos=screen.pos)
 
                 def update_rect(instance, value):
                     if hasattr(instance, '_background_rect') and instance._background_rect:

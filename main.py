@@ -1,7 +1,4 @@
 import sys
-import os
-if getattr(sys, 'frozen', False):
-    os.chdir(sys._MEIPASS)
 from kivy.config import Config
 
 if sys.platform.startswith('win'):
@@ -33,7 +30,7 @@ from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.floatlayout import FloatLayout
 from kivy.clock import Clock
-from utils.helpers import save_settings
+from utils.helpers import save_settings, resource_path
 from core.character import Character
 from core.network_manager import NetworkManager
 
@@ -178,30 +175,30 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
-        Builder.load_file('ui/splashscreen.kv')
-        Builder.load_file('ui/mainmenu.kv')
-        Builder.load_file('ui/charactercreator.kv')
-        Builder.load_file('ui/charactereditor.kv')
-        Builder.load_file('ui/charactersheet.kv')
-        Builder.load_file('ui/charactermenuscreen.kv')
-        Builder.load_file('ui/levelupscreen.kv')
-        Builder.load_file('ui/optionsscreen.kv')
-        Builder.load_file('ui/settingsscreen.kv')
-        Builder.load_file('ui/backgroundsettingsscreen.kv')
-        Builder.load_file('ui/customizationsettingsscreen.kv')
-        Builder.load_file('ui/systemscreen.kv')
-        Builder.load_file('ui/changelogscreen.kv')
-        Builder.load_file('ui/infoscreen.kv')
-        Builder.load_file('ui/transferscreen.kv')
-        Builder.load_file('ui/dmspielscreen.kv')
-        Builder.load_file('ui/dmlobbyscreen.kv')
-        Builder.load_file('ui/playerlobbyscreen.kv')
-        Builder.load_file('ui/dmprepscreen.kv')
-        Builder.load_file('ui/dmmainscreen.kv')
-        Builder.load_file('ui/playerwaitingscreen.kv')
-        Builder.load_file('ui/playercharactersheet.kv')
-        Builder.load_file('ui/mapeditorscreen.kv')
-        Builder.load_file('ui/playermapscreen.kv')
+        Builder.load_file(resource_path('ui/splashscreen.kv'))
+        Builder.load_file(resource_path('ui/mainmenu.kv'))
+        Builder.load_file(resource_path('ui/charactercreator.kv'))
+        Builder.load_file(resource_path('ui/charactereditor.kv'))
+        Builder.load_file(resource_path('ui/charactersheet.kv'))
+        Builder.load_file(resource_path('ui/charactermenuscreen.kv'))
+        Builder.load_file(resource_path('ui/levelupscreen.kv'))
+        Builder.load_file(resource_path('ui/optionsscreen.kv'))
+        Builder.load_file(resource_path('ui/settingsscreen.kv'))
+        Builder.load_file(resource_path('ui/backgroundsettingsscreen.kv'))
+        Builder.load_file(resource_path('ui/customizationsettingsscreen.kv'))
+        Builder.load_file(resource_path('ui/systemscreen.kv'))
+        Builder.load_file(resource_path('ui/changelogscreen.kv'))
+        Builder.load_file(resource_path('ui/infoscreen.kv'))
+        Builder.load_file(resource_path('ui/transferscreen.kv'))
+        Builder.load_file(resource_path('ui/dmspielscreen.kv'))
+        Builder.load_file(resource_path('ui/dmlobbyscreen.kv'))
+        Builder.load_file(resource_path('ui/playerlobbyscreen.kv'))
+        Builder.load_file(resource_path('ui/dmprepscreen.kv'))
+        Builder.load_file(resource_path('ui/dmmainscreen.kv'))
+        Builder.load_file(resource_path('ui/playerwaitingscreen.kv'))
+        Builder.load_file(resource_path('ui/playercharactersheet.kv'))
+        Builder.load_file(resource_path('ui/mapeditorscreen.kv'))
+        Builder.load_file(resource_path('ui/playermapscreen.kv'))
 
         if sys.platform.startswith('win'):
             Window.fullscreen = False
