@@ -1,3 +1,9 @@
 *.pyc
 *.db,
 *.json,
+/ui/__pycache__
+/ui/__pycache__
+/utils/__pycache__
+/utils/data
+/ui/__pycache__
+/core/__pycache__
