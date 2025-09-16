@@ -175,6 +175,7 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
+        Builder.global_ns['resource_path'] = resource_path
         Builder.load_file(resource_path('ui/splashscreen.kv'))
         Builder.load_file(resource_path('ui/mainmenu.kv'))
         Builder.load_file(resource_path('ui/charactercreator.kv'))
