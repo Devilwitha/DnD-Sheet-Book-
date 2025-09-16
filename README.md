@@ -176,3 +176,96 @@ Bash
 sudo reboot
 ```
 Dein Raspberry Pi sollte nun mit deinem benutzerdefinierten Splash-Screen starten.
+
+## Watchdog für automatischen Neustart bei Absturz
+
+Diese Anleitung beschreibt, wie Sie ein "Watchdog"-Skript einrichten, das die Anwendung automatisch neu startet, falls sie abstürzt. Das Skript ist so konzipiert, dass es einen Neustart verhindert, wenn die Anwendung absichtlich geschlossen wird (z. B. über einen Beenden-Button oder durch ein Update).
+
+### 1. Funktionsweise
+
+Der Watchdog nutzt einen einfachen Mechanismus, um zwischen einem Absturz und einem gewollten Beenden zu unterscheiden:
+
+-   **Normaler Stopp:** Wenn die Anwendung korrekt beendet wird, erstellt sie eine versteckte Datei namens `.app_closed_cleanly` in ihrem Hauptverzeichnis.
+-   **Absturz:** Wenn die Anwendung abstürzt, kann diese Datei nicht erstellt werden.
+-   **Watchdog-Skript:** Ein separates Skript (`watchdog.sh`) überwacht im Hintergrund, ob der Prozess der Anwendung noch läuft.
+    -   Wenn der Prozess nicht mehr existiert, prüft das Skript, ob die Datei `.app_closed_cleanly` vorhanden ist.
+    -   **Datei existiert:** Der Watchdog erkennt ein sauberes Herunterfahren, löscht die Datei und unternimmt nichts weiter.
+    -   **Datei existiert nicht:** Der Watchdog geht von einem Absturz aus und startet die Anwendung automatisch neu.
+
+### 2. Watchdog-Skript erstellen
+
+Erstellen Sie eine neue Datei mit dem Namen `watchdog.sh` im Hauptverzeichnis Ihrer Anwendung (`/home/pi/DnD-Sheet-Book/`).
+
+```bash
+nano /home/pi/DnD-Sheet-Book/watchdog.sh
+```
+
+Fügen Sie den folgenden Inhalt in die Datei ein. **Wichtig:** Passen Sie den Pfad in `APP_DIR` an, falls Ihre Anwendung in einem anderen Verzeichnis liegt.
+
+```bash
+#!/bin/bash
+
+# Pfad zum Anwendungsverzeichnis
+APP_DIR="/home/pi/DnD-Sheet-Book"
+# Name des Haupt-Python-Skripts
+APP_SCRIPT="main.py"
+# Name der Lock-Datei
+LOCK_FILE=".app_closed_cleanly"
+
+cd "$APP_DIR"
+
+while true; do
+    # Prüfen, ob die Anwendung mit dem angegebenen Skript läuft
+    if ! pgrep -f "python3 $APP_SCRIPT" > /dev/null; then
+        # Anwendung läuft nicht. Prüfen, ob eine Lock-Datei existiert.
+        if [ -f "$LOCK_FILE" ]; then
+            # Sauberes Herunterfahren: Lock-Datei entfernen und nicht neustarten.
+            rm "$LOCK_FILE"
+            echo "Anwendung wurde sauber beendet. Watchdog pausiert, bis die App erneut gestartet wird."
+        else
+            # Kein sauberes Herunterfahren -> Absturz. Anwendung neustarten.
+            echo "Anwendung abgestürzt oder nicht gestartet. Starte neu..."
+
+            # Wenn Sie eine virtuelle Umgebung (.venv) verwenden:
+            if [ -d ".venv" ]; then
+                source .venv/bin/activate
+                python3 "$APP_SCRIPT" &
+                deactivate
+            else
+                # Wenn Sie Python systemweit installiert haben:
+                python3 "$APP_SCRIPT" &
+            fi
+        fi
+    fi
+    # Warte 10 Sekunden, bevor erneut geprüft wird
+    sleep 10
+done
+```
+
+Machen Sie das Skript anschließend ausführbar:
+
+```bash
+chmod +x /home/pi/DnD-Sheet-Book/watchdog.sh
+```
+
+### 3. Watchdog beim Systemstart ausführen
+
+Damit das Watchdog-Skript automatisch beim Hochfahren des Raspberry Pi gestartet wird, erstellen Sie einen Autostart-Eintrag.
+
+```bash
+mkdir -p ~/.config/autostart
+nano ~/.config/autostart/dnd_watchdog.desktop
+```
+
+Fügen Sie den folgenden Inhalt in die `.desktop`-Datei ein:
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=DnD App Watchdog
+Exec=/home/pi/DnD-Sheet-Book/watchdog.sh
+StartupNotify=false
+Terminal=false
+```
+
+Nach einem Neustart des Systems wird das Watchdog-Skript im Hintergrund ausgeführt und überwacht Ihre Anwendung.
