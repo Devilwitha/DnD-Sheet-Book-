@@ -1,4 +1,7 @@
 import sys
+import os
+if getattr(sys, 'frozen', False):
+    os.chdir(sys._MEIPASS)
 from kivy.config import Config
 
 if sys.platform.startswith('win'):
