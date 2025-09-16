@@ -1,4 +1,5 @@
 import sys
+import os
 from kivy.config import Config
 
 if sys.platform.startswith('win'):
@@ -175,6 +176,10 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
+        # Beim Start prüfen, ob eine "sauber geschlossen"-Datei existiert und diese löschen
+        if os.path.exists(".app_closed_cleanly"):
+            os.remove(".app_closed_cleanly")
+
         Builder.load_file('ui/splashscreen.kv')
         Builder.load_file('ui/mainmenu.kv')
         Builder.load_file('ui/charactercreator.kv')
@@ -242,6 +247,10 @@ class DnDApp(App):
 
     def on_stop(self):
         """Wird aufgerufen, wenn die App geschlossen wird."""
+        # Erstellt eine Datei, die anzeigt, dass die App sauber beendet wurde
+        with open(".app_closed_cleanly", "w") as f:
+            f.write("closed")
+
         settings = load_settings()
         settings['window_width'] = Window.width
         settings['window_height'] = Window.height
