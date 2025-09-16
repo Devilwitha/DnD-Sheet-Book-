@@ -1,0 +1,45 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ "main", "beta" ]
+  pull_request:
+    branches: [ "main", "beta" ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build with PyInstaller
+        shell: pwsh
+        env:
+          KIVY_GL_BACKEND: mock
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name DnDApp main.py `
+          --add-data "ui;ui" `
+          --add-data "logo;logo" `
+          --add-data "osbackground;osbackground" `
+          --add-data "utils/data;utils/data" `
+          --add-data "core;core" `
+          --add-data "utils;utils" `
+          --add-data "version.txt;."
+
+      - name: Upload Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: dndapp-windows
+          path: dist/DnDApp.exe
