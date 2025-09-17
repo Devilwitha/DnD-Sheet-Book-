@@ -71,6 +71,7 @@ class TestAppLifecycle(unittest.TestCase):
 
         with patch.dict('sys.modules', self.mock_modules):
             self.mock_modules['utils.helpers'].load_settings.return_value = {}
+            self.mock_modules['utils.helpers'].resource_path.return_value = self.lock_file
             from main import DnDApp
 
             app = DnDApp()
@@ -86,6 +87,7 @@ class TestAppLifecycle(unittest.TestCase):
 
         with patch.dict('sys.modules', self.mock_modules):
             self.mock_modules['utils.helpers'].load_settings.return_value = {}
+            self.mock_modules['utils.helpers'].resource_path.return_value = self.lock_file
             # We need to mock the Builder since it loads kv files which we don't have here
             with patch('main.Builder', MagicMock()):
                 from main import DnDApp

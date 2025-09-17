@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 
 # Since these are Kivy screens, we need to be careful with the app instance.
 # For now, let's assume we can test the logic without a running app.
@@ -27,32 +27,18 @@ def test_app(monkeypatch):
 import os
 from kivy.uix.label import Label
 
-@pytest.fixture
-def dummy_version_file(tmp_path):
-    # Create a dummy version.txt file in a temporary directory
-    p = tmp_path / "version.txt"
-    p.write_text("Test Version 1.2.3")
-
-    # Patch the open function to read from our dummy file
-    original_open = open
-    def mock_open(file, *args, **kwargs):
-        if file == "version.txt":
-            return original_open(p, *args, **kwargs)
-        return original_open(file, *args, **kwargs)
-
-    with patch('builtins.open', mock_open):
-        yield
-
-def test_version_screen(test_app, dummy_version_file):
+def test_version_screen(test_app):
     from kivy.lang import Builder
 
     # Load the kv file associated with the screen
     Builder.load_file('ui/versionscreen.kv')
 
     screen = VersionScreen()
-    # The on_pre_enter method is called when the screen is displayed.
-    # We call it manually here to trigger the logic.
-    screen.on_pre_enter()
+
+    with patch('builtins.open', mock_open(read_data="Test Version 1.2.3")):
+        # The on_pre_enter method is called when the screen is displayed.
+        # We call it manually here to trigger the logic.
+        screen.on_pre_enter()
 
     # Check if the label's text is updated correctly
     assert screen.ids.version_label.text == "Test Version 1.2.3"
