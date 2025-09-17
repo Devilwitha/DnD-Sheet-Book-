@@ -13,14 +13,14 @@ from ui.system_info_screen import SystemInfoScreen
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 
-class TestApp(App):
+class HelperApp(App):
     def build(self):
         return ScreenManager()
 
 @pytest.fixture
 def test_app(monkeypatch):
     # Monkeypatch the App.get_running_app method to return our test app instance
-    app_instance = TestApp()
+    app_instance = HelperApp()
     monkeypatch.setattr(App, 'get_running_app', lambda: app_instance)
     return app_instance
 
