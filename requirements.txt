@@ -1,4 +1,5 @@
-kivy[base]
+kivy[base]==2.1.0
+cython<3.0
 zeroconf
 pytest
 psutil
