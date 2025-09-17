@@ -1,4 +1,5 @@
 import json
+import os
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
@@ -78,7 +79,9 @@ class DMPrepScreen(Screen):
 
     def save_enemy_list(self):
         # For now, hardcoded filename. Later, a file chooser.
-        filename = "my_enemies.enemies"
+        saves_dir = "saves"
+        os.makedirs(saves_dir, exist_ok=True)
+        filename = os.path.join(saves_dir, "my_enemies.enemies")
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 list_to_save = [enemy.to_dict() for enemy in self.enemy_list]
@@ -88,7 +91,7 @@ class DMPrepScreen(Screen):
             print(f"[!] Error saving enemy list: {e}")
 
     def load_enemy_list(self):
-        filename = "my_enemies.enemies"
+        filename = os.path.join("saves", "my_enemies.enemies")
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 list_from_file = json.load(f)

@@ -242,7 +242,9 @@ class MapEditorScreen(Screen):
         scroll = ScrollView()
         grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
         grid.bind(minimum_height=grid.setter('height'))
-        for f in [f for f in os.listdir() if f.endswith('.enemies')]:
+        saves_dir = "saves"
+        os.makedirs(saves_dir, exist_ok=True)
+        for f in [f for f in os.listdir(saves_dir) if f.endswith('.enemies')]:
             btn = Button(text=f, size_hint_y=None, height=44)
             btn.bind(on_press=partial(self.do_load_enemy_list, f))
             grid.add_widget(btn)
@@ -252,8 +254,9 @@ class MapEditorScreen(Screen):
         self.enemy_list_popup.open()
 
     def do_load_enemy_list(self, filename, instance):
+        filepath = os.path.join("saves", filename)
         try:
-            with open(filename, 'r', encoding='utf-8') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             self.custom_enemy_list = [e.get('name') for e in data if e.get('name')]
             self.populate_spinners()
