@@ -67,6 +67,28 @@ class NetworkManager:
         self.sender_thread.daemon = True
         self.sender_thread.start()
 
+    def update_service_name(self, new_display_name):
+        if self.mode != 'dm' or not self.zeroconf or not self.service_info:
+            return
+
+        # Unregister the old service
+        self.zeroconf.unregister_service(self.service_info)
+
+        # Create new properties
+        properties = {b'name': new_display_name.encode('utf-8')}
+
+        # Create a new ServiceInfo object with the updated properties
+        self.service_info = ServiceInfo(
+            self.service_info.type,
+            self.service_info.name,
+            addresses=self.service_info.addresses,
+            port=self.service_info.port,
+            properties=properties
+        )
+
+        # Register the new service
+        self.zeroconf.register_service(self.service_info)
+
     def sender_loop(self):
         while self.running:
             try:
