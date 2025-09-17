@@ -30,7 +30,7 @@ class DMPrepScreen(Screen):
         enemy_list_widget = self.ids.enemy_list_view
         enemy_list_widget.clear_widgets()
         for enemy in self.enemy_list:
-            enemy_label = Label(text=f"{enemy.name} (HP: {enemy.hp}, AC: {enemy.ac})")
+            enemy_label = Label(text=f"{enemy.name} (HP: {enemy.hp}, AC: {enemy.armor_class})")
             enemy_list_widget.add_widget(enemy_label)
 
     def add_enemy_popup(self):
@@ -64,7 +64,7 @@ class DMPrepScreen(Screen):
             new_enemy = Enemy(
                 name=name_input.text,
                 hp=int(hp_input.text),
-                ac=int(ac_input.text),
+                armor_class=int(ac_input.text),
                 initiative=int(initiative_input.text or 0),
                 attacks=[attacks_input.text],
                 notes=notes_input.text
