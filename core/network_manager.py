@@ -86,7 +86,7 @@ class NetworkManager:
                 client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address))
                 client_thread.daemon = True
                 client_thread.start()
-            except OSError:
+            except (OSError, ValueError):
                 break
 
     def handle_client(self, client_socket, client_address):
