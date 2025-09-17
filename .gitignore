@@ -7,3 +7,4 @@
 /utils/data
 /ui/__pycache__
 /core/__pycache__
+*.pyc

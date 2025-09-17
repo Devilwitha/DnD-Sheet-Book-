@@ -1,7 +1,7 @@
 Build Version:                17.09.2025 Alpha
 
-Gui Version:               0.6.89
-Firmware Version:          0.7.50 M33
+Gui Version:               0.6.99
+Firmware Version:          0.8.58 M33
 Updater Version:           1.1.0
 
 DnD E-Sheet & Book Version:   
