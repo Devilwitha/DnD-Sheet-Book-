@@ -25,15 +25,19 @@ def sample_character():
     """Provides a sample character for testing client connections."""
     return Character(name="TestClient", race="Mensch", char_class="Kämpfer")
 
+@patch('core.network_manager.threading.Thread')
 @patch('socket.socket')
-def test_start_server(mock_socket_constructor, network_manager):
-    """Tests the initialization of the server (DM mode)."""
+def test_start_server(mock_socket_constructor, mock_thread_class, network_manager):
+    """Tests the initialization of the server (DM mode) without relying on thread state."""
     # Setup mock sockets
     mock_server_socket = MagicMock()
     mock_dgram_socket = MagicMock()
-
-    # socket.socket() will be called twice: once for the server, once for getting local IP
     mock_socket_constructor.side_effect = [mock_server_socket, mock_dgram_socket]
+
+    # Setup mock threads
+    mock_server_thread = MagicMock()
+    mock_sender_thread = MagicMock()
+    mock_thread_class.side_effect = [mock_server_thread, mock_sender_thread]
 
     # Mock getsockname to return a dummy host/port
     mock_server_socket.getsockname.return_value = ("127.0.0.1", 12345)
@@ -55,11 +59,15 @@ def test_start_server(mock_socket_constructor, network_manager):
     mock_zeroconf.Zeroconf.assert_called()
     network_manager.zeroconf.register_service.assert_called_with(network_manager.service_info)
 
-    # Check that the main server acceptance thread was started
-    assert network_manager.server_thread.is_alive()
+    # Check that Thread was instantiated correctly for both threads
+    mock_thread_class.assert_has_calls([
+        call(target=network_manager.accept_clients),
+        call(target=network_manager.sender_loop)
+    ], any_order=True)
 
-    # Check that the message sender loop was started
-    assert network_manager.sender_thread.is_alive()
+    # Check that start() was called on both thread instances
+    mock_server_thread.start.assert_called_once()
+    mock_sender_thread.start.assert_called_once()
 
 @patch('socket.socket')
 def test_connect_to_server(mock_socket_constructor, network_manager, sample_character):
