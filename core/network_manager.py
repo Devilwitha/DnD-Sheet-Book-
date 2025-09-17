@@ -27,7 +27,7 @@ class NetworkManager:
         self.client_socket = None
         self.client_listener_thread = None
 
-    def start_server(self):
+    def start_server(self, display_name="DM's Spiel"):
         if self.running or self.mode != 'idle':
             return
         self.mode = 'dm'
@@ -48,12 +48,13 @@ class NetworkManager:
 
         service_type = "_dndgame._tcp.local."
         service_name = f"DnD_DM_Server_{random.randint(1000, 9999)}.{service_type}"
+        properties = {b'name': display_name.encode('utf-8')}
         self.service_info = ServiceInfo(
             service_type,
             service_name,
             addresses=[socket.inet_aton(ip_address)],
             port=port,
-            properties={'name': 'DM_Lobby'},
+            properties=properties,
         )
         self.zeroconf = Zeroconf()
         self.zeroconf.register_service(self.service_info)
