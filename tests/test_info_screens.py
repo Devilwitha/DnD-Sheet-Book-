@@ -32,16 +32,8 @@ def dummy_version_file(tmp_path):
     # Create a dummy version.txt file in a temporary directory
     p = tmp_path / "version.txt"
     p.write_text("Test Version 1.2.3")
-
-    # Patch the open function to read from our dummy file
-    original_open = open
-    def mock_open(file, *args, **kwargs):
-        if file == "version.txt":
-            return original_open(p, *args, **kwargs)
-        return original_open(file, *args, **kwargs)
-
-    with patch('builtins.open', mock_open):
-        yield
+    with patch('ui.version_screen.resource_path', return_value=str(p)) as mock_path:
+        yield mock_path
 
 def test_version_screen(test_app, dummy_version_file):
     from kivy.lang import Builder

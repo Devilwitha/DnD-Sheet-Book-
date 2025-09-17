@@ -73,8 +73,9 @@ class TestAppLifecycle(unittest.TestCase):
             self.mock_modules['utils.helpers'].load_settings.return_value = {}
             from main import DnDApp
 
-            app = DnDApp()
-            app.on_stop()
+            with patch('main.resource_path', return_value=self.lock_file):
+                app = DnDApp()
+                app.on_stop()
 
         self.assertFalse(os.path.exists(self.lock_file), "Lock file was not removed on stop.")
 
@@ -90,8 +91,9 @@ class TestAppLifecycle(unittest.TestCase):
             with patch('main.Builder', MagicMock()):
                 from main import DnDApp
 
-                app = DnDApp()
-                app.build()
+                with patch('main.resource_path', return_value=self.lock_file):
+                    app = DnDApp()
+                    app.build()
 
         self.assertTrue(os.path.exists(self.lock_file), "Lock file was not created on build.")
         with open(self.lock_file, "r") as f:
