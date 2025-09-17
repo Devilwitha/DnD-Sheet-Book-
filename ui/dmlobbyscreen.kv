@@ -23,7 +23,10 @@
                 id: session_name_input
                 text: "DM's Spiel"
                 multiline: False
-                on_text: root.update_session_name(self.text)
+            Button:
+                text: "Bestätigen"
+                size_hint_x: 0.3
+                on_press: root.confirm_session_name()
 
         Label:
             text: "Verbundenen Spieler:"
