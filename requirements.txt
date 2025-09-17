@@ -1,5 +1,5 @@
 kivy==2.3.0
-cython==3.0.10
+cython==0.29.36
 pyjnius==1.6.1
 zeroconf
 pytest
