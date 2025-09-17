@@ -1,39 +1,32 @@
-<OptionsScreen>:
+<InfoMenuScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
         spacing: 10
 
         Label:
-            text: "Optionen"
+            text: "Informationen"
             font_size: '30sp'
             size_hint_y: None
             height: 80
 
         Button:
-            text: "Gui Einstellungen"
-            on_press: root.go_to_screen('settings')
+            text: "Model"
+            on_press: root.go_to_screen('model')
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
-            text: "SaveData übertragen"
-            on_press: root.go_to_screen('transfer')
+            text: "Version"
+            on_press: root.go_to_screen('version')
             size_hint_y: None
             height: 80
             font_size: '20sp'
 
         Button:
-            text: "System Einstellungen"
-            on_press: root.go_to_screen('system')
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            text: "Info"
-            on_press: root.go_to_screen('info_menu')
+            text: "System"
+            on_press: root.go_to_screen('system_info')
             size_hint_y: None
             height: 80
             font_size: '20sp'
@@ -43,7 +36,7 @@
 
         Button:
             text: "Zurück"
-            on_press: app.change_screen('main')
+            on_press: root.go_back()
             size_hint_y: None
             height: 80
             font_size: '20sp'
