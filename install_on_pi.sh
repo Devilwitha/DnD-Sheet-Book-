@@ -53,7 +53,7 @@ apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-d
    pkg-config libgl1-mesa-dev libgles2-mesa-dev \
    python3-setuptools libgstreamer1.0-dev git-core gstreamer1.0-plugins-base \
    gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-   gstreamer1.0-libav python3-dev libjpeg-dev
+   gstreamer1.0-libav python3-dev libjpeg-dev libpango1.0-dev
 
 # Optionale virtuelle Tastatur installieren
 apt-get install -y matchbox-keyboard
