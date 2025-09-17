@@ -63,71 +63,39 @@ class TestAppLifecycle(unittest.TestCase):
         if 'main' in sys.modules:
             del sys.modules['main']
 
-    @patch('main.save_settings')
-    @patch('main.load_settings')
-    @patch('os.remove')
-    @patch('os.path.exists')
-    @patch('main.resource_path')
-    def test_on_stop_removes_lock_file(self, mock_resource_path, mock_exists, mock_remove, mock_load_settings, mock_save_settings):
+    def test_on_stop_removes_lock_file(self):
         """Test that on_stop() removes the lock file."""
-        mock_resource_path.return_value = self.lock_file
-        mock_exists.return_value = True
+        # Create a dummy lock file to be removed
+        with open(self.lock_file, "w") as f:
+            f.write("running")
 
         with patch.dict('sys.modules', self.mock_modules):
+            self.mock_modules['utils.helpers'].load_settings.return_value = {}
             from main import DnDApp
 
             app = DnDApp()
             app.on_stop()
 
-        mock_resource_path.assert_called_with(".app_closed_cleanly")
-        mock_exists.assert_called_with(self.lock_file)
-        mock_remove.assert_called_with(self.lock_file)
+        self.assertFalse(os.path.exists(self.lock_file), "Lock file was not removed on stop.")
 
-    @patch('main.PlayerMapScreen')
-    @patch('main.MapEditorScreen')
-    @patch('main.PlayerCharacterSheet')
-    @patch('main.PlayerWaitingScreen')
-    @patch('main.DMMainScreen')
-    @patch('main.DMPrepScreen')
-    @patch('main.PlayerLobbyScreen')
-    @patch('main.DMLobbyScreen')
-    @patch('main.DMSpielScreen')
-    @patch('main.TransferScreen')
-    @patch('main.SystemInfoScreen')
-    @patch('main.VersionScreen')
-    @patch('main.ModelScreen')
-    @patch('main.InfoMenuScreen')
-    @patch('main.ChangelogScreen')
-    @patch('main.SystemScreen')
-    @patch('main.CustomizationSettingsScreen')
-    @patch('main.BackgroundSettingsScreen')
-    @patch('main.SettingsScreen')
-    @patch('main.OptionsScreen')
-    @patch('main.LevelUpScreen')
-    @patch('main.CharacterEditor')
-    @patch('main.CharacterSheet')
-    @patch('main.CharacterMenuScreen')
-    @patch('main.CharacterCreator')
-    @patch('main.MainMenu')
-    @patch('main.FloatLayout')
-    @patch('main.SplashScreen')
-    @patch('main.ScreenManager')
-    @patch('main.open', new_callable=unittest.mock.mock_open)
-    @patch('main.resource_path')
-    def test_build_creates_lock_file(self, mock_resource_path, mock_open, mock_sm, mock_splash, mock_float, *args):
+    def test_build_creates_lock_file(self):
         """Test that build() creates the lock file."""
-        mock_resource_path.return_value = self.lock_file
+        # Ensure the file doesn't exist before build() is called
+        if os.path.exists(self.lock_file):
+            os.remove(self.lock_file)
 
         with patch.dict('sys.modules', self.mock_modules):
             self.mock_modules['utils.helpers'].load_settings.return_value = {}
+            # We need to mock the Builder since it loads kv files which we don't have here
             with patch('main.Builder', MagicMock()):
                 from main import DnDApp
+
                 app = DnDApp()
                 app.build()
 
-        mock_resource_path.assert_any_call(".app_closed_cleanly")
-        mock_open.assert_called_with(self.lock_file, "w")
-        mock_open().write.assert_called_with("running")
+        self.assertTrue(os.path.exists(self.lock_file), "Lock file was not created on build.")
+        with open(self.lock_file, "r") as f:
+            self.assertEqual(f.read(), "running", "Lock file content is incorrect.")
 
 if __name__ == '__main__':
     unittest.main()
