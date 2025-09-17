@@ -5,7 +5,8 @@ import sys
 
 # --- Configuration ---
 PLATFORM_TOOLS_DIR = "platform-tools"
-ADB_PATH = os.path.join(PLATFORM_TOOLS_DIR, "adb")
+ADB_EXECUTABLE = "adb.exe" if sys.platform == "win32" else "adb"
+ADB_PATH = os.path.join(PLATFORM_TOOLS_DIR, ADB_EXECUTABLE)
 LOG_FILE = "android_log.txt"
 # Find the APK file automatically in the root directory
 APK_DIR = "."
@@ -53,7 +54,7 @@ def main():
             logcat_process.wait() # Clear old logs
 
             logcat_process = subprocess.Popen(
-                [ADB_PATH, "logcat"],
+                [ADB_PATH, "logcat", "*:S", "python:D"],
                 stdout=logfile,
                 stderr=logfile
             )

@@ -179,9 +179,9 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
-        # Beim Start prüfen, ob eine "sauber geschlossen"-Datei existiert und diese löschen
-        if os.path.exists(".app_closed_cleanly"):
-            os.remove(".app_closed_cleanly")
+        # Create a lock file to indicate the app is running
+        with open(".app_closed_cleanly", "w") as f:
+            f.write("running")
 
         Builder.load_file('ui/splashscreen.kv')
         Builder.load_file('ui/mainmenu.kv')
@@ -256,9 +256,9 @@ class DnDApp(App):
 
     def on_stop(self):
         """Wird aufgerufen, wenn die App geschlossen wird."""
-        # Erstellt eine Datei, die anzeigt, dass die App sauber beendet wurde
-        with open(".app_closed_cleanly", "w") as f:
-            f.write("closed")
+        # Remove the lock file to indicate a clean shutdown
+        if os.path.exists(".app_closed_cleanly"):
+            os.remove(".app_closed_cleanly")
 
         settings = load_settings()
         settings['window_width'] = Window.width

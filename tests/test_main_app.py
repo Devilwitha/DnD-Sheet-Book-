@@ -63,8 +63,12 @@ class TestAppLifecycle(unittest.TestCase):
         if 'main' in sys.modules:
             del sys.modules['main']
 
-    def test_on_stop_creates_lock_file(self):
-        """Test that on_stop() creates the lock file."""
+    def test_on_stop_removes_lock_file(self):
+        """Test that on_stop() removes the lock file."""
+        # Create a dummy lock file to be removed
+        with open(self.lock_file, "w") as f:
+            f.write("running")
+
         with patch.dict('sys.modules', self.mock_modules):
             self.mock_modules['utils.helpers'].load_settings.return_value = {}
             from main import DnDApp
@@ -72,24 +76,26 @@ class TestAppLifecycle(unittest.TestCase):
             app = DnDApp()
             app.on_stop()
 
-        self.assertTrue(os.path.exists(self.lock_file), "Lock file was not created.")
-        with open(self.lock_file, "r") as f:
-            self.assertEqual(f.read(), "closed", "Lock file content is incorrect.")
+        self.assertFalse(os.path.exists(self.lock_file), "Lock file was not removed on stop.")
 
-    def test_build_removes_lock_file(self):
-        """Test that build() removes the lock file if it exists."""
-        with open(self.lock_file, "w") as f:
-            f.write("test")
-        self.assertTrue(os.path.exists(self.lock_file))
+    def test_build_creates_lock_file(self):
+        """Test that build() creates the lock file."""
+        # Ensure the file doesn't exist before build() is called
+        if os.path.exists(self.lock_file):
+            os.remove(self.lock_file)
 
         with patch.dict('sys.modules', self.mock_modules):
             self.mock_modules['utils.helpers'].load_settings.return_value = {}
-            from main import DnDApp
+            # We need to mock the Builder since it loads kv files which we don't have here
+            with patch('main.Builder', MagicMock()):
+                from main import DnDApp
 
-            app = DnDApp()
-            app.build()
+                app = DnDApp()
+                app.build()
 
-        self.assertFalse(os.path.exists(self.lock_file), "Lock file was not removed.")
+        self.assertTrue(os.path.exists(self.lock_file), "Lock file was not created on build.")
+        with open(self.lock_file, "r") as f:
+            self.assertEqual(f.read(), "running", "Lock file content is incorrect.")
 
 if __name__ == '__main__':
     unittest.main()
