@@ -23,6 +23,7 @@
                 id: session_name_input
                 text: "DM's Spiel"
                 multiline: False
+                on_text: root.update_session_name(self.text)
 
         Label:
             text: "Verbundenen Spieler:"

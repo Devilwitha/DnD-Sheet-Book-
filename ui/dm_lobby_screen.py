@@ -167,3 +167,8 @@ class DMLobbyScreen(Screen):
                 self.app.loaded_session_data = None # Clear session data
             if hasattr(self.app, 'prepared_session_data'):
                 self.app.prepared_session_data = None # Clear prepared data
+
+    def update_session_name(self, text):
+        """Updates the server's broadcasted name."""
+        if self.network_manager.mode == 'dm':
+            self.network_manager.update_service_name(text)
