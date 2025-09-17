@@ -48,7 +48,7 @@ apt-get update
 apt-get upgrade -y
 
 # Notwendige Pakete für Kivy und die Anwendung installieren
-apt-get install -y git python3-pip python3-venv
+apt-get install -y python3 git python3-pip python3-venv
 
 # Kivy source installation dependencies from official documentation
 # https://kivy.org/doc/stable/installation/installation-rpi.html
