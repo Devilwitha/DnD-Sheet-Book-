@@ -1,0 +1,26 @@
+<VersionScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Versionsinformationen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Label:
+            id: version_label
+            text: ""
+            font_size: '20sp'
+
+        BoxLayout:
+            size_hint_y: 1.0
+
+        Button:
+            text: "Zurück"
+            on_press: root.go_back()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
