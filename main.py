@@ -1,19 +1,24 @@
 import sys
 import os
-
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
+from utils.helpers import resource_path, load_settings
 from kivy.config import Config
 
-from utils.helpers import load_settings
+if sys.platform.startswith('win'):
+    Config.set('input', 'mouse', 'mouse,disable_multitouch')
+
+# Laden der Einstellungen, um die Tastaturkonfiguration zu bestimmen
+settings = load_settings()
+if settings.get('keyboard_enabled', False):
+    Config.set('kivy', 'keyboard_mode', 'dock')
+    Config.set('kivy', 'keyboard_height', '600')
+else:
+    Config.set('kivy', 'keyboard_mode', '')
+
+Config.set('graphics', 'rotation', 0)
+
 from kivy.core.window import Window
+if sys.platform not in ('android', 'ios'):
+    Window.size = (settings.get('window_width', 1280), settings.get('window_height', 720))
 
 import socket
 import threading
@@ -67,26 +72,6 @@ class DnDApp(App):
         self.screen_history = [] # For back navigation
         self.edited_map_data = None # To pass map data from editor to DM screen
         self.player_game_loop = None
-        self.lock_file_path = ""
-
-    def setup_app_config(self):
-        if sys.platform.startswith('win'):
-            Config.set('input', 'mouse', 'mouse,disable_multitouch')
-
-        settings = load_settings()
-        if settings.get('keyboard_enabled', False):
-            Config.set('kivy', 'keyboard_mode', 'dock')
-            Config.set('kivy', 'keyboard_height', '600')
-        else:
-            Config.set('kivy', 'keyboard_mode', '')
-
-        Config.set('graphics', 'rotation', 0)
-
-        if sys.platform not in ('android', 'ios'):
-            Window.size = (settings.get('window_width', 1280), settings.get('window_height', 720))
-
-        # Use user_data_dir for the lock file
-        self.lock_file_path = os.path.join(self.user_data_dir, '.app_closed_cleanly')
 
     def start_player_gameloop(self):
         if self.player_game_loop:
@@ -194,9 +179,8 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
-        self.setup_app_config()
         # Create a lock file to indicate the app is running
-        with open(self.lock_file_path, "w") as f:
+        with open(resource_path(".app_closed_cleanly"), "w") as f:
             f.write("running")
 
         Builder.load_file(resource_path('ui/splashscreen.kv'))
@@ -273,8 +257,9 @@ class DnDApp(App):
     def on_stop(self):
         """Wird aufgerufen, wenn die App geschlossen wird."""
         # Remove the lock file to indicate a clean shutdown
-        if os.path.exists(self.lock_file_path):
-            os.remove(self.lock_file_path)
+        lock_file = resource_path(".app_closed_cleanly")
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
 
         settings = load_settings()
         settings['window_width'] = Window.width

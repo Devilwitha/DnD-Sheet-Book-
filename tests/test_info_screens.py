@@ -36,7 +36,7 @@ def dummy_version_file(tmp_path):
     # Patch the open function to read from our dummy file
     original_open = open
     def mock_open(file, *args, **kwargs):
-        if file == "version.txt":
+        if isinstance(file, str) and file.endswith("version.txt"):
             return original_open(p, *args, **kwargs)
         return original_open(file, *args, **kwargs)
 

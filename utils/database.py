@@ -11,7 +11,7 @@ def resource_path(relative_path):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     else:
-        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
 # The source database, bundled with the app
@@ -25,14 +25,14 @@ def get_dest_db_path():
     if DEST_DB:
         return DEST_DB
 
-    app = App.get_running_app()
-    if app:
+    try:
+        app = App.get_running_app()
         user_data_path = app.user_data_dir
         if not os.path.exists(user_data_path):
             os.makedirs(user_data_path)
         DEST_DB = os.path.join(user_data_path, 'dnd.db')
         return DEST_DB
-    else:
+    except Exception:
         # Fallback for scripts/tests - use in-place DB
         return SOURCE_DB
 

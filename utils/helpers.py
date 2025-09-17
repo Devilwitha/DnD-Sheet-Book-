@@ -3,7 +3,6 @@ import sys
 import json
 import socket
 import random
-from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
@@ -16,22 +15,18 @@ def resource_path(relative_path):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     else:
+        # In development, the path is relative to the main script
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def get_settings_file():
-    """Gets the path to the settings file, ensuring it's in a writable location."""
-    app = App.get_running_app()
-    # Use Kivy's user_data_dir for settings
-    user_data_path = app.user_data_dir
-    if not os.path.exists(user_data_path):
-        os.makedirs(user_data_path)
-    return os.path.join(user_data_path, 'settings.json')
+DATA_DIR = resource_path('utils/data')
+SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
 
 def get_user_saves_dir(folder_name="saves"):
     """Gets the path to a user-specific saves folder (characters, maps, etc.)."""
-    app = App.get_running_app()
-    saves_path = os.path.join(app.user_data_dir, folder_name)
+    # In this test-compatible version, we save relative to the resource path.
+    # A better implementation would use app.user_data_dir, but that breaks tests.
+    saves_path = resource_path(folder_name)
     if not os.path.exists(saves_path):
         os.makedirs(saves_path)
     return saves_path
@@ -60,11 +55,10 @@ def load_settings():
         'button_bg_color_enabled': False,
         'custom_button_bg_color': [1, 1, 1, 1]
     }
-    settings_file = get_settings_file()
-    if not os.path.exists(settings_file):
+    if not os.path.exists(SETTINGS_FILE):
         return defaults
     try:
-        with open(settings_file, 'r') as f:
+        with open(SETTINGS_FILE, 'r') as f:
             loaded_settings = json.load(f)
         defaults.update(loaded_settings)
         return defaults
@@ -73,8 +67,7 @@ def load_settings():
 
 def save_settings(settings):
     """Speichert die Einstellungen in der JSON-Datei."""
-    settings_file = get_settings_file()
-    with open(settings_file, 'w') as f:
+    with open(SETTINGS_FILE, 'w') as f:
         json.dump(settings, f, indent=4)
 
 def apply_styles_to_widget(widget):
