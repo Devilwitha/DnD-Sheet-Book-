@@ -10,7 +10,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.graphics import Color, Rectangle
 from functools import partial
-from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, get_user_saves_dir
 from utils.data_manager import ENEMY_DATA
 from kivy.app import App
 from kivy.uix.checkbox import CheckBox
@@ -174,8 +174,7 @@ class MapEditorScreen(Screen):
 
     def do_save(self, filename):
         if not filename.endswith('.json'): filename += '.json'
-        saves_dir = "utils/data/maps"
-        os.makedirs(saves_dir, exist_ok=True)
+        saves_dir = get_user_saves_dir("maps")
         filepath = os.path.join(saves_dir, filename)
         try:
             enemies = [obj for tile in self.map_data.get('tiles',{}).values() if (obj := tile.get('object')) and obj.split('#')[0].strip() in ENEMY_DATA]
@@ -215,8 +214,7 @@ class MapEditorScreen(Screen):
         scroll = ScrollView()
         grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
         grid.bind(minimum_height=grid.setter('height'))
-        saves = "utils/data/maps"
-        os.makedirs(saves, exist_ok=True)
+        saves = get_user_saves_dir("maps")
         for f in [f for f in os.listdir(saves) if f.endswith('.json')]:
             btn = Button(text=f, size_hint_y=None, height=44)
             btn.bind(on_press=partial(self.do_load_map, f))
@@ -227,7 +225,8 @@ class MapEditorScreen(Screen):
         self.load_popup.open()
 
     def do_load_map(self, filename, instance):
-        filepath = os.path.join("utils/data/maps", filename)
+        maps_dir = get_user_saves_dir("maps")
+        filepath = os.path.join(maps_dir, filename)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
@@ -242,8 +241,7 @@ class MapEditorScreen(Screen):
         scroll = ScrollView()
         grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
         grid.bind(minimum_height=grid.setter('height'))
-        saves_dir = "saves"
-        os.makedirs(saves_dir, exist_ok=True)
+        saves_dir = get_user_saves_dir("enemies")
         for f in [f for f in os.listdir(saves_dir) if f.endswith('.enemies')]:
             btn = Button(text=f, size_hint_y=None, height=44)
             btn.bind(on_press=partial(self.do_load_enemy_list, f))
@@ -254,7 +252,8 @@ class MapEditorScreen(Screen):
         self.enemy_list_popup.open()
 
     def do_load_enemy_list(self, filename, instance):
-        filepath = os.path.join("saves", filename)
+        saves_dir = get_user_saves_dir("enemies")
+        filepath = os.path.join(saves_dir, filename)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)

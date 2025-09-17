@@ -14,7 +14,7 @@ from queue import Empty
 from core.character import Character
 from core.enemy import Enemy
 from core.game_manager import GameManager
-from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, get_user_saves_dir
 from utils.non_ui_helpers import roll_dice
 from functools import partial
 from utils.data_manager import ENEMY_DATA
@@ -299,7 +299,8 @@ class DMMainScreen(Screen):
         create_styled_popup(title="Gegner-Statistiken", content=content, size_hint=(0.6, 0.5)).open()
 
     def do_load_map(self, filename, instance):
-        filepath = os.path.join("utils/data/maps", filename)
+        maps_dir = get_user_saves_dir("maps")
+        filepath = os.path.join(maps_dir, filename)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
@@ -522,8 +523,7 @@ class DMMainScreen(Screen):
             filename = text_input.text.strip()
             if not filename: return
             filename = f"{filename}.json"
-            saves_dir = "utils/data/sessions"
-            os.makedirs(saves_dir, exist_ok=True)
+            saves_dir = get_user_saves_dir("sessions")
             filepath = os.path.join(saves_dir, filename)
 
             map_data_to_save = None
@@ -555,8 +555,7 @@ class DMMainScreen(Screen):
         content = BoxLayout(orientation='vertical', spacing=10)
         scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
-        maps_dir = "utils/data/maps"
-        os.makedirs(maps_dir, exist_ok=True)
+        maps_dir = get_user_saves_dir("maps")
         map_files = [f for f in os.listdir(maps_dir) if f.endswith('.json')]
         if not map_files:
             create_styled_popup(title="Keine Karten", content=Label(text="Keine Karten zum Laden gefunden."), size_hint=(0.6, 0.4)).open()
@@ -640,8 +639,7 @@ class DMMainScreen(Screen):
         content = BoxLayout(orientation='vertical', spacing=10)
         scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
-        saves_dir = "utils/data/maps"
-        os.makedirs(saves_dir, exist_ok=True)
+        saves_dir = get_user_saves_dir("maps")
         map_files = [f for f in os.listdir(saves_dir) if f.endswith('.json')]
         if not map_files:
             create_styled_popup(title="No Maps", content=Label(text="No saved maps found to edit."), size_hint=(0.6, 0.4)).open()
@@ -657,7 +655,8 @@ class DMMainScreen(Screen):
         self.edit_map_popup.open()
 
     def load_and_pass_map_to_editor(self, filename, callback):
-        filepath = os.path.join("utils/data/maps", filename)
+        maps_dir = get_user_saves_dir("maps")
+        filepath = os.path.join(maps_dir, filename)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)

@@ -49,11 +49,17 @@ apt-get upgrade -y
 
 # Notwendige Pakete für Kivy und die Anwendung installieren
 apt-get install -y git python3-pip python3-venv
-apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-   pkg-config libgl1-mesa-dev libgles2-mesa-dev \
-   python3-setuptools libgstreamer1.0-dev git-core gstreamer1.0-plugins-base \
-   gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-   gstreamer1.0-libav python3-dev libjpeg-dev libpango1.0-dev
+
+# Kivy source installation dependencies from official documentation
+# https://kivy.org/doc/stable/installation/installation-rpi.html
+apt-get install -y build-essential git make autoconf automake libtool \
+      pkg-config cmake ninja-build libasound2-dev libpulse-dev libaudio-dev \
+      libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev \
+      libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev \
+      libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+      libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+
+apt-get install -y xorg wget libxrender-dev lsb-release libraspberrypi-dev raspberrypi-kernel-headers
 
 # Optionale virtuelle Tastatur installieren
 apt-get install -y matchbox-keyboard

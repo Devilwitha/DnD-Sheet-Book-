@@ -3,14 +3,38 @@ import sys
 import json
 import socket
 import random
+from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, RoundedRectangle
 
-DATA_DIR = 'utils/data'
-SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+def get_settings_file():
+    """Gets the path to the settings file, ensuring it's in a writable location."""
+    app = App.get_running_app()
+    # Use Kivy's user_data_dir for settings
+    user_data_path = app.user_data_dir
+    if not os.path.exists(user_data_path):
+        os.makedirs(user_data_path)
+    return os.path.join(user_data_path, 'settings.json')
+
+def get_user_saves_dir(folder_name="saves"):
+    """Gets the path to a user-specific saves folder (characters, maps, etc.)."""
+    app = App.get_running_app()
+    saves_path = os.path.join(app.user_data_dir, folder_name)
+    if not os.path.exists(saves_path):
+        os.makedirs(saves_path)
+    return saves_path
 
 def load_settings():
     """Lädt die Einstellungen aus der JSON-Datei."""
@@ -36,10 +60,11 @@ def load_settings():
         'button_bg_color_enabled': False,
         'custom_button_bg_color': [1, 1, 1, 1]
     }
-    if not os.path.exists(SETTINGS_FILE):
+    settings_file = get_settings_file()
+    if not os.path.exists(settings_file):
         return defaults
     try:
-        with open(SETTINGS_FILE, 'r') as f:
+        with open(settings_file, 'r') as f:
             loaded_settings = json.load(f)
         defaults.update(loaded_settings)
         return defaults
@@ -48,7 +73,8 @@ def load_settings():
 
 def save_settings(settings):
     """Speichert die Einstellungen in der JSON-Datei."""
-    with open(SETTINGS_FILE, 'w') as f:
+    settings_file = get_settings_file()
+    with open(settings_file, 'w') as f:
         json.dump(settings, f, indent=4)
 
 def apply_styles_to_widget(widget):
@@ -149,6 +175,7 @@ def apply_background(screen):
         elif screen.name == 'dm_lobby' or screen.name == 'player_waiting':
             bg_path = settings.get('lobby_background_path', bg_path)
 
+        bg_path = resource_path(bg_path)
         if os.path.exists(bg_path):
             try:
                 with screen.canvas.before:

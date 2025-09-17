@@ -42,6 +42,7 @@ jobs:
 
       - name: Build with Buildozer
         run: |
+          buildozer android clean
           buildozer -v android debug
           ls -l bin
 
