@@ -29,7 +29,7 @@ Die Installation auf einem Raspberry Pi wurde vollständig automatisiert, um den
     ```
 3.  Wechseln Sie in das Projektverzeichnis:
     ```bash
-    cd DnD-Sheet-Book
+    cd DnD-Sheet-Book-
     ```
 4.  Führen Sie das automatisierte Installationsskript aus:
     ```bash
