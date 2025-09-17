@@ -47,6 +47,16 @@
                 height: self.texture_size[1] + 10
 
             Label:
+                id: cpu_temp
+                text: "CPU-Temperatur: "
+                font_size: '18sp'
+                halign: 'left'
+                valign: 'top'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1] + 10
+
+            Label:
                 id: memory_usage
                 text: "RAM-Nutzung: "
                 font_size: '18sp'
