@@ -53,7 +53,7 @@ apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-d
    pkg-config libgl1-mesa-dev libgles2-mesa-dev \
    python3-setuptools libgstreamer1.0-dev git-core gstreamer1.0-plugins-base \
    gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-   gstreamer1.0-libav python3-dev
+   gstreamer1.0-libav python3-dev libjpeg-dev
 
 # Optionale virtuelle Tastatur installieren
 apt-get install -y matchbox-keyboard
@@ -70,6 +70,9 @@ sudo -u $SUDO_USER_NAME python3 -m venv "$APP_DIR/.venv"
 echo "Virtuelle Umgebung in '$APP_DIR/.venv' erstellt."
 
 # Python-Pakete aus requirements.txt in der venv installieren
+echo "Aktualisiere pip, setuptools und wheel..."
+sudo -u $SUDO_USER_NAME "$APP_DIR/.venv/bin/python" -m pip install --upgrade pip setuptools wheel
+
 echo "Installiere Python-Pakete (kivy, zeroconf)..."
 sudo -u $SUDO_USER_NAME "$APP_DIR/.venv/bin/python" -m pip install -r "$APP_DIR/requirements.txt"
 
