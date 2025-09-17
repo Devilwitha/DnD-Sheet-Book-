@@ -1,5 +1,17 @@
 import sys
 import os
+
+# Fix for path issues when running from different directories or when bundled
+if getattr(sys, 'frozen', False):
+    # The application is frozen
+    application_path = os.path.dirname(sys.executable)
+else:
+    # The application is not frozen
+    # Change the current working directory to the script's directory
+    application_path = os.path.dirname(os.path.abspath(__file__))
+
+os.chdir(application_path)
+
 from kivy.config import Config
 
 if sys.platform.startswith('win'):
