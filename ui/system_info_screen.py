@@ -25,6 +25,7 @@ class SystemInfoScreen(Screen):
         self.ids.raspberry_model.text = f"Modell: {self.get_model()}"
         self.ids.os_version.text = f"Betriebssystem: {self.get_os_version()}"
         self.ids.cpu_usage.text = f"CPU-Auslastung: {self.get_cpu_usage()}"
+        self.ids.cpu_temp.text = f"CPU-Temperatur: {self.get_cpu_temperature()}"
         self.ids.memory_usage.text = f"RAM-Nutzung: {self.get_memory_usage()}"
         self.ids.disk_usage.text = f"Festplattennutzung: {self.get_disk_usage()}"
         self.ids.resolution.text = f"Auflösung: {self.get_screen_resolution()}"
@@ -49,6 +50,17 @@ class SystemInfoScreen(Screen):
     def get_cpu_usage(self):
         """Gibt die aktuelle CPU-Auslastung in Prozent zurück."""
         return f"{psutil.cpu_percent(interval=1)}%"
+
+    def get_cpu_temperature(self):
+        """Gibt die CPU-Temperatur zurück, primär für Raspberry Pi."""
+        if not sys.platform.startswith('linux'):
+            return "N/A"
+        try:
+            with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+                temp = int(f.read().strip()) / 1000
+                return f"{temp:.1f}°C"
+        except (IOError, ValueError):
+            return "N/A"
 
     def get_memory_usage(self):
         """Gibt die RAM-Nutzung als 'genutzt / gesamt' in GB zurück."""
