@@ -27,8 +27,13 @@ class DMLobbyScreen(Screen):
         # Reset the flag when entering the screen
         self.is_starting_game = False
 
+        # Get the custom session name from the input
+        session_name = self.ids.session_name_input.text.strip()
+        if not session_name:
+            session_name = "DM's Spiel"
+
         # Start the server if it's not already running
-        self.network_manager.start_server()
+        self.network_manager.start_server(display_name=session_name)
 
         self.ids.player_list.clear_widgets()
         self.player_widgets.clear()

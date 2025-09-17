@@ -14,6 +14,8 @@ from core.character import Character
 @pytest.fixture
 def network_manager():
     """Provides a clean NetworkManager instance for each test, and ensures shutdown is called."""
+    # Reset the module-level mock before each test to ensure isolation
+    mock_zeroconf.reset_mock()
     nm = NetworkManager()
     yield nm
     # Ensure shutdown is called to clean up threads, even if the test fails
@@ -183,3 +185,49 @@ def test_dm_client_full_communication(mock_socket_constructor, sample_character)
             dm_manager.shutdown()
         if client_manager.running:
             client_manager.shutdown()
+
+@patch('core.network_manager.threading.Thread')
+@patch('socket.socket')
+def test_start_server_with_custom_name(mock_socket_constructor, mock_thread_class, network_manager):
+    """Tests that the server uses the custom display name provided."""
+    # Configure mock sockets
+    mock_server_socket = MagicMock()
+    mock_server_socket.getsockname.return_value = ("127.0.0.1", 12345)
+    mock_dgram_socket = MagicMock()
+    mock_dgram_socket.getsockname.return_value = ("192.168.1.100", 54321)
+    mock_socket_constructor.side_effect = [mock_server_socket, mock_dgram_socket]
+
+    custom_name = "My Awesome Game"
+
+    # Start the server with a custom name
+    network_manager.start_server(display_name=custom_name)
+
+    # Check that ServiceInfo was called with the correct properties
+    mock_zeroconf.ServiceInfo.assert_called_once()
+    call_args, call_kwargs = mock_zeroconf.ServiceInfo.call_args
+    properties = call_kwargs.get('properties')
+
+    assert properties is not None, "Properties dictionary was not provided to ServiceInfo"
+    assert properties.get(b'name') == custom_name.encode('utf-8'), "The custom name was not set correctly in the properties"
+
+@patch('core.network_manager.threading.Thread')
+@patch('socket.socket')
+def test_start_server_with_default_name(mock_socket_constructor, mock_thread_class, network_manager):
+    """Tests that the server uses the default display name when none is provided."""
+    # Configure mock sockets
+    mock_server_socket = MagicMock()
+    mock_server_socket.getsockname.return_value = ("127.0.0.1", 12345)
+    mock_dgram_socket = MagicMock()
+    mock_dgram_socket.getsockname.return_value = ("192.168.1.100", 54321)
+    mock_socket_constructor.side_effect = [mock_server_socket, mock_dgram_socket]
+
+    # Start the server without a custom name
+    network_manager.start_server()
+
+    # Check that ServiceInfo was called with the correct properties
+    mock_zeroconf.ServiceInfo.assert_called_once()
+    call_args, call_kwargs = mock_zeroconf.ServiceInfo.call_args
+    properties = call_kwargs.get('properties')
+
+    assert properties is not None, "Properties dictionary was not provided to ServiceInfo"
+    assert properties.get(b'name') == b"DM's Spiel", "The default name was not used correctly"
