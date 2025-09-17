@@ -29,7 +29,7 @@ jobs:
         env:
           KIVY_GL_BACKEND: mock
         run: |
-          pyinstaller --noconfirm --windowed --name DnDApp main.py --add-data "ui;ui" --add-data "logo;logo" --add-data "osbackground;osbackground" --add-data "utils/data;utils/data" --add-data "core;core" --add-data "utils;utils" --add-data "version.txt;."
+          pyinstaller --noconfirm --windowed --name DnDApp main.py --add-data "ui;ui" --add-data "logo;logo" --add-data "osbackground;osbackground" --add-data "utils/data;utils/data" --add-data "core;core" --add-data "utils;utils" --add-data "version.txt;." --hidden-import "kivy.config" --hidden-import "kivy.deps.sdl2" --hidden-import "kivy.deps.glew"
 
       - name: Upload Executable
         uses: actions/upload-artifact@v4
