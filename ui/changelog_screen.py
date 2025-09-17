@@ -1,6 +1,7 @@
 from kivy.uix.screenmanager import Screen
 from kivy.properties import StringProperty
 from kivy.app import App
+from utils.helpers import resource_path
 
 class ChangelogScreen(Screen):
     """Screen to display the changelog."""
@@ -15,7 +16,7 @@ class ChangelogScreen(Screen):
 
     def load_changelog(self):
         try:
-            with open('changelog.txt', 'r', encoding='utf-8') as f:
+            with open(resource_path('changelog.txt'), 'r', encoding='utf-8') as f:
                 self.changelog_text = f.read()
         except FileNotFoundError:
             self.changelog_text = "changelog.txt nicht gefunden."

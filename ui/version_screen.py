@@ -1,6 +1,6 @@
 from kivy.uix.screenmanager import Screen
 from kivy.app import App
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, resource_path
 
 class VersionScreen(Screen):
     """Screen to display version information."""
@@ -16,7 +16,7 @@ class VersionScreen(Screen):
     def get_version_info(self):
         """Reads version information from version.txt."""
         try:
-            with open("version.txt", "r", encoding="utf-8") as f:
+            with open(resource_path("version.txt"), "r", encoding="utf-8") as f:
                 return f.read().strip()
         except FileNotFoundError:
             return "version.txt nicht gefunden"

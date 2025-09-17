@@ -1,22 +1,10 @@
 import sys
 import os
-
-# Fix for path issues when running from different directories or when bundled
-if getattr(sys, 'frozen', False):
-    # The application is frozen
-    application_path = os.path.dirname(sys.executable)
-else:
-    # The application is not frozen
-    # Change the current working directory to the script's directory
-    application_path = os.path.dirname(os.path.abspath(__file__))
-
-os.chdir(application_path)
-
+from utils.helpers import resource_path, load_settings
 from kivy.config import Config
 
 if sys.platform.startswith('win'):
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
-from utils.helpers import load_settings
 
 # Laden der Einstellungen, um die Tastaturkonfiguration zu bestimmen
 settings = load_settings()
@@ -192,36 +180,36 @@ class DnDApp(App):
 
     def build(self):
         # Create a lock file to indicate the app is running
-        with open(".app_closed_cleanly", "w") as f:
+        with open(resource_path(".app_closed_cleanly"), "w") as f:
             f.write("running")
 
-        Builder.load_file('ui/splashscreen.kv')
-        Builder.load_file('ui/mainmenu.kv')
-        Builder.load_file('ui/charactercreator.kv')
-        Builder.load_file('ui/charactereditor.kv')
-        Builder.load_file('ui/charactersheet.kv')
-        Builder.load_file('ui/charactermenuscreen.kv')
-        Builder.load_file('ui/levelupscreen.kv')
-        Builder.load_file('ui/optionsscreen.kv')
-        Builder.load_file('ui/settingsscreen.kv')
-        Builder.load_file('ui/backgroundsettingsscreen.kv')
-        Builder.load_file('ui/customizationsettingsscreen.kv')
-        Builder.load_file('ui/systemscreen.kv')
-        Builder.load_file('ui/changelogscreen.kv')
-        Builder.load_file('ui/infomenuscreen.kv')
-        Builder.load_file('ui/modelscreen.kv')
-        Builder.load_file('ui/versionscreen.kv')
-        Builder.load_file('ui/systeminfoscreen.kv')
-        Builder.load_file('ui/transferscreen.kv')
-        Builder.load_file('ui/dmspielscreen.kv')
-        Builder.load_file('ui/dmlobbyscreen.kv')
-        Builder.load_file('ui/playerlobbyscreen.kv')
-        Builder.load_file('ui/dmprepscreen.kv')
-        Builder.load_file('ui/dmmainscreen.kv')
-        Builder.load_file('ui/playerwaitingscreen.kv')
-        Builder.load_file('ui/playercharactersheet.kv')
-        Builder.load_file('ui/mapeditorscreen.kv')
-        Builder.load_file('ui/playermapscreen.kv')
+        Builder.load_file(resource_path('ui/splashscreen.kv'))
+        Builder.load_file(resource_path('ui/mainmenu.kv'))
+        Builder.load_file(resource_path('ui/charactercreator.kv'))
+        Builder.load_file(resource_path('ui/charactereditor.kv'))
+        Builder.load_file(resource_path('ui/charactersheet.kv'))
+        Builder.load_file(resource_path('ui/charactermenuscreen.kv'))
+        Builder.load_file(resource_path('ui/levelupscreen.kv'))
+        Builder.load_file(resource_path('ui/optionsscreen.kv'))
+        Builder.load_file(resource_path('ui/settingsscreen.kv'))
+        Builder.load_file(resource_path('ui/backgroundsettingsscreen.kv'))
+        Builder.load_file(resource_path('ui/customizationsettingsscreen.kv'))
+        Builder.load_file(resource_path('ui/systemscreen.kv'))
+        Builder.load_file(resource_path('ui/changelogscreen.kv'))
+        Builder.load_file(resource_path('ui/infomenuscreen.kv'))
+        Builder.load_file(resource_path('ui/modelscreen.kv'))
+        Builder.load_file(resource_path('ui/versionscreen.kv'))
+        Builder.load_file(resource_path('ui/systeminfoscreen.kv'))
+        Builder.load_file(resource_path('ui/transferscreen.kv'))
+        Builder.load_file(resource_path('ui/dmspielscreen.kv'))
+        Builder.load_file(resource_path('ui/dmlobbyscreen.kv'))
+        Builder.load_file(resource_path('ui/playerlobbyscreen.kv'))
+        Builder.load_file(resource_path('ui/dmprepscreen.kv'))
+        Builder.load_file(resource_path('ui/dmmainscreen.kv'))
+        Builder.load_file(resource_path('ui/playerwaitingscreen.kv'))
+        Builder.load_file(resource_path('ui/playercharactersheet.kv'))
+        Builder.load_file(resource_path('ui/mapeditorscreen.kv'))
+        Builder.load_file(resource_path('ui/playermapscreen.kv'))
 
         if sys.platform.startswith('win'):
             Window.fullscreen = False
@@ -269,8 +257,9 @@ class DnDApp(App):
     def on_stop(self):
         """Wird aufgerufen, wenn die App geschlossen wird."""
         # Remove the lock file to indicate a clean shutdown
-        if os.path.exists(".app_closed_cleanly"):
-            os.remove(".app_closed_cleanly")
+        lock_file = resource_path(".app_closed_cleanly")
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
 
         settings = load_settings()
         settings['window_width'] = Window.width

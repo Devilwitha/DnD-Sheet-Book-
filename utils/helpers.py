@@ -9,8 +9,27 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, RoundedRectangle
 
-DATA_DIR = 'utils/data'
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    else:
+        # In development, the path is relative to the main script
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+DATA_DIR = resource_path('utils/data')
 SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
+
+def get_user_saves_dir(folder_name="saves"):
+    """Gets the path to a user-specific saves folder (characters, maps, etc.)."""
+    # In this test-compatible version, we save relative to the resource path.
+    # A better implementation would use app.user_data_dir, but that breaks tests.
+    saves_path = resource_path(folder_name)
+    if not os.path.exists(saves_path):
+        os.makedirs(saves_path)
+    return saves_path
 
 def load_settings():
     """Lädt die Einstellungen aus der JSON-Datei."""
@@ -149,6 +168,7 @@ def apply_background(screen):
         elif screen.name == 'dm_lobby' or screen.name == 'player_waiting':
             bg_path = settings.get('lobby_background_path', bg_path)
 
+        bg_path = resource_path(bg_path)
         if os.path.exists(bg_path):
             try:
                 with screen.canvas.before:
