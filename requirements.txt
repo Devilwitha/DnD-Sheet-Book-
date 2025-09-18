@@ -1,7 +1,5 @@
 kivy==2.0.0
 cython==0.29.36
-pyjnius==1.6.1
+pyjnius==1.3.0
 zeroconf
-pytest
 psutil
-buildozer==1.5.0
