@@ -3,6 +3,5 @@ zeroconf
 pytest
 psutil
 cython==0.29.36
-pyjnius==1.5.0
-zeroconf
-buildozer==1.5.0
+pyjnius
+
