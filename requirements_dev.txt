@@ -1,1 +1,5 @@
 buildozer==1.5.0
+pyjnius==1.4.1
+zeroconf
+psutil
+pytest
