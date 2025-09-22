@@ -22,7 +22,14 @@ source.include_patterns = assets/*,data/*
 source.exclude_exts = install_and_log.py, install_on_pi.sh, README.md
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests
+# The line below is commented out because we are using the section format below.
+# source.exclude_dirs = tests
+
+[app:source.exclude_dirs]
+tests
+.github
+saves
+__pycache__
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
