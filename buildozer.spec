@@ -19,14 +19,14 @@ source.include_exts = py,png,jpg,kv,db,json,txt,enemies,session,char
 source.include_patterns = assets/*,data/*
 
 # (list) Source files to exclude (let empty to not exclude anything)
-source.exclude_exts = install_and_log.py, install_on_pi.sh, README.md
+#source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests,.github,saves,__pycache__
+source.exclude_dirs = tests, .github, saves, __pycache__
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
-#source.exclude_patterns = license,images/*/*.jpg
+source.exclude_patterns = install_and_log.py, install_on_pi.sh, README.md
 
 # (str) Application versioning (method 1)
 version = 0.3.9
