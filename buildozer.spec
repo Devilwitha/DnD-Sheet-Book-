@@ -404,7 +404,6 @@ ios.codesign.allowed = false
 tests
 .github
 saves
-__pycache__
 
 [app:source.exclude_patterns]
 install_and_log.py
