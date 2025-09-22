@@ -22,11 +22,11 @@ source.include_patterns = assets/*,data/*
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, .github, saves, __pycache__
+source.exclude_dirs =
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
-source.exclude_patterns = install_and_log.py, install_on_pi.sh, README.md
+source.exclude_patterns =
 
 # (str) Application versioning (method 1)
 version = 0.3.9
@@ -398,6 +398,18 @@ ios.codesign.allowed = false
 # (str) URL pointing to a large icon (512x512px) to be used by iTunes
 # This option should be defined along with `app_url` and `display_image_url` options.
 #ios.manifest.full_size_image_url =
+
+
+[app:source.exclude_dirs]
+tests
+.github
+saves
+__pycache__
+
+[app:source.exclude_patterns]
+install_and_log.py
+install_on_pi.sh
+README.md
 
 
 [buildozer]
