@@ -22,11 +22,11 @@ source.include_patterns = assets/*,data/*
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs =
+#source.exclude_dirs =
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
-source.exclude_patterns =
+#source.exclude_patterns =
 
 # (str) Application versioning (method 1)
 version = 0.3.9
