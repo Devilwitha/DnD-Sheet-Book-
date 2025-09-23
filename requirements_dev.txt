@@ -1,6 +1,7 @@
-kivy[base]
+kivy==2.1.0
 zeroconf
 pytest
 psutil
 cython==0.29.36
-pyjnius
+pyjnius==1.4.1
+pygame
