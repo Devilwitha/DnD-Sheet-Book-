@@ -4,8 +4,6 @@ pytest
 psutil
 cython==0.29.36
 pyjnius
-pygame
-
 kivy-garden
 kivy_garden.matplotlib
 python-for-android
