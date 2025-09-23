@@ -45,6 +45,8 @@ jobs:
 
       - name: Build with Buildozer
         run: |
+          unset C_INCLUDE_PATH
+          unset CPLUS_INCLUDE_PATH
           buildozer -v android debug
           ls -l bin
 
