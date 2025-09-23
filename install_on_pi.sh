@@ -80,7 +80,7 @@ echo "Aktualisiere pip, setuptools und wheel..."
 sudo -u $SUDO_USER_NAME "$APP_DIR/.venv/bin/python" -m pip install --upgrade pip setuptools wheel
 
 echo "Installiere Python-Pakete (kivy, zeroconf)..."
-sudo -u $SUDO_USER_NAME "$APP_DIR/.venv/bin/python" -m pip install -r "$APP_DIR/requirements.txt"
+sudo -u $SUDO_USER_NAME "$APP_DIR/.venv/bin/python" -m pip install -r "$APP_DIR/requirements_linux.txt"
 
 echo ">>> Python-Umgebung erfolgreich eingerichtet."
 
