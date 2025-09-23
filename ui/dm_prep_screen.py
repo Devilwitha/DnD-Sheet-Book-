@@ -7,7 +7,7 @@ from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from core.enemy import Enemy
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, get_user_saves_dir
 
 from kivy.app import App
 
@@ -79,8 +79,7 @@ class DMPrepScreen(Screen):
 
     def save_enemy_list(self):
         # For now, hardcoded filename. Later, a file chooser.
-        saves_dir = "saves"
-        os.makedirs(saves_dir, exist_ok=True)
+        saves_dir = get_user_saves_dir("enemies")
         filename = os.path.join(saves_dir, "my_enemies.enemies")
         try:
             with open(filename, 'w', encoding='utf-8') as f:
@@ -91,7 +90,7 @@ class DMPrepScreen(Screen):
             print(f"[!] Error saving enemy list: {e}")
 
     def load_enemy_list(self):
-        filename = os.path.join("saves", "my_enemies.enemies")
+        filename = os.path.join(get_user_saves_dir("enemies"), "my_enemies.enemies")
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 list_from_file = json.load(f)

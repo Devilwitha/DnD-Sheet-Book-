@@ -3,7 +3,7 @@ from kivy.properties import StringProperty, ListProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.clock import Clock
-from utils.helpers import apply_background, apply_styles_to_widget, get_local_ip
+from utils.helpers import apply_background, apply_styles_to_widget, get_local_ip, get_user_saves_dir
 import os
 import socket
 import threading
@@ -30,11 +30,11 @@ class TransferScreen(Screen):
     discovered_services = ListProperty([])
 
     DATA_TYPE_INFO = {
-        'characters': {'dir': 'saves', 'ext': '.char', 'name': 'Charaktere'},
-        'maps': {'dir': os.path.join('utils', 'data', 'maps'), 'ext': '.json', 'name': 'Karten'},
-        'enemies': {'dir': 'saves', 'ext': '.enemies', 'name': 'Gegnerlisten'},
-        'sessions': {'dir': 'saves', 'ext': '.session', 'name': 'Sitzungen'},
-        'logs': {'dir': 'logs', 'ext': '.log', 'name': 'Logs'},
+        'characters': {'dir': get_user_saves_dir('characters'), 'ext': '.char', 'name': 'Charaktere'},
+        'maps': {'dir': get_user_saves_dir('maps'), 'ext': '.json', 'name': 'Karten'},
+        'enemies': {'dir': get_user_saves_dir('enemies'), 'ext': '.enemies', 'name': 'Gegnerlisten'},
+        'sessions': {'dir': get_user_saves_dir('sessions'), 'ext': '.session', 'name': 'Sitzungen'},
+        'logs': {'dir': get_user_saves_dir('logs'), 'ext': '.log', 'name': 'Logs'},
     }
 
     def __init__(self, **kwargs):

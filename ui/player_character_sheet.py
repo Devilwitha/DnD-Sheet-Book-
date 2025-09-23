@@ -15,7 +15,7 @@ from queue import Empty
 
 from core.character import Character
 from utils.data_manager import WEAPON_DATA, SPELL_DATA
-from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, get_user_saves_dir
 
 class PlayerCharacterSheet(Screen):
     """A version of the character sheet for the online player."""
@@ -219,8 +219,7 @@ class PlayerCharacterSheet(Screen):
 
     def save_character(self):
         if not self.character: return
-        saves_dir = "saves"
-        os.makedirs(saves_dir, exist_ok=True)
+        saves_dir = get_user_saves_dir("characters")
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)
         try:
