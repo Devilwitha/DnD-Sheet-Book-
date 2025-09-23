@@ -47,7 +47,7 @@ jobs:
         run: |
           unset C_INCLUDE_PATH
           unset CPLUS_INCLUDE_PATH
-          unset PKG_CONFIG_PATH
+          export USE_PKG_CONFIG=0
           buildozer -v android debug
           ls -l bin
 
