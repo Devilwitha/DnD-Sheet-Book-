@@ -38,7 +38,7 @@ version = 0.3.9
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3==3.10.12,pygame,cython,hostpython3==3.10.12,pyjnius==1.5.0,android==0.7,zeroconf,kivy
+requirements = python3==3.10.12,hostpython3==3.10.12,kivy==2.3.0,pygame,cython==0.29.36,pyjnius==1.6.1,android==0.7,zeroconf,psutil,pytest
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -111,6 +111,7 @@ android.permissions = android.permission.READ_EXTERNAL_STORAGE, android.permissi
 #android.sdk = 20
 
 # (str) Android NDK version to use
+android.ndk_version = 26b
 #android.ndk = 23b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
@@ -322,7 +323,7 @@ android.allow_backup = True
 #p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-#p4a.branch = master
+p4a.branch = v2024.01.21
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD
