@@ -16,7 +16,7 @@ class TestDMPrepScreen(unittest.TestCase):
 
     def setUp(self):
         self.screen = DMPrepScreen()
-        self.saves_dir = "saves"
+        self.saves_dir = "enemies"
         self.test_file = os.path.join(self.saves_dir, "my_enemies.enemies")
 
         # Clean up any old test files
