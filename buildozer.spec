@@ -38,7 +38,7 @@ version = 0.3.9
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,hostpython3,kivy, sqlite3, plyer, cryptography, pyOpenSSL, werkzeug, markupsafe,pygame,cython,pyjnius,android==0.7,zeroconf,psutil,pytest
+requirements = python3,hostpython3,kivy, sqlite3, plyer, cryptography, pyOpenSSL, werkzeug, markupsafe,pygame==2.5.2,cython,pyjnius,android==0.7,zeroconf,psutil,pytest
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
