@@ -4,3 +4,4 @@ pytest
 psutil
 cython==0.29.36
 pyjnius
+sqlite3
