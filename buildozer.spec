@@ -38,7 +38,7 @@ version = 0.3.9
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3==3.10.12,hostpython3==3.10.12,kivy==2.3.0,pygame,cython==0.29.36,pyjnius==1.6.1,android==0.7,zeroconf,psutil,pytest
+requirements = python3,hostpython3,kivy, sqlite3, plyer, cryptography, pyOpenSSL, werkzeug, markupsafe,pygame,cython,pyjnius,android==0.7,zeroconf,psutil,pytest
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -75,7 +75,7 @@ osx.kivy_version = 1.9.1
 #
 
 # (bool) Indicate if the application should be fullscreen or not
-fullscreen = 1
+fullscreen = 0
 
 # (string) Presplash background color (for android toolchain)
 # Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
