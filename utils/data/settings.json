@@ -1,0 +1,39 @@
+{
+    "button_transparency": 0.25310344827586206,
+    "transparency_enabled": true,
+    "background_enabled": false,
+    "background_path": "osbackground/hmbg.png",
+    "cs_creator_background_path": "osbackground/csbg.png",
+    "cs_sheet_background_path": "osbackground/csbg.png",
+    "keyboard_enabled": true,
+    "window_width": 487,
+    "window_height": 720,
+    "font_color_enabled": false,
+    "custom_font_color": [
+        1,
+        0.8,
+        0.19999999999999996,
+        1
+    ],
+    "popup_color_enabled": false,
+    "custom_popup_color": [
+        1,
+        0.5,
+        0.19999999999999996,
+        0.9
+    ],
+    "button_font_color_enabled": false,
+    "custom_button_font_color": [
+        1,
+        0.09999999999999998,
+        0.09999999999999998,
+        1
+    ],
+    "button_bg_color_enabled": false,
+    "custom_button_bg_color": [
+        1,
+        0.09999999999999998,
+        0.775,
+        1
+    ]
+}
