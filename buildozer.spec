@@ -38,7 +38,7 @@ version = 0.3.9
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,hostpython3,kivy,cython==0.29.36,pyjnius,kivy-garden,kivy_garden.matplotlib,zeroconf,psutil,screeninfo,sqlite3,plyer,cryptography,pyopenssl
+requirements = python3,hostpython3,kivy==2.3.0,cython==0.29.36,pyjnius,kivy-garden,kivy_garden.matplotlib,zeroconf,psutil,screeninfo,sqlite3,plyer,cryptography,pyopenssl
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
