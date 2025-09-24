@@ -58,14 +58,18 @@ jobs:
           # Falls du eine requirements_android.txt hast, kannst du sie hier installieren:
           # python -m pip install -r requirements_android.txt
 
-      # Schritt 7: Build mit Buildozer
+      # Schritt 7: Build mit Buildozer (korrigierte Reihenfolge)
       - name: Build with Buildozer
         run: |
-          # WICHTIG: Führe 'clean' aus, um alte, falsch kompilierte Dateien zu entfernen.
-          # Dies ist die direkte Lösung für dein Architektur-Problem (x86_64 vs aarch64).
+          # 1. Zuerst die Android-Plattform-Werkzeuge (SDK, NDK, p4a) herunterladen/aktualisieren.
+          # Dieser Schritt erstellt das Verzeichnis, das vorher gefehlt hat.
+          buildozer -v android update
+
+          # 2. Jetzt den Build-Cache bereinigen, um Architektur-Konflikte zu vermeiden.
+          # Dieser Befehl wird nun erfolgreich ausgeführt.
           buildozer -v android clean
 
-          # Führe jetzt den eigentlichen Build-Prozess aus
+          # 3. Den eigentlichen Build-Prozess für die Debug-APK starten.
           buildozer -v android debug
 
       # Schritt 8: Den gebauten APK-Dateinamen finden
@@ -96,3 +100,4 @@ jobs:
         with:
           name: dndapp-debug-apk
           path: ${{ env.APK_PATH }}
+
