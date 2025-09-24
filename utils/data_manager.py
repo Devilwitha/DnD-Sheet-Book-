@@ -1,7 +1,7 @@
-from utils.database import get_data_from_db, setup_database
+from utils.database import get_data_from_db, init_db
 
 # Set up the database (copy from bundle if needed) and load data
-setup_database()
+init_db()
 _data = get_data_from_db()
 
 ALIGNMENT_DATA = _data["ALIGNMENT_DATA"]
