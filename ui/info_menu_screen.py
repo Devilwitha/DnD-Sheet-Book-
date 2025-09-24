@@ -1,4 +1,5 @@
-from kivy.utils import platform
+import sys
+import os
 from kivy.uix.screenmanager import Screen
 from kivy.app import App
 from utils.helpers import apply_background, apply_styles_to_widget
@@ -12,7 +13,7 @@ class InfoMenuScreen(Screen):
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
-        if platform == 'android':
+        if sys.platform == 'linux' and os.environ.get('ANDROID_ARGUMENT'):
             if self.ids.system_info_button.parent:
                 self.ids.button_layout.remove_widget(self.ids.system_info_button)
 
