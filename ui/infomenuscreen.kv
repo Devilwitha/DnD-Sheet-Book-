@@ -1,5 +1,6 @@
 <InfoMenuScreen>:
     BoxLayout:
+        id: button_layout
         orientation: 'vertical'
         padding: 10
         spacing: 10
@@ -25,6 +26,7 @@
             font_size: '20sp'
 
         Button:
+            id: system_info_button
             text: "System"
             on_press: root.go_to_screen('system_info')
             size_hint_y: None
