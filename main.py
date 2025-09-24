@@ -45,7 +45,6 @@ from ui.character_editor import CharacterEditor
 from ui.info_menu_screen import InfoMenuScreen
 from ui.model_screen import ModelScreen
 from ui.version_screen import VersionScreen
-from ui.system_info_screen import SystemInfoScreen
 from ui.settings_screen import SettingsScreen
 from ui.background_settings_screen import BackgroundSettingsScreen
 from ui.customization_settings_screen import CustomizationSettingsScreen
@@ -179,6 +178,10 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
+        if sys.platform == 'android':
+            from android.permissions import request_permissions, Permission
+            request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+
         # Create a lock file to indicate the app is running
         with open(resource_path(".app_closed_cleanly"), "w") as f:
             f.write("running")
@@ -236,7 +239,9 @@ class DnDApp(App):
         sm.add_widget(InfoMenuScreen(name='info_menu'))
         sm.add_widget(ModelScreen(name='model'))
         sm.add_widget(VersionScreen(name='version'))
-        sm.add_widget(SystemInfoScreen(name='system_info'))
+        if sys.platform == 'linux' and not os.environ.get('ANDROID_ARGUMENT'):
+            from ui.system_info_screen import SystemInfoScreen
+            sm.add_widget(SystemInfoScreen(name='system_info'))
         sm.add_widget(LevelUpScreen(name='level_up'))
         sm.add_widget(TransferScreen(name='transfer'))
         sm.add_widget(DMSpielScreen(name='dm_spiel'))
