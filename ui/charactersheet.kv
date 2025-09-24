@@ -8,7 +8,7 @@
         GridLayout:
             cols: 3
             size_hint_y: None
-            height: 60
+            height: '60dp'
             Label:
                 id: name_label
                 font_size: '20sp'
@@ -37,12 +37,12 @@
                         id: stats_box
                         cols: 2
                         size_hint_y: None
-                        height: 280
+                        height: '280dp'
 
                     BoxLayout:
                         id: hp_box
                         size_hint_y: None
-                        height: 50
+                        height: '50dp'
                         Button:
                             text: "-"
                             on_press: root.change_hp(-1)
@@ -55,7 +55,7 @@
                     GridLayout:
                         cols: 1
                         size_hint_y: None
-                        height: 150
+                        height: '150dp'
                         spacing: 5
                         Label:
                             text: "Ausrüstete Waffe:"
@@ -70,7 +70,7 @@
                         id: currency_box
                         cols: 3
                         size_hint_y: None
-                        height: 200
+                        height: '200dp'
                         spacing: 5
 
                 # Right Column
@@ -84,7 +84,7 @@
                         text: "Fähigkeiten"
                         font_size: '20sp'
                         size_hint_y: None
-                        height: 40
+                        height: '40dp'
                     GridLayout:
                         id: features_layout
                         cols: 1
@@ -96,7 +96,7 @@
                         text: "Inventar"
                         font_size: '20sp'
                         size_hint_y: None
-                        height: 40
+                        height: '40dp'
                     GridLayout:
                         id: inventory_layout
                         cols: 1
@@ -107,13 +107,13 @@
                         text: "Item hinzufügen"
                         on_press: root.show_add_item_popup()
                         size_hint_y: None
-                        height: 44
+                        height: '44dp'
 
                     Label:
                         text: "Ausrüstung"
                         font_size: '20sp'
                         size_hint_y: None
-                        height: 40
+                        height: '40dp'
                     GridLayout:
                         id: equipment_layout
                         cols: 1
@@ -124,12 +124,12 @@
                         text: "Ausrüstung hinzufügen"
                         on_press: root.show_add_equipment_popup()
                         size_hint_y: None
-                        height: 44
+                        height: '44dp'
 
         # Footer
         BoxLayout:
             size_hint_y: None
-            height: 50
+            height: '50dp'
             spacing: 5
             Button:
                 text: "Info"
