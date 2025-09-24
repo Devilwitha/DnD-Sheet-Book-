@@ -89,17 +89,17 @@ def create_database_from_json():
     with open(os.path.join(json_path, 'races.json'), 'r', encoding='utf-8') as f:
         data = json.load(f)
         for name, details in data.items():
-            cursor.execute("INSERT INTO races VALUES (?, ?, ?, ?, ?)", (name, details['speed'], json.dumps(details['ability_score_increase']), json.dumps(details['languages']), json.dumps(details['proficiencies'])))
+            cursor.execute("INSERT INTO races VALUES (?, ?, ?, ?, ?)", (name, details.get('speed'), json.dumps(details.get('ability_score_increase', {})), json.dumps(details.get('languages', [])), json.dumps(details.get('proficiencies', []))))
 
     with open(os.path.join(json_path, 'classes.json'), 'r', encoding='utf-8') as f:
         data = json.load(f)
         for name, details in data.items():
-            cursor.execute("INSERT INTO classes VALUES (?, ?, ?, ?, ?, ?)", (name, details['hit_die'], json.dumps(details['proficiencies']), json.dumps(details['progression']), json.dumps(details['spell_list']), json.dumps(details['features'])))
+            cursor.execute("INSERT INTO classes VALUES (?, ?, ?, ?, ?, ?)", (name, details.get('hit_die'), json.dumps(details.get('proficiencies', [])), json.dumps(details.get('progression', {})), json.dumps(details.get('spell_list', {})), json.dumps(details.get('features', {}))))
 
     with open(os.path.join(json_path, 'enemies.json'), 'r', encoding='utf-8') as f:
         data = json.load(f)
         for name, details in data.items():
-            cursor.execute("INSERT INTO enemies VALUES (?, ?, ?, ?, ?)", (name, details['hp'], details['ac'], details['speed'], json.dumps(details['attacks'])))
+            cursor.execute("INSERT INTO enemies VALUES (?, ?, ?, ?, ?)", (name, details.get('hp'), details.get('ac'), details.get('speed'), json.dumps(details.get('attacks', []))))
 
     conn.commit()
     conn.close()
