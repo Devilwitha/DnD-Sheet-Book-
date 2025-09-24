@@ -79,7 +79,7 @@ def create_database_from_json():
     with open(os.path.join(json_path, 'weapons.json'), 'r', encoding='utf-8') as f:
         data = json.load(f)
         for name, details in data.items():
-            cursor.execute("INSERT INTO weapons VALUES (?, ?, ?, ?, ?)", (name, details['damage'], details['ability'], details['type'], details['range']))
+            cursor.execute("INSERT INTO weapons VALUES (?, ?, ?, ?, ?)", (name, details.get('damage'), details.get('ability'), details.get('type'), details.get('range')))
 
     with open(os.path.join(json_path, 'spells_translated.json'), 'r', encoding='utf-8') as f:
         data = json.load(f)
