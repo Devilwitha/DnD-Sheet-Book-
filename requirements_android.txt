@@ -1,4 +1,4 @@
-kivy==2.3.0
+kivy
 zeroconf
 pytest
 psutil

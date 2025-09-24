@@ -3,7 +3,9 @@ import os
 from utils.helpers import resource_path, load_settings
 from kivy.config import Config
 
-if sys.platform.startswith('win'):
+from kivy.utils import platform
+
+if platform == 'win':
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
 # Laden der Einstellungen, um die Tastaturkonfiguration zu bestimmen
@@ -17,7 +19,7 @@ else:
 Config.set('graphics', 'rotation', 0)
 
 from kivy.core.window import Window
-if sys.platform not in ('android', 'ios'):
+if platform not in ('android', 'ios'):
     Window.size = (settings.get('window_width', 1280), settings.get('window_height', 720))
 
 import socket
@@ -45,7 +47,7 @@ from ui.character_editor import CharacterEditor
 from ui.info_menu_screen import InfoMenuScreen
 from ui.model_screen import ModelScreen
 from ui.version_screen import VersionScreen
-if sys.platform != 'android':
+if platform != 'android':
     from ui.system_info_screen import SystemInfoScreen
 from ui.settings_screen import SettingsScreen
 from ui.background_settings_screen import BackgroundSettingsScreen
@@ -180,7 +182,7 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
-        if sys.platform == 'android':
+        if platform == 'android':
             from android.permissions import request_permissions, Permission
             request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
@@ -241,7 +243,7 @@ class DnDApp(App):
         sm.add_widget(InfoMenuScreen(name='info_menu'))
         sm.add_widget(ModelScreen(name='model'))
         sm.add_widget(VersionScreen(name='version'))
-        if sys.platform != 'android':
+        if platform != 'android':
             sm.add_widget(SystemInfoScreen(name='system_info'))
         sm.add_widget(LevelUpScreen(name='level_up'))
         sm.add_widget(TransferScreen(name='transfer'))
