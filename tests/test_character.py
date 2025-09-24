@@ -17,7 +17,15 @@ def test_character_initialization(basic_character):
     assert basic_character.race == "Mensch"
     assert basic_character.char_class == "Kämpfer"
     assert basic_character.level == 1
-    assert basic_character.speed == 6 # Humans get 9m -> 6 squares
+    assert basic_character.speed == 6  # Humans get 9m -> 6 squares
+    assert basic_character.speed_in_meters == 9.0
+
+def test_speed_for_dwarf(basic_character):
+    """Tests if the speed is correctly set for a Dwarf."""
+    char = Character(name="Gimli", race="Zwerg (Hügelzwerg)", char_class="Kämpfer")
+    char.initialize_character()
+    assert char.speed == 5  # Zwerg gets 7.5m -> 5 squares
+    assert char.speed_in_meters == 7.5
 
 def test_racial_ability_bonus(basic_character):
     """Tests if racial bonuses are applied correctly."""
@@ -54,7 +62,7 @@ def test_character_from_dict_deserialization():
         "name": "Lirael", "race": "Elf", "char_class": "Magier", "level": 2,
         "base_abilities": {"Stärke": 8, "Geschicklichkeit": 14, "Konstitution": 12, "Intelligenz": 16, "Weisheit": 10, "Charisma": 10},
         "abilities": {"Stärke": 8, "Geschicklichkeit": 16, "Konstitution": 12, "Intelligenz": 16, "Weisheit": 10, "Charisma": 10},
-        "hit_points": 12, "max_hit_points": 12, "speed": 6, "armor_class": 13,
+        "hit_points": 12, "max_hit_points": 12, "speed": 6, "speed_in_meters": 9.0, "armor_class": 13,
         "inventory": [], "equipment": {}, "currency": {}, "equipped_weapon": "Stab",
         "background": "Gelehrter", "alignment": "Rechtschaffen Gut",
         "personality_traits": "", "ideals": "", "bonds": "", "flaws": "",
