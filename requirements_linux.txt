@@ -1,11 +1,8 @@
 kivy
 zeroconf
-pytest
 psutil
 cython==0.29.36
 pyjnius
 kivy-garden
 kivy_garden.matplotlib
-python-for-android
 screeninfo
-pyinstaller
