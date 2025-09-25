@@ -216,6 +216,7 @@ class DnDApp(App):
 
         if sys.platform.startswith('win'):
             Window.fullscreen = False
+            Window.set_icon(resource_path('logo/logo.png'))
         else:
             Window.fullscreen = 'auto'
 
