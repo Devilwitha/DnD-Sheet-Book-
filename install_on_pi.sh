@@ -102,7 +102,7 @@ source .venv/bin/activate
 python3 main.py
 EOF
 
-chmod +x "$HOME_DIR/start_dnd.sh"
+chmod 755 "$HOME_DIR/start_dnd.sh"
 chown $SUDO_USER_NAME:$SUDO_USER_NAME "$HOME_DIR/start_dnd.sh"
 echo "Start-Skript 'start_dnd.sh' in '$HOME_DIR' erstellt."
 
@@ -156,7 +156,7 @@ while true; do
 done
 EOF
 
-chmod +x "$HOME_DIR/watchdog.sh"
+chmod 755 "$HOME_DIR/watchdog.sh"
 chown $SUDO_USER_NAME:$SUDO_USER_NAME "$HOME_DIR/watchdog.sh"
 echo "Watchdog-Skript 'watchdog.sh' in '$HOME_DIR' erstellt."
 
