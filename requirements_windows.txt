@@ -1,10 +1,9 @@
-kivy==2.1.0
+kivy
 zeroconf
-pytest
 psutil
 cython==0.29.36
-pyjnius==1.5.0
-pygame
-
-
-
+pyjnius
+kivy-garden
+kivy_garden.matplotlib
+screeninfo
+pyinstaller
