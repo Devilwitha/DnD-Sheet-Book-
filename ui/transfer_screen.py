@@ -50,6 +50,8 @@ class TransferScreen(Screen):
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        # Set the sender name to the device's hostname by default
+        self.ids.sender_name_input.text = platform.node() or "Unbekanntes Gerät"
 
     def _update_service_list_ui(self):
         service_list_widget = self.ids.service_list
@@ -113,10 +115,14 @@ class TransferScreen(Screen):
             self.status_message = "Fehler: Transfertyp nicht gesetzt."
             return
 
-        service_name = f"{platform.node()}._dndchar._tcp.local."
+        custom_name = self.ids.sender_name_input.text.strip()
+        if not custom_name:
+            custom_name = platform.node() or "Unbenannter Sender"
+
+        service_name = f"{custom_name}._dndchar._tcp.local."
         local_ip = get_local_ip()
         properties = {
-            b'user': platform.node().encode('utf-8'),
+            b'user': custom_name.encode('utf-8'),
             b'type': self.current_transfer_type.encode('utf-8')
         }
         self.service_info = ServiceInfo(
@@ -124,7 +130,7 @@ class TransferScreen(Screen):
             service_name,
             addresses=[socket.inet_aton(local_ip)],
             port=port,
-            properties=properties
+            properties=properties,
         )
         self.zeroconf.register_service(self.service_info, allow_name_change=True)
         self.status_message = f"Server gestartet, sichtbar als '{platform.node()}'"

@@ -16,7 +16,6 @@ class Character:
         self.hit_points = 0
         self.max_hit_points = 0
         self.speed = 6  # Default speed in squares
-        self.speed_in_meters = 9.0  # Default speed in meters
         self.actions_per_turn = 1
         self.initiative = 0
         self.armor_class = 10
@@ -60,8 +59,8 @@ class Character:
             if ability in self.abilities:
                 self.abilities[ability] += bonus
         # Speed in meters from data, converted to squares (1 square ~ 1.5m)
-        self.speed_in_meters = race_info.get("speed", 9.0)
-        self.speed = int(self.speed_in_meters / 1.5)
+        speed_in_meters = race_info.get("speed", 9)
+        self.speed = int(speed_in_meters / 1.5)
 
     def collect_proficiencies_and_languages(self):
         """Sammelt Kompetenzen und Sprachen von Rasse und Klasse."""
@@ -242,7 +241,6 @@ class Character:
             "hit_points": self.hit_points,
             "max_hit_points": self.max_hit_points,
             "speed": self.speed,
-            "speed_in_meters": self.speed_in_meters,
             "actions_per_turn": getattr(self, 'actions_per_turn', 1),
             "initiative": self.initiative,
             "armor_class": self.armor_class,

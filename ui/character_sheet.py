@@ -75,7 +75,7 @@ class CharacterSheet(Screen):
         self.ids.stats_box.add_widget(Label(text="Initiative:"))
         self.ids.stats_box.add_widget(Label(text=f"{self.character.initiative:+}"))
         self.ids.stats_box.add_widget(Label(text="Bewegungsrate:"))
-        self.ids.stats_box.add_widget(Label(text=f"{self.character.speed_in_meters}m ({self.character.speed} Felder)"))
+        self.ids.stats_box.add_widget(Label(text=f"{self.character.speed}m ({int(self.character.speed / 1.5)} Felder)"))
         self.ids.stats_box.add_widget(Label(text="Trefferwürfel:"))
         self.ids.stats_box.add_widget(Label(text=f"{self.character.hit_dice}/{self.character.max_hit_dice}"))
 
