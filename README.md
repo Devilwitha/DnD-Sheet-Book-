@@ -11,7 +11,9 @@ Die Anwendung umfasst:
 -   **Karten-Editor:** Ein leistungsstarker Editor zum Erstellen und Bearbeiten von eigenen Dungeon-Karten.
 -   **System-Integration:** Bietet Funktionen wie einen automatisierten Installer, App-Updates, System-Neustart und WLAN-Management direkt aus der Anwendung heraus.
 
-## 2. Installation (Raspberry Pi)
+## 2. Installation 
+
+### Raspberry Pi
 
 Die Installation auf einem Raspberry Pi wurde vollständig automatisiert, um den Prozess so einfach wie möglich zu gestalten.
 
@@ -44,6 +46,19 @@ Das Skript kümmert sich um alles Weitere:
 -   Installation eines benutzerdefinierten **Splash-Screens** für den Systemstart.
 
 Am Ende der Installation werden Sie gefragt, ob Sie das System neu starten möchten. Bestätigen Sie mit **Enter**, um alle Änderungen zu übernehmen.
+
+### Android
+- Downloade die APK von: https://github.com/Devilwitha/DnD-Sheet-Book-/releases herunter
+- installiere es direkt auf dem android (eine meldung erscheint auf nicht installieren klicken und direkt erneut installieren dan wird die app installiert)
+- - oder Clone das Github Projekt und führe Install_and_log.py aus um ess zu installieren (Debug Optionen müssen in den Einstellungen aktiviert sein)
+
+**Mann muss die app deinstallieren und erneut installieren um zu updaten. Es gibt noch probleme mit der signiereung der apk mit github**
+
+### Windows
+- Downloade die EXE von: https://github.com/Devilwitha/DnD-Sheet-Book-/releases herunter
+- Entpacke das verzeichniss und starte die Exe
+- Falls eine Meldung erscheint das "Der Computer wurde durch Windows geschützt" kommt dan auf, Weiter Informationen klicken und dann auf den Button Trozdem ausführen klicken
+- - warum erscheint diese Meldung? Das erscheint da die EXE mit Github automatisch generiert wird und somit keine gültige Signatur enthält
 
 ---
 
