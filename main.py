@@ -239,7 +239,7 @@ class DnDApp(App):
         sm.add_widget(InfoMenuScreen(name='info_menu'))
         sm.add_widget(ModelScreen(name='model'))
         sm.add_widget(VersionScreen(name='version'))
-        if sys.platform == 'linux' and not os.environ.get('ANDROID_ARGUMENT'):
+        if sys.platform not in ('android', 'ios'):
             from ui.system_info_screen import SystemInfoScreen
             sm.add_widget(SystemInfoScreen(name='system_info'))
         sm.add_widget(LevelUpScreen(name='level_up'))

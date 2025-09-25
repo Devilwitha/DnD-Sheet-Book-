@@ -146,6 +146,8 @@ def create_styled_popup(title, content, size_hint, **kwargs):
     if isinstance(content, Label):
         content.size_hint_y = None
         content.bind(texture_size=content.setter('height'))
+        # Enable text wrapping
+        content.bind(width=lambda *x: content.setter('text_size')(content, (content.width, None)))
         scroll_view = ScrollView(size_hint=(1, 1))
         scroll_view.add_widget(content)
         final_content = scroll_view
