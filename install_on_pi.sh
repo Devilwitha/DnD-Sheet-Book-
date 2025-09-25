@@ -71,6 +71,12 @@ echo ">>> Systemabhängigkeiten erfolgreich installiert."
 echo ""
 echo ">>> [Schritt 3/7] Python virtuelle Umgebung wird eingerichtet..."
 
+# Vorhandene virtuelle Umgebung für eine saubere Installation entfernen
+if [ -d "$APP_DIR/.venv" ]; then
+    echo "Entferne vorhandene virtuelle Umgebung..."
+    rm -rf "$APP_DIR/.venv"
+fi
+
 # Virtuelle Umgebung als der ursprüngliche Benutzer erstellen
 sudo -u $SUDO_USER_NAME python3 -m venv "$APP_DIR/.venv"
 echo "Virtuelle Umgebung in '$APP_DIR/.venv' erstellt."
@@ -94,12 +100,12 @@ cat << EOF > "$HOME_DIR/start_dnd.sh"
 #!/bin/bash
 # Dieses Skript startet die DnD-Anwendung.
 
-# In das Anwendungsverzeichnis wechseln
+# In das Anwendungsverzeichnis wechseln, um sicherzustellen, dass die App ihre Dateien findet.
 cd "$APP_DIR"
 
-# Virtuelle Umgebung aktivieren und Anwendung starten
-source .venv/bin/activate
-python3 main.py
+# Virtuelle Umgebung mit absolutem Pfad aktivieren und Anwendung starten, um Robustheit zu gewährleisten.
+source "$APP_DIR/.venv/bin/activate"
+python3 "$APP_DIR/main.py"
 EOF
 
 chmod 755 "$HOME_DIR/start_dnd.sh"
@@ -138,20 +144,25 @@ APP_DIR="$APP_DIR"
 APP_SCRIPT="main.py"
 LOCK_FILE=".app_closed_cleanly"
 
+# In das Anwendungsverzeichnis wechseln, um sicherzustellen, dass die App ihre Dateien findet.
 cd "\$APP_DIR"
 
 while true; do
-    if ! pgrep -f "python3 \$APP_SCRIPT" > /dev/null; then
+    # Überprüfen, ob der Prozess bereits läuft, indem der absolute Pfad zum Skript gesucht wird.
+    if ! pgrep -f "python3 \$APP_DIR/\$APP_SCRIPT" > /dev/null; then
         if [ -f "\$LOCK_FILE" ]; then
+            # Lock-Datei entfernen, wenn die App sauber beendet wurde.
             rm "\$LOCK_FILE"
             echo "Anwendung wurde sauber beendet. Watchdog pausiert."
         else
-            echo "Anwendung abgestürzt oder nicht gestartet. Starte neu..."
-            source .venv/bin/activate
-            python3 "\$APP_SCRIPT" &
+            # App neu starten, wenn sie nicht läuft und keine Lock-Datei vorhanden ist.
+            echo "Anwendung abgestürzt oder nicht gestartet. Starte neu mit absoluten Pfaden..."
+            source "\$APP_DIR/.venv/bin/activate"
+            python3 "\$APP_DIR/\$APP_SCRIPT" &
             deactivate
         fi
     fi
+    # Alle 10 Sekunden prüfen.
     sleep 10
 done
 EOF
