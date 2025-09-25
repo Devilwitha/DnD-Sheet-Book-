@@ -1,10 +1,21 @@
-Build Version:                17.09.2025 Alpha
+Build Version:                25.09.2025 08:50 Alpha
 
-Gui Version:               0.6.101
-Firmware Version:          0.8.59 M33
+Gui Version:               0.6.122
+Firmware Version:          0.9.00 M33
 Updater Version:           1.1.0
 
 DnD E-Sheet & Book Version:   
-- DE: 1.4
+- Android:                 0.0.1 Alpha
+- Windows:                 0.0.0 (not Working now)
+- Linux:                   0.5.0 Alpha
 
 Code by BolliSoft (Nico Bollhalder)
+
+Thanks to:
+- Daniel Vorbeck
+- Sven Vorbeck
+- Cesare De Rosa
+- Fabian
+- Yve
+- Pascal
+- Pascal Bollhalder
