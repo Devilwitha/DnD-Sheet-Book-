@@ -1,5 +1,8 @@
-kivy==2.1.0
-pyjnius==1.5.0
+kivy
 zeroconf
 psutil
-pytest
+cython==0.29.36
+pyjnius
+kivy-garden
+kivy_garden.matplotlib
+screeninfo
