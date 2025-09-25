@@ -24,19 +24,6 @@
                 BoxLayout:
                     orientation: 'vertical'
                     spacing: 10
-
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint_y: None
-                        height: 50
-                        spacing: 10
-                        Label:
-                            text: "Dein Sender-Name:"
-                            size_hint_x: 0.4
-                        TextInput:
-                            id: sender_name_input
-                            multiline: False
-
                     Button:
                         text: "Senden"
                         on_press: transfer_sm.current = 'select_data_type'

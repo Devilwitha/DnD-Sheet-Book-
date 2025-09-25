@@ -8,6 +8,8 @@ from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, RoundedRectangle
+from kivy.utils import platform
+from kivy.core.window import Window
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -139,7 +141,16 @@ def create_styled_popup(title, content, size_hint, **kwargs):
     popup_color_enabled = settings.get('popup_color_enabled', False)
     custom_popup_color = settings.get('custom_popup_color', [0.1, 0.1, 0.1, 0.9])
 
-    popup = Popup(title=title, content=content, size_hint=size_hint, **kwargs)
+    # On Android, use size_hint for proportional sizing.
+    # On desktop, calculate a fixed size from the hint to prevent overly large popups.
+    if platform == 'android':
+        popup = Popup(title=title, content=content, size_hint=size_hint, **kwargs)
+    else:
+        # Use a fixed size on desktop platforms
+        fixed_width = Window.width * size_hint[0]
+        fixed_height = Window.height * size_hint[1]
+        popup = Popup(title=title, content=content, size_hint=(None, None), size=(fixed_width, fixed_height), **kwargs)
+
     if popup_color_enabled:
         popup.background_color = custom_popup_color
         popup.background = ''
