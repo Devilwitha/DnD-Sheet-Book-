@@ -7,6 +7,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
+from kivy.uix.scrollview import ScrollView
 from kivy.graphics import Color, RoundedRectangle
 from kivy.utils import platform
 from kivy.core.window import Window
@@ -141,21 +142,31 @@ def create_styled_popup(title, content, size_hint, **kwargs):
     popup_color_enabled = settings.get('popup_color_enabled', False)
     custom_popup_color = settings.get('custom_popup_color', [0.1, 0.1, 0.1, 0.9])
 
+    # If the content is a long label, wrap it in a ScrollView
+    if isinstance(content, Label):
+        content.size_hint_y = None
+        content.bind(texture_size=content.setter('height'))
+        scroll_view = ScrollView(size_hint=(1, 1))
+        scroll_view.add_widget(content)
+        final_content = scroll_view
+    else:
+        final_content = content
+
     # On Android, use size_hint for proportional sizing.
     # On desktop, calculate a fixed size from the hint to prevent overly large popups.
     if platform == 'android':
-        popup = Popup(title=title, content=content, size_hint=size_hint, **kwargs)
+        popup = Popup(title=title, content=final_content, size_hint=size_hint, **kwargs)
     else:
         # Use a fixed size on desktop platforms
         fixed_width = Window.width * size_hint[0]
         fixed_height = Window.height * size_hint[1]
-        popup = Popup(title=title, content=content, size_hint=(None, None), size=(fixed_width, fixed_height), **kwargs)
+        popup = Popup(title=title, content=final_content, size_hint=(None, None), size=(fixed_width, fixed_height), **kwargs)
 
     if popup_color_enabled:
         popup.background_color = custom_popup_color
         popup.background = ''
 
-    apply_styles_to_widget(content)
+    apply_styles_to_widget(final_content)
 
     return popup
 
