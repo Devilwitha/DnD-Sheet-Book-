@@ -90,7 +90,7 @@ echo ""
 echo ">>> [Schritt 4/7] Autostart für die Anwendung wird konfiguriert..."
 
 # Start-Skript erstellen
-cat << EOF > "$APP_DIR/start_dnd.sh"
+cat << EOF > "$HOME_DIR/start_dnd.sh"
 #!/bin/bash
 # Dieses Skript startet die DnD-Anwendung.
 
@@ -102,8 +102,9 @@ source .venv/bin/activate
 python3 main.py
 EOF
 
-chmod +x "$APP_DIR/start_dnd.sh"
-echo "Start-Skript 'start_dnd.sh' erstellt."
+chmod 755 "$HOME_DIR/start_dnd.sh"
+chown $SUDO_USER_NAME:$SUDO_USER_NAME "$HOME_DIR/start_dnd.sh"
+echo "Start-Skript 'start_dnd.sh' in '$HOME_DIR' erstellt."
 
 # .desktop-Datei für den Autostart erstellen
 AUTOSTART_DIR="$HOME_DIR/.config/autostart"
@@ -114,7 +115,7 @@ cat << EOF > "$AUTOSTART_DIR/dnd_app.desktop"
 [Desktop Entry]
 Type=Application
 Name=DnD Character Sheet
-Exec=$APP_DIR/start_dnd.sh
+Exec=$HOME_DIR/start_dnd.sh
 StartupNotify=false
 Terminal=false
 EOF
@@ -130,7 +131,7 @@ echo ""
 echo ">>> [Schritt 5/7] Watchdog für den automatischen Neustart wird eingerichtet..."
 
 # Watchdog-Skript erstellen
-cat << EOF > "$APP_DIR/watchdog.sh"
+cat << EOF > "$HOME_DIR/watchdog.sh"
 #!/bin/bash
 
 APP_DIR="$APP_DIR"
@@ -155,15 +156,16 @@ while true; do
 done
 EOF
 
-chmod +x "$APP_DIR/watchdog.sh"
-echo "Watchdog-Skript 'watchdog.sh' erstellt."
+chmod 755 "$HOME_DIR/watchdog.sh"
+chown $SUDO_USER_NAME:$SUDO_USER_NAME "$HOME_DIR/watchdog.sh"
+echo "Watchdog-Skript 'watchdog.sh' in '$HOME_DIR' erstellt."
 
 # .desktop-Datei für den Watchdog-Autostart erstellen
 cat << EOF > "$AUTOSTART_DIR/dnd_watchdog.desktop"
 [Desktop Entry]
 Type=Application
 Name=DnD App Watchdog
-Exec=$APP_DIR/watchdog.sh
+Exec=$HOME_DIR/watchdog.sh
 StartupNotify=false
 Terminal=false
 EOF
