@@ -2,8 +2,9 @@ import sys
 import os
 from utils.helpers import resource_path, load_settings
 from kivy.config import Config
+from kivy.utils import platform
 
-if sys.platform.startswith('win'):
+if platform == 'win':
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
 # Laden der Einstellungen, um die Tastaturkonfiguration zu bestimmen
@@ -17,7 +18,7 @@ else:
 Config.set('graphics', 'rotation', 0)
 
 from kivy.core.window import Window
-if sys.platform not in ('android', 'ios'):
+if platform not in ('android', 'ios'):
     Window.size = (settings.get('window_width', 1280), settings.get('window_height', 720))
 
 import socket
@@ -178,7 +179,7 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
-        if sys.platform == 'android':
+        if platform == 'android':
             from android.permissions import request_permissions, Permission
             request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
 
@@ -214,7 +215,7 @@ class DnDApp(App):
         Builder.load_file(resource_path('ui/mapeditorscreen.kv'))
         Builder.load_file(resource_path('ui/playermapscreen.kv'))
 
-        if sys.platform.startswith('win'):
+        if platform == 'win':
             Window.fullscreen = False
             Window.set_icon(resource_path('logo/logo.png'))
         else:
@@ -240,7 +241,7 @@ class DnDApp(App):
         sm.add_widget(InfoMenuScreen(name='info_menu'))
         sm.add_widget(ModelScreen(name='model'))
         sm.add_widget(VersionScreen(name='version'))
-        if sys.platform not in ('android', 'ios'):
+        if platform not in ('android', 'ios'):
             from ui.system_info_screen import SystemInfoScreen
             sm.add_widget(SystemInfoScreen(name='system_info'))
         sm.add_widget(LevelUpScreen(name='level_up'))
