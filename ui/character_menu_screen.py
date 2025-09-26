@@ -8,6 +8,7 @@ from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.screenmanager import Screen
+from kivy.utils import platform
 from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, ensure_character_attributes, get_user_saves_dir
 
 class CharacterMenuScreen(Screen):
@@ -20,6 +21,14 @@ class CharacterMenuScreen(Screen):
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        if platform == 'android':
+            for btn_id in ('btn_neu', 'btn_laden', 'btn_zurueck'):
+                btn = self.ids.get(btn_id)
+                if btn:
+                    btn.size_hint_y = 0.10
+            lbl = self.ids.get('lbl_header')
+            if lbl:
+                lbl.size_hint_y = 0.12
 
     def go_to_screen(self, screen_name):
         self.app.change_screen(screen_name)

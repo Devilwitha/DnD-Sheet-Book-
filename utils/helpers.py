@@ -159,6 +159,43 @@ def apply_styles_to_widget(widget):
                 except Exception:
                     pass
 
+        # If running on Android, convert fixed pixel sizes to proportional
+        # size_hint values so controls use the available screen space.
+        try:
+            if platform == 'android':
+                # Delay Window import until runtime and only on Android
+                try:
+                    from kivy.core.window import Window
+                except Exception:
+                    Window = None
+
+                if Window:
+                    try:
+                        # Convert fixed height -> size_hint_y when appropriate
+                        if hasattr(w, 'size_hint_y') and (getattr(w, 'size_hint_y') is None or w.size_hint_y == 0):
+                            h = getattr(w, 'height', None)
+                            if h and Window.height:
+                                frac = max(0.03, min(0.9, float(h) / float(Window.height)))
+                                try:
+                                    w.size_hint_y = frac
+                                except Exception:
+                                    pass
+
+                        # Convert fixed width -> size_hint_x when appropriate
+                        if hasattr(w, 'size_hint_x') and (getattr(w, 'size_hint_x') is None or w.size_hint_x == 0):
+                            wid = getattr(w, 'width', None)
+                            if wid and Window.width:
+                                fracx = max(0.05, min(1.0, float(wid) / float(Window.width)))
+                                try:
+                                    w.size_hint_x = fracx
+                                except Exception:
+                                    pass
+                    except Exception:
+                        # Fail silently to avoid breaking desktop tests
+                        pass
+        except Exception:
+            pass
+
         if hasattr(w, 'children'):
             for child in w.children:
                 apply_to_children(child)

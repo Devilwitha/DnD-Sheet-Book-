@@ -5,31 +5,27 @@
         spacing: 10
 
         Label:
+            id: lbl_header
             text: "Charakter"
-            font_size: '30sp'
-            size_hint_y: None
-            height: 80
+            font_size: '28sp'
 
         Button:
+            id: btn_neu
             text: "Neuen Charakter erstellen"
             on_press: root.go_to_screen('creator')
-            size_hint_y: None
-            height: 80
             font_size: '20sp'
 
         Button:
+            id: btn_laden
             text: "Charakter laden"
             on_press: root.show_load_popup()
-            size_hint_y: None
-            height: 80
             font_size: '20sp'
 
         BoxLayout:
             size_hint_y: 1.0
 
         Button:
+            id: btn_zurueck
             text: "Zurück"
             on_press: root.go_back()
-            size_hint_y: None
-            height: 80
             font_size: '20sp'
