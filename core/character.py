@@ -203,6 +203,12 @@ class Character:
                             new_key = int(level_key.replace('level', ''))
                         except ValueError:
                             continue
+                    else:
+                        # Handle numeric-string keys like '2'
+                        try:
+                            new_key = int(level_key)
+                        except ValueError:
+                            continue
                 elif isinstance(level_key, int):
                     new_key = level_key
 

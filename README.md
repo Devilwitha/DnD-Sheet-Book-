@@ -232,3 +232,5 @@ Hier finden Sie eine detaillierte Beschreibung aller Bildschirme und ihrer Funkt
 3.  **Warten:** In der DM Lobby sehen Sie, wie die Spieler beitreten.
 4.  **Spiel starten:** Wenn alle bereit sind, klicken Sie auf "Spiel starten".
 5.  **Leiten:** Vom DM Hauptbildschirm aus verwalten Sie das Spiel: Bewegen Sie Gegner, verfolgen Sie die Initiative und reagieren Sie auf die Aktionen der Spieler, die im Log erscheinen.
+
+<!-- prepare_build helper removed per request -->

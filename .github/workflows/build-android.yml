@@ -58,6 +58,14 @@ jobs:
           # Falls du eine requirements_android.txt hast, kannst du sie hier installieren:
           # python -m pip install -r requirements_android.txt
 
+      # Schritt 6.1: Prepare source DB for packaging (create utils/data/dnd.db)
+      - name: Prepare source database
+        run: |
+          echo "Creating source database for packaging..."
+          python scripts/prepare_build.py
+          echo "Listing utils/data contents:" 
+          ls -la utils/data || true
+
       # Schritt 7: Build mit Buildozer (korrigierte Reihenfolge)
       - name: Build with Buildozer
         run: |

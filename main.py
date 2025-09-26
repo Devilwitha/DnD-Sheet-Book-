@@ -27,6 +27,7 @@ import json
 import random
 from queue import Queue
 from zeroconf import ServiceInfo, Zeroconf
+from utils.data_manager import initialize_data
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
@@ -179,6 +180,9 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
+        # Initialize all game data from the database
+        initialize_data()
+
         if platform == 'android':
             from android.permissions import request_permissions, Permission
             request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])

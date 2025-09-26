@@ -3,20 +3,24 @@ import json
 import os
 import sys
 import shutil
-from kivy.app import App
+
+# This has to be a relative import for the build script to work standalone
+# and for the main app to import it.
+if __name__ != 'utils.database':
+    from build_database import create_database
+else:
+    from .build_database import create_database
+
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     if hasattr(sys, '_MEIPASS'):
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     else:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-# The source database, bundled with the app
 SOURCE_DB = resource_path(os.path.join('utils', 'data', 'dnd.db'))
-# The writable database, located in the user's data directory
 DEST_DB = ""
 
 def get_dest_db_path():
@@ -24,8 +28,8 @@ def get_dest_db_path():
     global DEST_DB
     if DEST_DB:
         return DEST_DB
-
     try:
+        from kivy.app import App
         app = App.get_running_app()
         user_data_path = app.user_data_dir
         if not os.path.exists(user_data_path):
@@ -33,24 +37,43 @@ def get_dest_db_path():
         DEST_DB = os.path.join(user_data_path, 'dnd.db')
         return DEST_DB
     except Exception:
-        # Fallback for scripts/tests - use in-place DB
+        # Fallback for scripts/tests
         return SOURCE_DB
 
 def setup_database():
     """
-    Ensures the database is in a writable location.
-    If it doesn't exist in the user_data_dir, it's copied from the read-only bundle.
+    Ensures the database is available.
+    1. If the source DB is missing, build it from JSON.
+    2. If the destination (writable) DB is missing, copy it from the source.
     """
+    # 1. Check if the source DB exists, if not, build it.
+    if not os.path.exists(SOURCE_DB):
+        print(f"Source database not found at {SOURCE_DB}. Building from JSON files...")
+        try:
+            create_database()
+            print("Source database built successfully.")
+        except Exception as e:
+            print(f"FATAL: Could not build source database: {e}")
+            raise e # This is a fatal error
+
+    # 2. Check if the destination DB exists, if not, copy it.
     dest_db_path = get_dest_db_path()
     if not os.path.exists(dest_db_path):
         print(f"Database not found at {dest_db_path}. Copying from source...")
         try:
-            shutil.copy2(SOURCE_DB, dest_db_path)
+            # Use shutil.copy which does not attempt to copy metadata/xattrs
+            # (shutil.copy2 calls copystat which can raise PermissionError on
+            # Android due to restricted xattrs). Falling back to copyfile if
+            # needed.
+            try:
+                shutil.copy(SOURCE_DB, dest_db_path)
+            except Exception:
+                # Last-resort: copy the file contents only
+                shutil.copyfile(SOURCE_DB, dest_db_path)
+
             print("Database copied successfully.")
         except Exception as e:
             print(f"FATAL: Could not copy database from {SOURCE_DB} to {dest_db_path}: {e}")
-            # This is a fatal error, the app cannot run without the DB.
-            # We can raise an exception or handle it gracefully.
             raise e
 
 def get_db_connection():
@@ -78,45 +101,48 @@ def get_data_from_db():
     SKILL_LIST = fetch_all_as_dict('skills', 'name', 'ability')
     FIGHTING_STYLE_DATA = fetch_all_as_dict('fighting_styles', 'name', 'description')
 
-    WEAPON_DATA = {row['name']: {'damage': row['damage'], 'ability': row['ability'], 'type': row['type'], 'range': row['range']} for row in fetch_all_as_dict('weapons', 'name').values()}
-    SPELL_DATA = {row['name']: {'level': row['level'], 'school': row['school'], 'desc': row['description']} for row in fetch_all_as_dict('spells', 'name').values()}
+    WEAPON_DATA = {
+        row['name']: {
+            'damage': row.get('damage'), 'ability': row.get('ability'),
+            'type': row.get('type'), 'range': row.get('range')
+        } for row in fetch_all_as_dict('weapons', 'name').values()
+    }
+    SPELL_DATA = {
+        row['name']: {
+            'level': row.get('level'), 'school': row.get('school'), 'desc': row.get('desc')
+        } for row in fetch_all_as_dict('spells', 'name').values()
+    }
 
     RACE_DATA = {}
     for row in fetch_all_as_dict('races', 'name').values():
         RACE_DATA[row['name']] = {
-            'speed': row['speed'],
-            'ability_score_increase': json.loads(row['ability_score_increase']),
-            'languages': json.loads(row['languages']),
-            'proficiencies': json.loads(row['proficiencies'])
+            'speed': row.get('speed'),
+            'ability_score_increase': json.loads(row.get('ability_score_increase') or '{}'),
+            'languages': json.loads(row.get('languages') or '[]'),
+            'proficiencies': json.loads(row.get('proficiencies') or '[]')
         }
 
     CLASS_DATA = {}
     for row in fetch_all_as_dict('classes', 'name').values():
         CLASS_DATA[row['name']] = {
-            'hit_die': row['hit_die'],
-            'proficiencies': json.loads(row['proficiencies']),
-            'progression': {int(k): v for k, v in json.loads(row['progression']).items()},
-            'spell_list': {int(k): v for k, v in json.loads(row['spell_list']).items()},
-            'features': {int(k): v for k, v in json.loads(row['features']).items()}
+            'hit_die': row.get('hit_die'),
+            'proficiencies': json.loads(row.get('proficiencies') or '[]'),
+            'progression': {int(k): v for k, v in json.loads(row.get('progression') or '{}').items()},
+            'spell_list': {int(k): v for k, v in json.loads(row.get('spell_list') or '{}').items()},
+            'features': {int(k): v for k, v in json.loads(row.get('features') or '{}').items()}
         }
 
     ENEMY_DATA = {}
     for row in fetch_all_as_dict('enemies', 'name').values():
         ENEMY_DATA[row['name']] = {
-            'hp': row['hp'],
-            'ac': row['ac'],
-            'speed': row['speed'],
-            'attacks': json.loads(row['attacks'])
+            'hp': row.get('hp'), 'ac': row.get('ac'), 'speed': row.get('speed'),
+            'attacks': json.loads(row.get('attacks') or '[]')
         }
 
     return {
-        "ALIGNMENT_DATA": ALIGNMENT_DATA,
-        "BACKGROUND_DATA": BACKGROUND_DATA,
-        "SKILL_LIST": SKILL_LIST,
-        "FIGHTING_STYLE_DATA": FIGHTING_STYLE_DATA,
-        "WEAPON_DATA": WEAPON_DATA,
-        "SPELL_DATA": SPELL_DATA,
-        "RACE_DATA": RACE_DATA,
-        "CLASS_DATA": CLASS_DATA,
+        "ALIGNMENT_DATA": ALIGNMENT_DATA, "BACKGROUND_DATA": BACKGROUND_DATA,
+        "SKILL_LIST": SKILL_LIST, "FIGHTING_STYLE_DATA": FIGHTING_STYLE_DATA,
+        "WEAPON_DATA": WEAPON_DATA, "SPELL_DATA": SPELL_DATA,
+        "RACE_DATA": RACE_DATA, "CLASS_DATA": CLASS_DATA,
         "ENEMY_DATA": ENEMY_DATA
     }

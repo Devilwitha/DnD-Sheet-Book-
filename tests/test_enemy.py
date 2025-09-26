@@ -1,6 +1,25 @@
 import pytest
 from core.enemy import Enemy
 
+
+def test_enemy_to_from_dict():
+    attacks = [{'name': 'Bite', 'damage': '1d6'}]
+    e = Enemy(name='Orc #1', hp=15, armor_class=13, attacks=attacks, speed=6, actions_per_turn=1, initiative=0, notes='Fierce')
+    d = e.to_dict()
+    assert d['name'] == 'Orc #1'
+    assert d['hp'] == 15
+    assert d['ac'] == 13
+    assert 'attacks' in d and d['attacks'] == attacks
+
+    e2 = Enemy.from_dict(d)
+    assert isinstance(e2, Enemy)
+    assert e2.name == 'Orc #1'
+    assert e2.hp == 15
+    assert e2.armor_class == 13
+    assert e2.attacks == attacks
+import pytest
+from core.enemy import Enemy
+
 @pytest.fixture
 def basic_enemy_data():
     """Provides a basic dictionary of enemy data."""

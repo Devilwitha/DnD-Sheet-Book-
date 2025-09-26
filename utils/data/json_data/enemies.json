@@ -34,5 +34,140 @@
                 "damage": "1d6+2"
             }
         ]
+    },
+    "Kobold": {
+        "hp": 5,
+        "ac": 12,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Dagger",
+                "to_hit": 4,
+                "damage": "1d4+2"
+            },
+            {
+                "name": "Sling",
+                "to_hit": 4,
+                "damage": "1d4+2"
+            }
+        ]
+    },
+    "Zombie": {
+        "hp": 22,
+        "ac": 8,
+        "speed": 20,
+        "attacks": [
+            {
+                "name": "Slam",
+                "to_hit": 3,
+                "damage": "1d6+1"
+            }
+        ]
+    },
+    "Bugbear": {
+        "hp": 27,
+        "ac": 16,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Morningstar",
+                "to_hit": 4,
+                "damage": "2d8+2"
+            }
+        ]
+    },
+    "Giant Spider": {
+        "hp": 26,
+        "ac": 14,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Bite",
+                "to_hit": 5,
+                "damage": "1d8+3"
+            }
+        ]
+    },
+    "Wolf": {
+        "hp": 11,
+        "ac": 13,
+        "speed": 40,
+        "attacks": [
+            {
+                "name": "Bite",
+                "to_hit": 4,
+                "damage": "2d4+2"
+            }
+        ]
+    },
+    "Dire Wolf": {
+        "hp": 37,
+        "ac": 14,
+        "speed": 50,
+        "attacks": [
+            {
+                "name": "Bite",
+                "to_hit": 5,
+                "damage": "2d6+3"
+            }
+        ]
+    },
+    "Gnoll": {
+        "hp": 22,
+        "ac": 15,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Bite",
+                "to_hit": 4,
+                "damage": "1d4+2"
+            },
+            {
+                "name": "Spear",
+                "to_hit": 4,
+                "damage": "1d6+2"
+            }
+        ]
+    },
+    "Ogre": {
+        "hp": 59,
+        "ac": 11,
+        "speed": 40,
+        "attacks": [
+            {
+                "name": "Greatclub",
+                "to_hit": 6,
+                "damage": "2d8+4"
+            }
+        ]
+    },
+    "Troll": {
+        "hp": 84,
+        "ac": 15,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Bite",
+                "to_hit": 7,
+                "damage": "1d6+4"
+            },
+            {
+                "name": "Claw",
+                "to_hit": 7,
+                "damage": "2d6+4"
+            }
+        ]
+    },
+    "Dragon Wyrmling": {
+        "hp": 33,
+        "ac": 17,
+        "speed": 30,
+        "attacks": [
+            {
+                "name": "Bite",
+                "to_hit": 4,
+                "damage": "1d10+2"
+            }
+        ]
     }
 }
