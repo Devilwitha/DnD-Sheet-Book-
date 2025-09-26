@@ -32,11 +32,6 @@ class DMMainScreen(Screen):
         self.selected_object = None
         self.highlighted_tiles = []
         self._map_widget_bound = False
-        Clock.schedule_once(self._post_kv_init)
-
-    def _post_kv_init(self, dt):
-        """Bindings that must happen after the .kv file is loaded."""
-        self.ids.log_output.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
 
     def on_pre_enter(self, *args):
         apply_background(self)
