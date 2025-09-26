@@ -1,10 +1,6 @@
 import pytest
 from unittest.mock import patch
 from core.character import Character
-from utils.data_manager import load_test_data
-
-# Load test data once for all tests in this module
-load_test_data()
 
 @pytest.fixture
 def basic_character():
