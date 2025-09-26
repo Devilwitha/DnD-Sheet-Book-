@@ -111,12 +111,6 @@ class DMLobbyScreen(Screen):
 
     def start_game(self):
         """Switches to the main DM screen."""
-        with self.network_manager.lock:
-            if not self.network_manager.clients:
-                print("[!] No players have joined yet!")
-                # Optionally show a popup
-                return
-
         self.is_starting_game = True
         self.manager.current = 'dm_main'
 
