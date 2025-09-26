@@ -98,6 +98,29 @@ def pytest_configure(config):
     sm_module.ScreenManager = ScreenManager
     sm_module.Screen = Screen
 
+    # Simple GridLayout stub module
+    grid_module = types.ModuleType('kivy.uix.gridlayout')
+    class GridLayout:
+        def __init__(self, **kwargs):
+            self.cols = kwargs.get('cols', 1)
+            self.rows = kwargs.get('rows', 1)
+            self.children = []
+            self.size_hint_y = None
+        def add_widget(self, widget):
+            self.children.append(widget)
+        def clear_widgets(self):
+            self.children.clear()
+        def bind(self, *args, **kwargs):
+            return None
+    grid_module.GridLayout = GridLayout
+
+    # Simple CheckBox stub module
+    checkbox_module = types.ModuleType('kivy.uix.checkbox')
+    class CheckBox:
+        def __init__(self, **kwargs):
+            self.active = kwargs.get('active', False)
+    checkbox_module.CheckBox = CheckBox
+
     # Provide the fake Builder via kivy.lang so tests can call Builder.load_file
     kivy_lang = types.ModuleType('kivy.lang')
     kivy_lang.Builder = fake_builder
@@ -122,6 +145,8 @@ def pytest_configure(config):
         'kivy.uix.label': MagicMock(),
         'kivy.uix.popup': MagicMock(),
     'kivy.uix.screenmanager': sm_module,
+    'kivy.uix.gridlayout': grid_module,
+    'kivy.uix.checkbox': checkbox_module,
         'kivy.uix.scrollview': MagicMock(),
         'kivy.uix.textinput': MagicMock(),
         'kivy.utils': MagicMock(),

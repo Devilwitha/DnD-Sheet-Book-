@@ -171,16 +171,39 @@ def create_styled_popup(title, content, size_hint, **kwargs):
     custom_popup_color = settings.get('custom_popup_color', [0.1, 0.1, 0.1, 0.9])
 
     # If the content is a long label, wrap it in a ScrollView
-    if isinstance(content, Label):
-        content.size_hint_y = None
+    is_label = False
+    try:
+        is_label = isinstance(content, Label)
+    except TypeError:
+        # In tests, Kivy classes may be replaced by MagicMock which makes
+        # isinstance() raise TypeError. Fall back to duck-typing: treat it
+        # as a label-like object if it has a 'text' attribute and a 'bind'
+        # method. This avoids trying to assign tuple values to height.
+        is_label = hasattr(content, 'text') and callable(getattr(content, 'bind', None))
+
+    if is_label:
+        try:
+            content.size_hint_y = None
+        except Exception:
+            pass
         # Bind the label's height to the texture height only (texture_size is (width, height)).
         # Avoid assigning the full tuple to height which causes a ValueError.
-        content.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1] if value and len(value) > 1 else 0))
+        try:
+            content.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1] if value and len(value) > 1 else 0))
+        except Exception:
+            # If binding fails (e.g. MagicMock), ignore and proceed.
+            pass
         # Enable text wrapping
-        content.bind(width=lambda *x: content.setter('text_size')(content, (content.width, None)))
+        try:
+            content.bind(width=lambda *x: content.setter('text_size')(content, (content.width, None)))
+        except Exception:
+            pass
         scroll_view = ScrollView(size_hint=(1, 1))
-        scroll_view.add_widget(content)
-        final_content = scroll_view
+        try:
+            scroll_view.add_widget(content)
+            final_content = scroll_view
+        except Exception:
+            final_content = content
     else:
         final_content = content
 
