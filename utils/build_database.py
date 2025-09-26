@@ -67,7 +67,9 @@ def create_database():
             for item_key, item_values in data.items():
                 col_names = [primary_key] + sorted_keys
                 placeholders = ', '.join(['?'] * len(col_names))
-                insert_sql = f"INSERT INTO {table_name} ({', '.join(f'\"{c}\"' for c in col_names)}) VALUES ({placeholders})"
+                # Corrected f-string to be compatible with older Python versions
+                cols_for_sql = ', '.join(f'"{c}"' for c in col_names)
+                insert_sql = f"INSERT INTO {table_name} ({cols_for_sql}) VALUES ({placeholders})"
 
                 insert_data = [item_key]
                 for col_key in sorted_keys:
