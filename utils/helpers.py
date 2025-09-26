@@ -10,7 +10,8 @@ from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.graphics import Color, RoundedRectangle
 from kivy.utils import platform
-from kivy.core.window import Window
+# Delay importing Window until runtime in functions so Config can be set
+# early (e.g. in main.py) before Window initializes.
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -189,6 +190,8 @@ def create_styled_popup(title, content, size_hint, **kwargs):
         popup = Popup(title=title, content=final_content, size_hint=size_hint, **kwargs)
     else:
         # Use a fixed size on desktop platforms
+        # Import Window here to avoid importing it at module import time
+        from kivy.core.window import Window
         fixed_width = Window.width * size_hint[0]
         fixed_height = Window.height * size_hint[1]
         popup = Popup(title=title, content=final_content, size_hint=(None, None), size=(fixed_width, fixed_height), **kwargs)
