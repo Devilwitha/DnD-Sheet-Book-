@@ -61,7 +61,16 @@ def setup_database():
     if not os.path.exists(dest_db_path):
         print(f"Database not found at {dest_db_path}. Copying from source...")
         try:
-            shutil.copy2(SOURCE_DB, dest_db_path)
+            # Use shutil.copy which does not attempt to copy metadata/xattrs
+            # (shutil.copy2 calls copystat which can raise PermissionError on
+            # Android due to restricted xattrs). Falling back to copyfile if
+            # needed.
+            try:
+                shutil.copy(SOURCE_DB, dest_db_path)
+            except Exception:
+                # Last-resort: copy the file contents only
+                shutil.copyfile(SOURCE_DB, dest_db_path)
+
             print("Database copied successfully.")
         except Exception as e:
             print(f"FATAL: Could not copy database from {SOURCE_DB} to {dest_db_path}: {e}")

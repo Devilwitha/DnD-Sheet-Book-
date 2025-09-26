@@ -12,6 +12,10 @@ package.domain = ch.bollisoft
 # (str) Source code where the main.py live
 source.dir = .
 
+# IMPORTANT: ensure the SQLite source DB is built before packaging so it
+# is included in the APK. Run `python scripts/prepare_build.py` on your
+# build machine or in CI before invoking buildozer.
+
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,db,json,txt,enemies,session,char
 
