@@ -50,7 +50,12 @@ def setup_test_environment():
     - Patches the DB path and explicitly initializes data for the test session.
     """
     if not os.path.exists(SOURCE_DB_PATH):
-        pytest.fail(f"Source database not found at {SOURCE_DB_PATH}. Run utils/build_database.py first.")
+        # Attempt to build the database automatically so tests can run in CI
+        try:
+            from utils import build_database
+            build_database.create_database()
+        except Exception as e:
+            pytest.fail(f"Source database not found at {SOURCE_DB_PATH}. Run utils/build_database.py first. Build attempt failed: {e}")
 
     if os.path.exists(TEST_DB_PATH):
         os.remove(TEST_DB_PATH)
