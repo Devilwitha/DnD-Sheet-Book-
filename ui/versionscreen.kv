@@ -10,10 +10,18 @@
             size_hint_y: None
             height: 80
 
-        Label:
-            id: version_label
-            text: ""
-            font_size: '20sp'
+
+        ScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            size_hint_y: 3.0
+            Label:
+                id: version_label
+                text: ""
+                font_size: '20sp'
+                size_hint_y: None
+                height: self.texture_size[1] + 20
+                text_size: self.width, None
 
         BoxLayout:
             size_hint_y: 1.0

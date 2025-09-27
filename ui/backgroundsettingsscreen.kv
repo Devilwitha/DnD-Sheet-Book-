@@ -16,29 +16,48 @@
             size_hint_y: None
             height: self.minimum_height
 
+
             BoxLayout:
                 size_hint_y: None
                 height: 40
                 Label:
-                    text: "Hintergrund anzeigen"
+                    text: "Allgemeiner Hintergrund anzeigen"
                 Switch:
                     id: background_switch
-                    on_active: root.on_background_toggle(self.active)
+                    on_active: root.on_background_toggle(self.active, 'background_enabled')
 
             Button:
-                text: "Allgemeiner Hintergrund"
+                text: "Allgemeiner Hintergrund wählen"
                 size_hint_y: None
                 height: 50
                 on_press: root.show_background_chooser('background_path')
 
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                Label:
+                    text: "Charaktererstellung Hintergrund anzeigen"
+                Switch:
+                    id: cs_creator_background_switch
+                    on_active: root.on_background_toggle(self.active, 'cs_creator_background_enabled')
+
             Button:
-                text: "Charaktererstellung Hintergrund"
+                text: "Charaktererstellung Hintergrund wählen"
                 size_hint_y: None
                 height: 50
                 on_press: root.show_background_chooser('cs_creator_background_path')
 
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                Label:
+                    text: "Charakterbogen Hintergrund anzeigen"
+                Switch:
+                    id: cs_sheet_background_switch
+                    on_active: root.on_background_toggle(self.active, 'cs_sheet_background_enabled')
+
             Button:
-                text: "Charakterbogen Hintergrund"
+                text: "Charakterbogen Hintergrund wählen"
                 size_hint_y: None
                 height: 50
                 on_press: root.show_background_chooser('cs_sheet_background_path')

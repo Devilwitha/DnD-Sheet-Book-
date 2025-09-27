@@ -54,6 +54,8 @@ def load_settings():
         'button_transparency': 0.25,
         'transparency_enabled': True,
         'background_enabled': True,
+        'cs_creator_background_enabled': True,
+        'cs_sheet_background_enabled': True,
         'background_path': 'osbackground/hmbg.png',
         'cs_creator_background_path': 'osbackground/csbg.png',
         'cs_sheet_background_path': 'osbackground/csbg.png',
@@ -285,30 +287,44 @@ def apply_background(screen):
         screen.canvas.before.remove(old_bg_rect)
         screen._background_rect = None
 
-    if settings.get('background_enabled', True):
+    # Charaktererstellung: nur eigener Switch
+    if screen.name == 'creator':
+        if settings.get('cs_creator_background_enabled', True):
+            bg_path = settings.get('cs_creator_background_path', 'osbackground/csbg.png')
+        else:
+            return
+    # Charakterbogen: nur eigener Switch
+    elif screen.name == 'sheet':
+        if settings.get('cs_sheet_background_enabled', True):
+            bg_path = settings.get('cs_sheet_background_path', 'osbackground/csbg.png')
+        else:
+            return
+    # Lobby: wie gehabt, aber optional eigenen Switch ergänzen
+    elif screen.name == 'dm_lobby' or screen.name == 'player_waiting':
+        bg_path = settings.get('lobby_background_path', settings.get('background_path', 'osbackground/hmbg.png'))
+        if not settings.get('background_enabled', True):
+            return
+    # Alle anderen: allgemeiner Switch
+    else:
+        if not settings.get('background_enabled', True):
+            return
         bg_path = settings.get('background_path', 'osbackground/hmbg.png')
-        if screen.name == 'creator':
-            bg_path = settings.get('cs_creator_background_path', bg_path)
-        elif screen.name == 'sheet':
-            bg_path = settings.get('cs_sheet_background_path', bg_path)
-        elif screen.name == 'dm_lobby' or screen.name == 'player_waiting':
-            bg_path = settings.get('lobby_background_path', bg_path)
 
-        bg_path = resource_path(bg_path)
-        if os.path.exists(bg_path):
-            try:
-                with screen.canvas.before:
-                    screen._background_rect = Rectangle(source=bg_path, size=screen.size, pos=screen.pos)
+    bg_path = resource_path(bg_path)
+    if os.path.exists(bg_path):
+        try:
+            with screen.canvas.before:
+                screen._background_rect = Rectangle(source=bg_path, size=screen.size, pos=screen.pos)
 
-                def update_rect(instance, value):
-                    if hasattr(instance, '_background_rect') and instance._background_rect:
-                        instance._background_rect.pos = instance.pos
-                        instance._background_rect.size = instance.size
+            def update_rect(instance, value):
+                if hasattr(instance, '_background_rect') and instance._background_rect:
+                    instance._background_rect.pos = instance.pos
+                    instance._background_rect.size = instance.size
 
-                screen.bind(pos=update_rect, size=update_rect)
+            screen.bind(pos=update_rect, size=update_rect)
 
-            except Exception as e:
-                print(f"Fehler beim Laden des Hintergrundbildes: {e}")
+        except Exception as e:
+            print(f"Fehler beim Laden des Hintergrundbildes: {e}")
 
 def get_local_ip():
     s = None

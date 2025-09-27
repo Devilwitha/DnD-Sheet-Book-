@@ -24,13 +24,17 @@ class BackgroundSettingsScreen(Screen):
         apply_styles_to_widget(self)
         self.load_and_apply_settings()
 
+
     def load_and_apply_settings(self):
         settings = load_settings()
         self.ids.background_switch.active = settings.get('background_enabled', True)
+        self.ids.cs_creator_background_switch.active = settings.get('cs_creator_background_enabled', True)
+        self.ids.cs_sheet_background_switch.active = settings.get('cs_sheet_background_enabled', True)
 
-    def on_background_toggle(self, value):
+
+    def on_background_toggle(self, value, setting_key):
         settings = load_settings()
-        settings['background_enabled'] = value
+        settings[setting_key] = value
         save_settings(settings)
         for screen in self.manager.screens:
             apply_background(screen)
