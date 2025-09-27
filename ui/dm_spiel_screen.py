@@ -57,7 +57,7 @@ class DMSpielScreen(Screen):
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
 
         saves_dir = get_user_saves_dir("sessions")
-        session_files = [f for f in os.listdir(saves_dir) if f.endswith('.session')]
+        session_files = [f for f in os.listdir(saves_dir) if f.endswith('.json')]
         if not session_files:
             create_styled_popup(title="Keine Sitzungen", content=Label(text="Keine gespeicherten Sitzungen gefunden."), size_hint=(0.6, 0.4)).open()
             return

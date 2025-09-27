@@ -187,6 +187,8 @@ class PlayerMapScreen(Screen):
 
         dist = max(abs(from_pos[0] - to_pos[0]), abs(from_pos[1] - to_pos[1]))
         weapon_range = weapon_info.get('range', 1)
+        if weapon_range is None:
+            weapon_range = 1
 
         if dist <= weapon_range:
             self.open_attack_popup(enemy_name, from_pos, to_pos)

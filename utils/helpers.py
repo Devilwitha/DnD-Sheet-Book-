@@ -30,7 +30,17 @@ def get_user_saves_dir(folder_name="saves"):
     """Gets the path to a user-specific saves folder (characters, maps, etc.)."""
     # In this test-compatible version, we save relative to the resource path.
     # A better implementation would use app.user_data_dir, but that breaks tests.
-    saves_path = resource_path(folder_name)
+    # Spezialspeicherorte für verschiedene Datentypen
+    if folder_name == "sessions":
+        saves_path = resource_path(os.path.join("utils", "data", "sessions"))
+    elif folder_name == "enemies":
+        saves_path = resource_path(os.path.join("utils", "data", "enemies"))
+    elif folder_name == "characters":
+        saves_path = resource_path(os.path.join("utils", "data", "characters"))
+    elif folder_name == "maps":
+        saves_path = resource_path(os.path.join("utils", "data", "maps"))
+    else:
+        saves_path = resource_path(folder_name)
     if not os.path.exists(saves_path):
         os.makedirs(saves_path)
     return saves_path

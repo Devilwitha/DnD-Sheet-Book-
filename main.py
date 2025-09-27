@@ -73,6 +73,9 @@ class DnDApp(App):
         self.screen_history = [] # For back navigation
         self.edited_map_data = None # To pass map data from editor to DM screen
         self.player_game_loop = None
+        # GameManager für Map-Editor und offline Spieler
+        from core.game_manager import GameManager
+        self.game_manager = GameManager()
 
     def start_player_gameloop(self):
         if self.player_game_loop:

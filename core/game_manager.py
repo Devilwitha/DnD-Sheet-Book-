@@ -24,16 +24,24 @@ class GameManager:
         for char in self.online_players.values():
             if char.name == name:
                 return char
+        # Suche auch in offline_players
+        for char in getattr(self, 'offline_players', []):
+            if char.name == name:
+                return char
         for enemy in self.enemies:
             if enemy.name == name:
                 return enemy
         return None
 
-    def roll_initiative_for_all(self):
-        """Rolls initiative for all online players and enemies."""
+    def roll_initiative_for_all(self, players=None):
+        """Rolls initiative for all players (online+offline) and enemies."""
         self.initiative_order = []
-        for char in self.online_players.values():
-            roll = random.randint(1, 20) + char.initiative
+        if players is None:
+            players = list(self.online_players.values())
+            # Füge offline Spieler hinzu, falls vorhanden
+            players += getattr(self, 'offline_players', [])
+        for char in players:
+            roll = random.randint(1, 20) + getattr(char, 'initiative', 0)
             self.initiative_order.append((roll, char.name))
         for enemy in self.enemies:
             # Enemies don't have an initiative attribute in the model, so roll d20
