@@ -22,16 +22,22 @@ jobs:
 
       - name: Mount image and copy project with autostart
         run: |
+          set -e
           sudo losetup -Pf rpi.img
+          sudo partprobe /dev/loop0
           sudo kpartx -av rpi.img
           sleep 2
+          if [ ! -e /dev/mapper/loop0p2 ]; then
+            echo "Partition /dev/mapper/loop0p2 not found!"
+            sudo kpartx -dv rpi.img
+            sudo losetup -d /dev/loop0
+            exit 1
+          fi
           MOUNTDIR=$(mktemp -d)
           sudo mount /dev/mapper/loop0p2 $MOUNTDIR
-          # Install Python dependencies and set up autostart
           sudo mkdir -p $MOUNTDIR/home/pi/DnD-Sheet-Book-
           sudo cp -r . $MOUNTDIR/home/pi/DnD-Sheet-Book-
           sudo chown -R 1000:1000 $MOUNTDIR/home/pi/DnD-Sheet-Book-
-          # Create autostart script
           sudo tee $MOUNTDIR/home/pi/start_dnd_app.sh > /dev/null <<'EOF'
           #!/bin/bash
           cd /home/pi/DnD-Sheet-Book-
@@ -39,8 +45,9 @@ jobs:
           python3 main.py
           EOF
           sudo chmod +x $MOUNTDIR/home/pi/start_dnd_app.sh
-          # Add autostart to rc.local
-          sudo sed -i '/^exit 0/i su - pi -c "/home/pi/start_dnd_app.sh &"' $MOUNTDIR/etc/rc.local
+          if ! grep -q start_dnd_app.sh $MOUNTDIR/etc/rc.local; then
+            sudo sed -i '/^exit 0/i su - pi -c "/home/pi/start_dnd_app.sh &"' $MOUNTDIR/etc/rc.local
+          fi
           sudo umount $MOUNTDIR
           sudo kpartx -dv rpi.img
           sudo losetup -d /dev/loop0
