@@ -32,6 +32,27 @@ jobs:
           wget -O ${{ matrix.image_name }}.xz ${{ matrix.image_url }}
           xz -d ${{ matrix.image_name }}.xz
 
+      - name: Expand image size and filesystem
+        run: |
+          set -e
+          # Enlarge image by 2G
+          qemu-img resize ${{ matrix.image_name }} +2G
+          # Attach loop device
+          sudo losetup -Pf ${{ matrix.image_name }}
+          sudo partprobe /dev/loop0
+          # Resize partition 2 to fill image
+          echo -e "resizepart 2 Yes\n100%\nquit" | sudo parted /dev/loop0 ---pretend-input-tty
+          sudo partprobe /dev/loop0
+          # Map partitions
+          sudo kpartx -av ${{ matrix.image_name }}
+          sleep 2
+          # Run fsck and resize2fs on root partition
+          sudo e2fsck -f /dev/mapper/loop0p2 || true
+          sudo resize2fs /dev/mapper/loop0p2
+          # Cleanup
+          sudo kpartx -dv ${{ matrix.image_name }}
+          sudo losetup -d /dev/loop0
+
       - name: Mount image and copy project with autostart
         run: |
           set -e
