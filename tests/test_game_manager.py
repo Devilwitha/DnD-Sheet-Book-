@@ -1,3 +1,73 @@
+import random
+from core.game_manager import GameManager
+from core.character import Character
+from core.enemy import Enemy
+
+
+def test_get_character_or_enemy_by_name():
+    gm = GameManager()
+    c = Character('Hero', 'Human', 'Fighter')
+    e = Enemy('Goblin #1', 5, 10, [])
+    gm.online_players['a'] = c
+    gm.enemies.append(e)
+    assert gm.get_character_or_enemy_by_name('Hero') is c
+    assert gm.get_character_or_enemy_by_name('Goblin #1') is e
+    assert gm.get_character_or_enemy_by_name('Missing') is None
+
+
+def test_initiative_and_turn_cycle(monkeypatch):
+    gm = GameManager()
+    c = Character('Hero', 'Human', 'Fighter')
+    c.initiative = 5
+    e = Enemy('Goblin #1', 5, 10, [])
+    gm.online_players['a'] = c
+    gm.enemies.append(e)
+
+    # Fix random to deterministic values
+    monkeypatch.setattr('random.randint', lambda a, b: a)  # always returns min
+
+    init = gm.roll_initiative_for_all()
+    assert isinstance(init, list)
+    assert gm.current_turn_index in (0, -1)
+
+
+def test_move_object_and_attack(monkeypatch):
+    gm = GameManager()
+    # Create a simple map
+    gm.map_data = {
+        'rows': 2, 'cols': 2,
+        'tiles': {
+            (0, 0): {'object': 'Hero'},
+            (0, 1): {'object': None},
+            (1, 0): {'object': 'Goblin #1'},
+            (1, 1): {'object': None},
+        }
+    }
+
+    c = Character('Hero', 'Human', 'Fighter')
+    c.speed = 2
+    c.actions_per_turn = 1
+    c.initiative = 0
+    e = Enemy('Goblin #1', 6, 10, [{'name': 'Claw', 'damage': '1d1'}])
+
+    gm.online_players['h'] = c
+    gm.enemies.append(e)
+
+    # Set initiative order manually and current turn
+    gm.initiative_order = [(10, 'Hero'), (5, 'Goblin #1')]
+    gm.current_turn_index = 0
+    gm.turn_action_state = {'movement_left': 2, 'attacks_left': 1}
+
+    ok, msg = gm.move_object('Hero', (0, 1))
+    assert ok is True
+    assert gm.map_data['tiles'][(0, 0)]['object'] is None
+    assert gm.map_data['tiles'][(0, 1)]['object'] == 'Hero'
+
+    # Test attack handling: provide fixed rolls to ensure hit
+    result = gm.handle_attack('Hero', 'Goblin #1', attack_roll=20, damage_roll=2)
+    assert result['success'] is True
+    assert result['hit'] is True
+    assert 'damage' in result
 import pytest
 from unittest.mock import MagicMock, patch, call
 from core.game_manager import GameManager

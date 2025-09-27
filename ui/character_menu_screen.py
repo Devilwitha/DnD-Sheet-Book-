@@ -8,17 +8,27 @@ from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.screenmanager import Screen
-from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, ensure_character_attributes
+from kivy.utils import platform
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, ensure_character_attributes, get_user_saves_dir
 
 class CharacterMenuScreen(Screen):
     """Screen for loading, creating, or editing a character."""
     def __init__(self, **kwargs):
         super(CharacterMenuScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.saves_dir = get_user_saves_dir("characters")
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        if platform == 'android':
+            for btn_id in ('btn_neu', 'btn_laden', 'btn_zurueck'):
+                btn = self.ids.get(btn_id)
+                if btn:
+                    btn.size_hint_y = 0.10
+            lbl = self.ids.get('lbl_header')
+            if lbl:
+                lbl.size_hint_y = 0.12
 
     def go_to_screen(self, screen_name):
         self.app.change_screen(screen_name)
@@ -31,9 +41,7 @@ class CharacterMenuScreen(Screen):
         popup_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         popup_layout.bind(minimum_height=popup_layout.setter('height'))
 
-        saves_dir = "saves"
-        os.makedirs(saves_dir, exist_ok=True)
-        files = [f for f in os.listdir(saves_dir) if f.endswith('.char')]
+        files = [f for f in os.listdir(self.saves_dir) if f.endswith('.char')]
         for filename in files:
             char_layout = BoxLayout(size_hint_y=None, height=40)
 
@@ -76,7 +84,7 @@ class CharacterMenuScreen(Screen):
         self.confirmation_popup.open()
 
     def delete_character(self, filename):
-        filepath = os.path.join("saves", filename)
+        filepath = os.path.join(self.saves_dir, filename)
         try:
             os.remove(filepath)
             self.confirmation_popup.dismiss()
@@ -86,7 +94,7 @@ class CharacterMenuScreen(Screen):
             self.show_popup("Fehler", f"Fehler beim Löschen des Charakters: {e}")
 
     def load_character(self, filename):
-        filepath = os.path.join("saves", filename)
+        filepath = os.path.join(self.saves_dir, filename)
         try:
             with open(filepath, 'rb') as f:
                 character = pickle.load(f)
@@ -98,7 +106,7 @@ class CharacterMenuScreen(Screen):
             self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
 
     def edit_character(self, filename):
-        filepath = os.path.join("saves", filename)
+        filepath = os.path.join(self.saves_dir, filename)
         try:
             with open(filepath, 'rb') as f:
                 character = pickle.load(f)

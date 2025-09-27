@@ -1,9 +1,11 @@
 import sys
+import os
+from utils.helpers import resource_path, load_settings
 from kivy.config import Config
+from kivy.utils import platform
 
-if sys.platform.startswith('win'):
+if platform == 'win':
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
-from utils.helpers import load_settings
 
 # Laden der Einstellungen, um die Tastaturkonfiguration zu bestimmen
 settings = load_settings()
@@ -16,7 +18,7 @@ else:
 Config.set('graphics', 'rotation', 0)
 
 from kivy.core.window import Window
-if sys.platform not in ('android', 'ios'):
+if platform not in ('android', 'ios'):
     Window.size = (settings.get('window_width', 1280), settings.get('window_height', 720))
 
 import socket
@@ -25,6 +27,7 @@ import json
 import random
 from queue import Queue
 from zeroconf import ServiceInfo, Zeroconf
+from utils.data_manager import initialize_data
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
@@ -41,7 +44,9 @@ from ui.options_screen import OptionsScreen
 from ui.character_menu_screen import CharacterMenuScreen
 from ui.level_up_screen import LevelUpScreen
 from ui.character_editor import CharacterEditor
-from ui.info_screen import InfoScreen
+from ui.info_menu_screen import InfoMenuScreen
+from ui.model_screen import ModelScreen
+from ui.version_screen import VersionScreen
 from ui.settings_screen import SettingsScreen
 from ui.background_settings_screen import BackgroundSettingsScreen
 from ui.customization_settings_screen import CustomizationSettingsScreen
@@ -68,6 +73,9 @@ class DnDApp(App):
         self.screen_history = [] # For back navigation
         self.edited_map_data = None # To pass map data from editor to DM screen
         self.player_game_loop = None
+        # GameManager für Map-Editor und offline Spieler
+        from core.game_manager import GameManager
+        self.game_manager = GameManager()
 
     def start_player_gameloop(self):
         if self.player_game_loop:
@@ -175,33 +183,48 @@ class DnDApp(App):
             self.change_screen(previous_screen, transition_direction='right', is_go_back=True)
 
     def build(self):
-        Builder.load_file('ui/splashscreen.kv')
-        Builder.load_file('ui/mainmenu.kv')
-        Builder.load_file('ui/charactercreator.kv')
-        Builder.load_file('ui/charactereditor.kv')
-        Builder.load_file('ui/charactersheet.kv')
-        Builder.load_file('ui/charactermenuscreen.kv')
-        Builder.load_file('ui/levelupscreen.kv')
-        Builder.load_file('ui/optionsscreen.kv')
-        Builder.load_file('ui/settingsscreen.kv')
-        Builder.load_file('ui/backgroundsettingsscreen.kv')
-        Builder.load_file('ui/customizationsettingsscreen.kv')
-        Builder.load_file('ui/systemscreen.kv')
-        Builder.load_file('ui/changelogscreen.kv')
-        Builder.load_file('ui/infoscreen.kv')
-        Builder.load_file('ui/transferscreen.kv')
-        Builder.load_file('ui/dmspielscreen.kv')
-        Builder.load_file('ui/dmlobbyscreen.kv')
-        Builder.load_file('ui/playerlobbyscreen.kv')
-        Builder.load_file('ui/dmprepscreen.kv')
-        Builder.load_file('ui/dmmainscreen.kv')
-        Builder.load_file('ui/playerwaitingscreen.kv')
-        Builder.load_file('ui/playercharactersheet.kv')
-        Builder.load_file('ui/mapeditorscreen.kv')
-        Builder.load_file('ui/playermapscreen.kv')
+        # Initialize all game data from the database
+        initialize_data()
 
-        if sys.platform.startswith('win'):
+        if platform == 'android':
+            from android.permissions import request_permissions, Permission
+            request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+
+        # Create a lock file to indicate the app is running
+        with open(resource_path(".app_closed_cleanly"), "w") as f:
+            f.write("running")
+
+        Builder.load_file(resource_path('ui/splashscreen.kv'))
+        Builder.load_file(resource_path('ui/mainmenu.kv'))
+        Builder.load_file(resource_path('ui/charactercreator.kv'))
+        Builder.load_file(resource_path('ui/charactereditor.kv'))
+        Builder.load_file(resource_path('ui/charactersheet.kv'))
+        Builder.load_file(resource_path('ui/charactermenuscreen.kv'))
+        Builder.load_file(resource_path('ui/levelupscreen.kv'))
+        Builder.load_file(resource_path('ui/optionsscreen.kv'))
+        Builder.load_file(resource_path('ui/settingsscreen.kv'))
+        Builder.load_file(resource_path('ui/backgroundsettingsscreen.kv'))
+        Builder.load_file(resource_path('ui/customizationsettingsscreen.kv'))
+        Builder.load_file(resource_path('ui/systemscreen.kv'))
+        Builder.load_file(resource_path('ui/changelogscreen.kv'))
+        Builder.load_file(resource_path('ui/infomenuscreen.kv'))
+        Builder.load_file(resource_path('ui/modelscreen.kv'))
+        Builder.load_file(resource_path('ui/versionscreen.kv'))
+        Builder.load_file(resource_path('ui/systeminfoscreen.kv'))
+        Builder.load_file(resource_path('ui/transferscreen.kv'))
+        Builder.load_file(resource_path('ui/dmspielscreen.kv'))
+        Builder.load_file(resource_path('ui/dmlobbyscreen.kv'))
+        Builder.load_file(resource_path('ui/playerlobbyscreen.kv'))
+        Builder.load_file(resource_path('ui/dmprepscreen.kv'))
+        Builder.load_file(resource_path('ui/dmmainscreen.kv'))
+        Builder.load_file(resource_path('ui/playerwaitingscreen.kv'))
+        Builder.load_file(resource_path('ui/playercharactersheet.kv'))
+        Builder.load_file(resource_path('ui/mapeditorscreen.kv'))
+        Builder.load_file(resource_path('ui/playermapscreen.kv'))
+
+        if platform == 'win':
             Window.fullscreen = False
+            Window.set_icon(resource_path('logo/logo.png'))
         else:
             Window.fullscreen = 'auto'
 
@@ -222,7 +245,12 @@ class DnDApp(App):
         sm.add_widget(CustomizationSettingsScreen(name='customization_settings'))
         sm.add_widget(SystemScreen(name='system'))
         sm.add_widget(ChangelogScreen(name='changelog'))
-        sm.add_widget(InfoScreen(name='info'))
+        sm.add_widget(InfoMenuScreen(name='info_menu'))
+        sm.add_widget(ModelScreen(name='model'))
+        sm.add_widget(VersionScreen(name='version'))
+        if platform not in ('android', 'ios'):
+            from ui.system_info_screen import SystemInfoScreen
+            sm.add_widget(SystemInfoScreen(name='system_info'))
         sm.add_widget(LevelUpScreen(name='level_up'))
         sm.add_widget(TransferScreen(name='transfer'))
         sm.add_widget(DMSpielScreen(name='dm_spiel'))
@@ -242,6 +270,11 @@ class DnDApp(App):
 
     def on_stop(self):
         """Wird aufgerufen, wenn die App geschlossen wird."""
+        # Remove the lock file to indicate a clean shutdown
+        lock_file = resource_path(".app_closed_cleanly")
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
+
         settings = load_settings()
         settings['window_width'] = Window.width
         settings['window_height'] = Window.height

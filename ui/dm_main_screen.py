@@ -14,7 +14,7 @@ from queue import Empty
 from core.character import Character
 from core.enemy import Enemy
 from core.game_manager import GameManager
-from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, get_user_saves_dir
 from utils.non_ui_helpers import roll_dice
 from functools import partial
 from utils.data_manager import ENEMY_DATA
@@ -22,6 +22,78 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 
 class DMMainScreen(Screen):
+    def add_offline_player_popup(self):
+        # Popup für neuen Offline-Spieler mit AC, Angriffsbonus, Übungsbonus, Schaden
+        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        name_input = TextInput(hint_text="Name", multiline=False)
+        ac_input = TextInput(hint_text="Rüstungsklasse (AC)", multiline=False, input_filter='int')
+        attack_bonus_input = TextInput(hint_text="Angriffsbonus", multiline=False, input_filter='int')
+        proficiency_input = TextInput(hint_text="Übungsbonus", multiline=False, input_filter='int')
+        damage_input = TextInput(hint_text="Schaden (z.B. 2d4)", multiline=False)
+        add_btn = Button(text="Hinzufügen")
+        cancel_btn = Button(text="Abbrechen")
+        btn_box = BoxLayout(orientation='horizontal', spacing=10)
+        btn_box.add_widget(add_btn)
+        btn_box.add_widget(cancel_btn)
+        content.add_widget(Label(text="Neuen Offline-Spieler anlegen:"))
+        content.add_widget(name_input)
+        content.add_widget(ac_input)
+        content.add_widget(attack_bonus_input)
+        content.add_widget(proficiency_input)
+        content.add_widget(damage_input)
+        content.add_widget(btn_box)
+        popup = create_styled_popup(title="Offline-Spieler hinzufügen", content=content, size_hint=(0.5, 0.7))
+
+        def on_add(instance):
+            name = name_input.text.strip()
+            try:
+                ac = int(ac_input.text.strip())
+            except Exception:
+                ac = 10
+            try:
+                attack_bonus = int(attack_bonus_input.text.strip())
+            except Exception:
+                attack_bonus = 0
+            try:
+                proficiency = int(proficiency_input.text.strip())
+            except Exception:
+                proficiency = 2
+            damage = damage_input.text.strip() or "1d8"
+            if not name:
+                self.log_message("Name darf nicht leer sein!")
+                return
+            char = Character(name, race="", char_class="")
+            char.armor_class = ac
+            char.attack_bonus = attack_bonus
+            char.proficiency = proficiency
+            char.attacks = [{"name": "Angriff", "damage": damage}]
+            if not hasattr(self.game_manager, 'offline_players'):
+                self.game_manager.offline_players = []
+            self.game_manager.offline_players.append(char)
+            self.update_offline_players_list()
+            popup.dismiss()
+
+        add_btn.bind(on_press=on_add)
+        cancel_btn.bind(on_press=popup.dismiss)
+        popup.open()
+    def update_offline_players_list(self):
+        offline_players_widget = self.ids.offline_players_list
+        offline_players_widget.clear_widgets()
+        for char in self.game_manager.offline_players:
+            box = BoxLayout(orientation='horizontal', size_hint_y=None, height=30)
+            label = Label(text=char.name, size_hint_x=0.7)
+            remove_btn = Button(text="Entfernen", size_hint_x=0.3, size_hint_y=None, height=30)
+            def make_remove_callback(c):
+                return lambda instance: self.remove_offline_player(c)
+            remove_btn.bind(on_press=make_remove_callback(char))
+            box.add_widget(label)
+            box.add_widget(remove_btn)
+            offline_players_widget.add_widget(box)
+
+    def remove_offline_player(self, char):
+        if char in self.game_manager.offline_players:
+            self.game_manager.offline_players.remove(char)
+            self.update_offline_players_list()
     """The main screen for the Dungeon Master to manage the game."""
     def __init__(self, **kwargs):
         super(DMMainScreen, self).__init__(**kwargs)
@@ -32,6 +104,7 @@ class DMMainScreen(Screen):
         self.selected_object = None
         self.highlighted_tiles = []
         self._map_widget_bound = False
+        self.dm_selected_attacker = None  # Stores attacker name (player or enemy)
 
     def on_pre_enter(self, *args):
         apply_background(self)
@@ -70,7 +143,15 @@ class DMMainScreen(Screen):
             self.app.prepared_session_data = None
 
         if session:
-            self.game_manager.offline_players = session.get('offline_players', [])
+            from core.character import Character
+            offline_players_raw = session.get('offline_players', [])
+            offline_players = []
+            for p in offline_players_raw:
+                if isinstance(p, Character):
+                    offline_players.append(p)
+                elif isinstance(p, dict):
+                    offline_players.append(Character.from_dict(p))
+            self.game_manager.offline_players = offline_players
 
             # online_players from session are now just a list of character dicts
             # The real online players are managed by NetworkManager
@@ -105,6 +186,10 @@ class DMMainScreen(Screen):
             source, message = item
             if source == 'PLAYER_JOINED':
                 char = message['char']
+                # Falls char ein dict ist, in Character umwandeln
+                if isinstance(char, dict):
+                    from core.character import Character
+                    char = Character.from_dict(char)
                 self.game_manager.online_players[char.name] = char
                 self.update_ui()
                 return
@@ -228,11 +313,13 @@ class DMMainScreen(Screen):
         with self.network_manager.lock:
             self.game_manager.online_players = {c['character'].name: c['character'] for c in self.network_manager.clients.values()}
 
-        # The enemies list is already managed by the screen, so we pass it
-        # No, wait, it should be managed by the game manager. Refactoring this.
-        # self.game_manager.enemies is the source of truth.
+        # Füge offline Spieler zur Initiative hinzu
+        all_online = list(self.game_manager.online_players.values())
+        all_offline = getattr(self.game_manager, 'offline_players', [])
+        self.game_manager._initiative_override_players = all_online + all_offline
 
-        initiative_order = self.game_manager.roll_initiative_for_all()
+        # Patch: roll_initiative_for_all nimmt jetzt alle Spieler (online+offline)
+        initiative_order = self.game_manager.roll_initiative_for_all(players=all_online + all_offline)
 
         log_msg = "Initiativereihenfolge:\n" + "\n".join([f"{roll}: {name}" for roll, name in initiative_order])
         self.log_message(log_msg)
@@ -299,13 +386,15 @@ class DMMainScreen(Screen):
         create_styled_popup(title="Gegner-Statistiken", content=content, size_hint=(0.6, 0.5)).open()
 
     def do_load_map(self, filename, instance):
-        filepath = os.path.join("utils/data/maps", filename)
+        maps_dir = get_user_saves_dir("maps")
+        filepath = os.path.join(maps_dir, filename)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
             self.game_manager.map_data = loaded_data
             self.game_manager.map_data['tiles'] = {eval(k): v for k, v in loaded_data['tiles'].items()}
             self.log_message(f"Map '{filename}' geladen.")
+            # Feinde laden
             if 'enemies' in loaded_data:
                 self.game_manager.enemies.clear()
                 for enemy_name in loaded_data['enemies']:
@@ -315,6 +404,14 @@ class DMMainScreen(Screen):
                         new_enemy = Enemy(name=enemy_name, hp=enemy_stats['hp'], armor_class=enemy_stats['ac'], attacks=enemy_stats['attacks'])
                         self.game_manager.enemies.append(new_enemy)
                 self.log_message(f"Feindliste automatisch von der Karte geladen.")
+            # Offline-Spieler laden
+            if 'offline_players' in loaded_data:
+                offline_players = []
+                for p in loaded_data['offline_players']:
+                    if isinstance(p, dict):
+                        offline_players.append(Character.from_dict(p))
+                self.game_manager.offline_players = offline_players
+            # UI nur einmal am Ende aktualisieren
             self.update_ui()
             self.broadcast_map_data()
             if hasattr(self, 'load_map_popup_widget'):
@@ -352,35 +449,55 @@ class DMMainScreen(Screen):
                 self.handle_right_click(row, col)
 
     def handle_left_click(self, row, col):
-        if self.selected_object and (row, col) in self.highlighted_tiles:
-            self.move_object(self.selected_object['name'], (row, col))
+        # DM selects and moves player or enemy with left click
+        if not self.game_manager.map_data:
+            return
+        tile_data = self.game_manager.map_data['tiles'].get((row, col))
+        # 1. Wenn ein Objekt ausgewählt ist und das Feld leer & im Bewegungsbereich ist: bewegen
+        if self.selected_object and not (tile_data and tile_data.get('object')):
+            obj_name = self.selected_object['name']
+            # Prüfe, ob das Feld im Bewegungsbereich ist
+            if (row, col) in self.highlighted_tiles:
+                self.move_object(obj_name, (row, col))
+                self.selected_object = None
+                self.dm_selected_attacker = None
+                self.highlighted_tiles = []
+                self.update_map_widget()
+                return
+        # 2. Wenn ein Objekt (Spieler oder Gegner) angeklickt wird: auswählen und Bewegungsreichweite anzeigen
+        if tile_data and tile_data.get('object'):
+            obj_name = tile_data['object']
+            self.selected_object = {'name': obj_name, 'pos': (row, col)}
+            self.dm_selected_attacker = obj_name
+            self.log_message(f"Ausgewählt: {obj_name}. Linksklick auf ein freies Feld zum Bewegen, Rechtsklick auf Ziel für Angriff.")
+            self.highlight_movement_range(obj_name, row, col)
         else:
+            self.selected_object = None
+            self.dm_selected_attacker = None
             self.highlighted_tiles = []
-            if self.game_manager.map_data:
-                tile_data = self.game_manager.map_data['tiles'].get((row, col))
-                if tile_data and tile_data.get('object'):
-                    obj_name = tile_data['object']
-                    self.selected_object = {'name': obj_name, 'pos': (row, col)}
-                    self.highlight_movement_range(obj_name, row, col)
-                else:
-                    self.selected_object = None
-            self.update_map_widget()
+        self.update_map_widget()
 
     def handle_right_click(self, row, col):
-        if not self.selected_object:
-            self.log_message("Aktion: Wähle zuerst einen Charakter aus, der angreifen soll (Linksklick).")
+        # DM right-clicks a target to attack with selected attacker
+        if not self.dm_selected_attacker:
+            self.log_message("Aktion: Wähle zuerst einen Angreifer mit Linksklick.")
             return
-        if not self.game_manager.map_data: return
+        if not self.game_manager.map_data:
+            return
         tile_data = self.game_manager.map_data['tiles'].get((row, col))
         if not tile_data or not tile_data.get('object'):
             self.log_message("Aktion: Du musst auf ein Feld mit einem Ziel klicken.")
             return
-        attacker_name = self.selected_object['name']
+        attacker_name = self.dm_selected_attacker
         target_name = tile_data.get('object')
         if attacker_name == target_name:
             self.log_message("Aktion: Ein Charakter kann sich nicht selbst angreifen.")
             return
         self.dm_attack(attacker_name, target_name)
+        # Reset selection after attack
+        self.dm_selected_attacker = None
+        self.selected_object = None
+        self.update_map_widget()
 
     def dm_attack(self, attacker_name, target_name):
         current_turn_name = self.game_manager.get_current_turn_info()['name']
@@ -392,35 +509,54 @@ class DMMainScreen(Screen):
             return
 
         attacker = self.game_manager.get_character_or_enemy_by_name(attacker_name)
-        if not isinstance(attacker, Enemy):
-            self.log_message("FEHLER: Nur Gegner können vom DM zu Angriffen befehligt werden.")
-            return
-
-        attacks = attacker.attacks
-        if not attacks:
-            self.log_message(f"FEHLER: {attacker_name} hat keine Angriffe definiert.")
-            return
-
-        if len(attacks) == 1:
-            self._execute_dm_attack(attacker, target_name, attacks[0])
+        # DM kann jetzt auch offline Spieler (Character) angreifen lassen
+        if isinstance(attacker, Enemy):
+            attacks = attacker.attacks
+            if not attacks:
+                self.log_message(f"FEHLER: {attacker_name} hat keine Angriffe definiert.")
+                return
+            if len(attacks) == 1:
+                self._execute_dm_attack(attacker, target_name, attacks[0])
+            else:
+                # Attack choice popup
+                content = BoxLayout(orientation='vertical', spacing=10)
+                scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
+                scroll_content.bind(minimum_height=scroll_content.setter('height'))
+                popup = create_styled_popup(title=f"Wähle einen Angriff für {attacker_name}", content=content, size_hint=(0.8, 0.6))
+                for attack in attacks:
+                    btn_text = f"{attack['name']} ({attack.get('damage', 'N/A')})"
+                    btn = Button(text=btn_text, size_hint_y=None, height=44)
+                    def on_attack_chosen(instance, chosen_attack=attack):
+                        popup.dismiss()
+                        self._execute_dm_attack(attacker, target_name, chosen_attack)
+                    btn.bind(on_press=on_attack_chosen)
+                    scroll_content.add_widget(btn)
+                scroll_view = ScrollView()
+                scroll_view.add_widget(scroll_content)
+                content.add_widget(scroll_view)
+                popup.open()
+        elif isinstance(attacker, Character):
+            # Standardangriff für Spieler: 1d20+Angriffsbonus, 1d8 Schaden (oder aus Attacks-Liste falls vorhanden)
+            if hasattr(attacker, 'attacks') and attacker.attacks:
+                attack = attacker.attacks[0]
+                # Simpler Angriff: 1d20+to_hit, Schaden aus Attack
+                import random
+                from utils.non_ui_helpers import roll_dice
+                attack_roll = random.randint(1, 20) + getattr(attack, 'to_hit', 0)
+                damage = roll_dice(attack.get('damage', '1d8'))
+            else:
+                import random
+                attack_roll = random.randint(1, 20) + getattr(attacker, 'attack_bonus', 0)
+                damage = random.randint(1, 8)
+            result = self.game_manager.handle_attack(attacker.name, target_name, attack_roll=attack_roll, damage_roll=damage)
+            if result.get('success'):
+                self.update_ui()
+                self.broadcast_game_state()
+            else:
+                self.log_message(f"ERROR: {result.get('reason')}")
         else:
-            # Attack choice popup
-            content = BoxLayout(orientation='vertical', spacing=10)
-            scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
-            scroll_content.bind(minimum_height=scroll_content.setter('height'))
-            popup = create_styled_popup(title=f"Wähle einen Angriff für {attacker_name}", content=content, size_hint=(0.8, 0.6))
-            for attack in attacks:
-                btn_text = f"{attack['name']} ({attack.get('damage', 'N/A')})"
-                btn = Button(text=btn_text, size_hint_y=None, height=44)
-                def on_attack_chosen(instance, chosen_attack=attack):
-                    popup.dismiss()
-                    self._execute_dm_attack(attacker, target_name, chosen_attack)
-                btn.bind(on_press=on_attack_chosen)
-                scroll_content.add_widget(btn)
-            scroll_view = ScrollView()
-            scroll_view.add_widget(scroll_content)
-            content.add_widget(scroll_view)
-            popup.open()
+            self.log_message("FEHLER: Unbekannter Angreifer-Typ.")
+            return
 
     def _execute_dm_attack(self, attacker, target_name, attack):
         result = self.game_manager.handle_attack(attacker.name, target_name)
@@ -458,45 +594,37 @@ class DMMainScreen(Screen):
     def update_online_players_list(self):
         online_players_widget = self.ids.online_players_list
         online_players_widget.clear_widgets()
-        sorted_players = sorted(self.game_manager.online_players.values(), key=lambda char: char.name)
+        def get_name(p):
+            return p.name if hasattr(p, 'name') else str(p)
+        sorted_players = sorted(self.game_manager.online_players.values(), key=get_name)
         for char in sorted_players:
-            label = Label(text=char.name, size_hint_y=None, height=30)
+            label = Label(text=get_name(char), size_hint_y=None, height=30)
             online_players_widget.add_widget(label)
 
     def update_offline_players_list(self):
         offline_players_widget = self.ids.offline_players_list
         offline_players_widget.clear_widgets()
-        for player_name in sorted(self.game_manager.offline_players):
+        def get_name(p):
+            return p.name if hasattr(p, 'name') else str(p)
+        for player in sorted(self.game_manager.offline_players, key=get_name):
+            name = get_name(player)
             player_entry = BoxLayout(size_hint_y=None, height=40, spacing=5)
-            label = Label(text=player_name)
+            label = Label(text=name)
             remove_button = Button(text="Entfernen", size_hint_x=0.4)
-            remove_button.bind(on_press=partial(self.remove_offline_player, player_name))
+            remove_button.bind(on_press=partial(self.remove_offline_player, player))
             player_entry.add_widget(label)
             player_entry.add_widget(remove_button)
             offline_players_widget.add_widget(player_entry)
 
-    def remove_offline_player(self, player_name, instance):
-        if player_name in self.game_manager.offline_players:
-            self.game_manager.offline_players.remove(player_name)
+    def remove_offline_player(self, player, instance=None):
+        if player in self.game_manager.offline_players:
+            self.game_manager.offline_players.remove(player)
             self.update_offline_players_list()
-            self.log_message(f"Offline-Spieler '{player_name}' entfernt.")
+            name = player.name if hasattr(player, 'name') else str(player)
+            self.log_message(f"Offline-Spieler '{name}' entfernt.")
 
     def add_offline_player(self):
-        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        text_input = TextInput(hint_text="Name des Offline-Spielers", multiline=False)
-        content.add_widget(text_input)
-        add_button = Button(text="Hinzufügen")
-        popup = create_styled_popup(title="Offline-Spieler hinzufügen", content=content, size_hint=(0.6, 0.4))
-        def do_add(instance):
-            player_name = text_input.text.strip()
-            if player_name and player_name not in self.game_manager.offline_players:
-                self.game_manager.offline_players.append(player_name)
-                self.update_offline_players_list()
-                self.log_message(f"Offline-Spieler '{player_name}' hinzugefügt.")
-                popup.dismiss()
-        add_button.bind(on_press=do_add)
-        content.add_widget(add_button)
-        popup.open()
+        self.add_offline_player_popup()
 
     def add_enemy(self):
         content = BoxLayout(orientation='vertical', spacing=10)
@@ -522,8 +650,7 @@ class DMMainScreen(Screen):
             filename = text_input.text.strip()
             if not filename: return
             filename = f"{filename}.json"
-            saves_dir = "utils/data/sessions"
-            os.makedirs(saves_dir, exist_ok=True)
+            saves_dir = get_user_saves_dir("sessions")
             filepath = os.path.join(saves_dir, filename)
 
             map_data_to_save = None
@@ -533,7 +660,7 @@ class DMMainScreen(Screen):
 
             session_data = {
                 'online_players': [p.to_dict() for p in self.game_manager.online_players.values()],
-                'offline_players': self.game_manager.offline_players,
+                'offline_players': [p.to_dict() for p in self.game_manager.offline_players],
                 'enemies': [e.to_dict() for e in self.game_manager.enemies],
                 'map_data': map_data_to_save,
                 'log': self.ids.log_output.text,
@@ -555,8 +682,7 @@ class DMMainScreen(Screen):
         content = BoxLayout(orientation='vertical', spacing=10)
         scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
-        maps_dir = "utils/data/maps"
-        os.makedirs(maps_dir, exist_ok=True)
+        maps_dir = get_user_saves_dir("maps")
         map_files = [f for f in os.listdir(maps_dir) if f.endswith('.json')]
         if not map_files:
             create_styled_popup(title="Keine Karten", content=Label(text="Keine Karten zum Laden gefunden."), size_hint=(0.6, 0.4)).open()
@@ -624,6 +750,16 @@ class DMMainScreen(Screen):
                 self.network_manager.send_message(player_addr, "TRIGGER_MESSAGE", {'message': message})
 
     def _editor_callback(self, instance, map_data=None):
+        # Kopiere offline_players und online_players ins App-Objekt für den Map-Editor
+        from core.character import Character
+        offline_players = []
+        for p in getattr(self.game_manager, 'offline_players', []):
+            if isinstance(p, Character):
+                offline_players.append(p)
+            elif isinstance(p, dict):
+                offline_players.append(Character.from_dict(p))
+        self.app.game_manager.offline_players = offline_players
+        self.app.game_manager.online_players = dict(getattr(self.game_manager, 'online_players', {}))
         editor_screen = self.manager.get_screen('map_editor')
         if not isinstance(map_data, dict):
             map_data = None
@@ -640,8 +776,7 @@ class DMMainScreen(Screen):
         content = BoxLayout(orientation='vertical', spacing=10)
         scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
-        saves_dir = "utils/data/maps"
-        os.makedirs(saves_dir, exist_ok=True)
+        saves_dir = get_user_saves_dir("maps")
         map_files = [f for f in os.listdir(saves_dir) if f.endswith('.json')]
         if not map_files:
             create_styled_popup(title="No Maps", content=Label(text="No saved maps found to edit."), size_hint=(0.6, 0.4)).open()
@@ -657,7 +792,8 @@ class DMMainScreen(Screen):
         self.edit_map_popup.open()
 
     def load_and_pass_map_to_editor(self, filename, callback):
-        filepath = os.path.join("utils/data/maps", filename)
+        maps_dir = get_user_saves_dir("maps")
+        filepath = os.path.join(maps_dir, filename)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)

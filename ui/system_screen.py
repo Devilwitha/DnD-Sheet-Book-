@@ -62,7 +62,31 @@ class SystemScreen(Screen):
         settings = load_settings()
         settings['keyboard_enabled'] = value
         save_settings(settings)
-        self.show_popup("Neustart erforderlich", "Die Änderung an der Bildschirmtastatur\nwird nach einem Neustart der Anwendung wirksam.")
+        # Try to apply the keyboard setting immediately so the user does not
+        # have to restart the app. Not all platforms support dynamic changes,
+        # but releasing active keyboards helps hide the on-screen keyboard
+        # when disabling.
+        try:
+            from kivy.config import Config
+            from kivy.core.window import Window
+            if value:
+                Config.set('kivy', 'keyboard_mode', 'dock')
+                # Keep a reasonably large keyboard height for docked mode
+                Config.set('kivy', 'keyboard_height', '600')
+            else:
+                Config.set('kivy', 'keyboard_mode', '')
+
+            # Release any active keyboard grabs which may hide the OSK
+            try:
+                Window.release_all_keyboards()
+            except Exception:
+                # Not all Window backends implement this; ignore failures
+                pass
+        except Exception:
+            # If applying dynamically fails, fall back to the message below
+            pass
+
+        self.show_popup("Hinweis", "Die Änderung an der Bildschirmtastatur wurde angewendet (falls unterstützt).")
 
     def shutdown_system(self):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)

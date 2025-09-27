@@ -27,7 +27,7 @@ class NetworkManager:
         self.client_socket = None
         self.client_listener_thread = None
 
-    def start_server(self):
+    def start_server(self, display_name="DM's Spiel"):
         if self.running or self.mode != 'idle':
             return
         self.mode = 'dm'
@@ -48,12 +48,13 @@ class NetworkManager:
 
         service_type = "_dndgame._tcp.local."
         service_name = f"DnD_DM_Server_{random.randint(1000, 9999)}.{service_type}"
+        properties = {b'name': display_name.encode('utf-8')}
         self.service_info = ServiceInfo(
             service_type,
             service_name,
             addresses=[socket.inet_aton(ip_address)],
             port=port,
-            properties={'name': 'DM_Lobby'},
+            properties=properties,
         )
         self.zeroconf = Zeroconf()
         self.zeroconf.register_service(self.service_info)
@@ -65,6 +66,28 @@ class NetworkManager:
         self.sender_thread = threading.Thread(target=self.sender_loop)
         self.sender_thread.daemon = True
         self.sender_thread.start()
+
+    def update_service_name(self, new_display_name):
+        if self.mode != 'dm' or not self.zeroconf or not self.service_info:
+            return
+
+        # Unregister the old service
+        self.zeroconf.unregister_service(self.service_info)
+
+        # Create new properties
+        properties = {b'name': new_display_name.encode('utf-8')}
+
+        # Create a new ServiceInfo object with the updated properties
+        self.service_info = ServiceInfo(
+            self.service_info.type,
+            self.service_info.name,
+            addresses=self.service_info.addresses,
+            port=self.service_info.port,
+            properties=properties
+        )
+
+        # Register the new service
+        self.zeroconf.register_service(self.service_info)
 
     def sender_loop(self):
         while self.running:
@@ -86,7 +109,7 @@ class NetworkManager:
                 client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address))
                 client_thread.daemon = True
                 client_thread.start()
-            except OSError:
+            except (OSError, ValueError):
                 break
 
     def handle_client(self, client_socket, client_address):

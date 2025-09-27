@@ -1,6 +1,6 @@
 from kivy.uix.screenmanager import Screen
 from kivy.app import App
-from utils.helpers import apply_background, apply_styles_to_widget
+from utils.helpers import apply_background, apply_styles_to_widget, resource_path
 
 class MainMenu(Screen):
     """Hauptmenü-Bildschirm."""
@@ -10,6 +10,7 @@ class MainMenu(Screen):
 
     def on_pre_enter(self, *args):
         """Wird ausgeführt, bevor der Bildschirm angezeigt wird."""
+        self.ids.menu_logo_image.source = resource_path('logo/logo.png')
         apply_background(self)
         apply_styles_to_widget(self)
 

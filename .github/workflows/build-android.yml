@@ -1,58 +1,111 @@
+# Name des Workflows, der in der GitHub Actions UI angezeigt wird
 name: Build Android APK
 
+# Trigger: Wann dieser Workflow ausgeführt werden soll
 on:
   push:
-    branches: [ "main", "beta", "android-windows-build" ]
+    branches: [ "main", "beta", "alpha" ]
   pull_request:
-    branches: [ "main", "beta", "android-windows-build" ]
+    branches: [ "main", "beta", "alpha" ]
 
 jobs:
   build-android:
+    # Der Workflow läuft auf dem neuesten Ubuntu-Runner
     runs-on: ubuntu-latest
+
     steps:
+      # Schritt 1: Code aus dem Repository auschecken
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
+      # Schritt 2: Java Development Kit (JDK) einrichten
+      # Notwendig für das Android SDK
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # Schritt 3: Python einrichten
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Schritt 4: Buildozer Cache einrichten
+      # Dies beschleunigt Builds ENORM, indem das .buildozer-Verzeichnis zwischen den Läufen gespeichert wird.
+      # Der Cache wird nur dann neu erstellt, wenn sich deine buildozer.spec ändert.
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer
+          key: ${{ runner.os }}-buildozer-global-${{ hashFiles('buildozer.spec') }}
+
+      # Schritt 5: Systemabhängigkeiten für den Build-Prozess installieren
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip autoconf automake libtool build-essential pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev libltdl-dev autopoint
+          sudo apt-get install -y \
+            git zip unzip autoconf automake libtool build-essential pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev libltdl-dev autopoint
 
+      # Schritt 6: Python-Abhängigkeiten (Buildozer) installieren
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "cython==0.29.36" virtualenv
-          python -m pip install -r requirements.txt
-          python -m pip install buildozer
+          # Es ist eine gute Praxis, die Buildozer-Version zu fixieren
+          python -m pip install "buildozer==1.5.0" cython==0.29.36
+          # Falls du eine requirements_android.txt hast, kannst du sie hier installieren:
+          # python -m pip install -r requirements_android.txt
 
+      # Schritt 6.1: Prepare source DB for packaging (create utils/data/dnd.db)
+      - name: Prepare source database
+        run: |
+          echo "Creating source database for packaging..."
+          python scripts/prepare_build.py
+          echo "Listing utils/data contents:" 
+          ls -la utils/data || true
+
+      # Schritt 7: Build mit Buildozer (korrigierte Reihenfolge)
       - name: Build with Buildozer
         run: |
-          buildozer -v android debug
-          ls -l bin
+          # 1. Zuerst die Android-Plattform-Werkzeuge (SDK, NDK, p4a) herunterladen/aktualisieren.
+          # Dieser Schritt erstellt das Verzeichnis, das vorher gefehlt hat.
+          buildozer -v android update
 
+          # 2. Jetzt den Build-Cache bereinigen, um Architektur-Konflikte zu vermeiden.
+          # Dieser Befehl wird nun erfolgreich ausgeführt.
+          buildozer -v android clean
+
+          # 3. Den eigentlichen Build-Prozess für die Debug-APK starten.
+          buildozer -v android debug
+
+      # Schritt 8: Den gebauten APK-Dateinamen finden
       - name: Get APK Name
         id: get_apk_name
         run: |
-          APK_NAME=$(ls bin/*.apk)
-          if [ -z "$APK_NAME" ]; then
-            echo "Fehler: Keine APK-Datei im bin-Verzeichnis gefunden."
+          # Sicherstellen, dass das bin-Verzeichnis existiert
+          if [ ! -d "bin" ]; then
+            echo "Fehler: Das 'bin'-Verzeichnis wurde nicht gefunden. Der Build ist wahrscheinlich fehlgeschlagen."
             exit 1
           fi
-          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
+          
+          # APK finden und den Pfad für den nächsten Schritt speichern
+          APK_PATH=$(find bin -name "*.apk" | head -n 1)
+          
+          if [ -z "$APK_PATH" ]; then
+            echo "Fehler: Keine APK-Datei im 'bin'-Verzeichnis gefunden."
+            ls -lR bin
+            exit 1
+          fi
+          
+          echo "Gefundene APK: $APK_PATH"
+          echo "APK_PATH=$APK_PATH" >> "$GITHUB_ENV"
 
+      # Schritt 9: Die gebaute APK als Artefakt hochladen
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: dndapp-debug
-          path: ${{ env.APK_NAME }}
+          name: dndapp-debug-apk
+          path: ${{ env.APK_PATH }}
+

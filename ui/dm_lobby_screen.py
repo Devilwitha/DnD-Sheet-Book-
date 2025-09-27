@@ -27,8 +27,13 @@ class DMLobbyScreen(Screen):
         # Reset the flag when entering the screen
         self.is_starting_game = False
 
+        # Get the custom session name from the input
+        session_name = self.ids.session_name_input.text.strip()
+        if not session_name:
+            session_name = "DM's Spiel"
+
         # Start the server if it's not already running
-        self.network_manager.start_server()
+        self.network_manager.start_server(display_name=session_name)
 
         self.ids.player_list.clear_widgets()
         self.player_widgets.clear()
@@ -106,12 +111,6 @@ class DMLobbyScreen(Screen):
 
     def start_game(self):
         """Switches to the main DM screen."""
-        with self.network_manager.lock:
-            if not self.network_manager.clients:
-                print("[!] No players have joined yet!")
-                # Optionally show a popup
-                return
-
         self.is_starting_game = True
         self.manager.current = 'dm_main'
 
@@ -162,3 +161,11 @@ class DMLobbyScreen(Screen):
                 self.app.loaded_session_data = None # Clear session data
             if hasattr(self.app, 'prepared_session_data'):
                 self.app.prepared_session_data = None # Clear prepared data
+
+    def confirm_session_name(self):
+        """Updates the server's broadcasted name."""
+        session_name = self.ids.session_name_input.text.strip()
+        if not session_name:
+            session_name = "DM's Spiel"
+        if self.network_manager.mode == 'dm':
+            self.network_manager.update_service_name(session_name)

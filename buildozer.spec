@@ -12,6 +12,10 @@ package.domain = ch.bollisoft
 # (str) Source code where the main.py live
 source.dir = .
 
+# IMPORTANT: ensure the SQLite source DB is built before packaging so it
+# is included in the APK. Run `python scripts/prepare_build.py` on your
+# build machine or in CI before invoking buildozer.
+
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,db,json,txt,enemies,session,char
 
@@ -19,17 +23,17 @@ source.include_exts = py,png,jpg,kv,db,json,txt,enemies,session,char
 source.include_patterns = assets/*,data/*
 
 # (list) Source files to exclude (let empty to not exclude anything)
-#source.exclude_exts = spec
+source.exclude_exts = install_and_log.py, install_on_pi.sh, README.md,
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-#source.exclude_dirs = tests, bin, venv
+source.exclude_dirs = tests
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.3.9
+version = 0.5.0
 #version = Release.mainversion.miniGame
 
 # (str) Application versioning (method 2)
@@ -38,7 +42,8 @@ version = 0.3.9
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3==3.10.12,pygame,cython,hostpython3==3.10.12,pyjnius==1.5.0,android==0.7,zeroconf,kivy
+requirements = python3,hostpython3,kivy==2.3.0,cython==0.29.36,pyjnius,kivy-garden,kivy_garden.matplotlib,zeroconf,psutil,screeninfo,sqlite3,plyer,cryptography,pyopenssl
+
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -75,10 +80,10 @@ osx.kivy_version = 1.9.1
 #
 
 # (bool) Indicate if the application should be fullscreen or not
-fullscreen = 1
+fullscreen = 0
 
 # (string) Presplash background color (for android toolchain)
-# Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
+# Supported formats are: #RRGGBB #AARRGBB or one of the following names:
 # red, blue, green, black, white, gray, cyan, magenta, yellow, lightgray,
 # darkgray, grey, lightgrey, darkgrey, aqua, fuchsia, lime, maroon, navy,
 # olive, purple, silver, teal.
@@ -96,7 +101,7 @@ fullscreen = 1
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-android.permissions = android.permission.READ_EXTERNAL_STORAGE, android.permission.INTERNET (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
+android.permissions = android.permission.READ_EXTERNAL_STORAGE, android.permission.INTERNET, android.permission.CHANGE_WIFI_MULTICAST_STATE (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
@@ -111,6 +116,7 @@ android.permissions = android.permission.READ_EXTERNAL_STORAGE, android.permissi
 #android.sdk = 20
 
 # (str) Android NDK version to use
+android.ndk_version = 25b
 #android.ndk = 23b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
@@ -194,10 +200,10 @@ android.accept_sdk_license = True
 # Some examples:
 # 1) A file to add to resources, legal resource names contain ['a-z','0-9','_']
 # android.add_resources = my_icons/all-inclusive.png:drawable/all_inclusive.png
-# 2) A directory, here  'legal_icons' must contain resources of one kind
+# 2) A directory, here  'legal_icons' must contain resources of one kind
 # android.add_resources = legal_icons:drawable
-# 3) A directory, here 'legal_resources' must contain one or more directories, 
-# each of a resource kind:  drawable, xml, etc...
+# 3) A directory, here 'legal_resources' must contain one or more directories, 
+# each of a resource kind:  drawable, xml, etc...
 # android.add_resources = legal_resources
 #android.add_resources =
 
@@ -215,14 +221,14 @@ android.accept_sdk_license = True
 # android.add_compile_options = "sourceCompatibility = 1.8", "targetCompatibility = 1.8"
 
 # (list) Gradle repositories to add {can be necessary for some android.gradle_dependencies}
-# please enclose in double quotes 
+# please enclose in double quotes 
 # e.g. android.gradle_repositories = "maven { url 'https://kotlin.bintray.com/ktor' }"
 #android.add_gradle_repositories =
 
-# (list) packaging options to add 
+# (list) packaging options to add 
 # see https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.PackagingOptions.html
 # can be necessary to solve conflicts in gradle_dependencies
-# please enclose in double quotes 
+# please enclose in double quotes 
 # e.g. android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "exclude 'META-INF/*.kotlin_module'"
 #android.add_packaging_options =
 
@@ -322,7 +328,7 @@ android.allow_backup = True
 #p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-#p4a.branch = master
+p4a.branch = v2024.01.21
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD
@@ -414,18 +420,18 @@ warn_on_root = 1
 # (str) Path to build output (i.e. .apk, .aab, .ipa) storage
 # bin_dir = ./bin
 
-#    -----------------------------------------------------------------------------
-#    List as sections
+#    -----------------------------------------------------------------------------
+#    List as sections
 #
-#    You can define all the "list" as [section:key].
-#    Each line will be considered as a option to the list.
-#    Let's take [app] / source.exclude_patterns.
-#    Instead of doing:
+#    You can define all the "list" as [section:key].
+#    Each line will be considered as a option to the list.
+#    Let's take [app] / source.exclude_patterns.
+#    Instead of doing:
 #
 #[app]
 #source.exclude_patterns = license,data/audio/*.wav,data/images/original/*
 #
-#    This can be translated into:
+#    This can be translated into:
 #
 #[app:source.exclude_patterns]
 #license
@@ -434,13 +440,13 @@ warn_on_root = 1
 #
 
 
-#    -----------------------------------------------------------------------------
-#    Profiles
+#    -----------------------------------------------------------------------------
+#    Profiles
 #
-#    You can extend section / key with a profile
-#    For example, you want to deploy a demo version of your application without
-#    HD content. You could first change the title to add "(demo)" in the name
-#    and extend the excluded directories to remove the HD content.
+#    You can extend section / key with a profile
+#    For example, you want to deploy a demo version of your application without
+#    HD content. You could first change the title to add "(demo)" in the name
+#    and extend the excluded directories to remove the HD content.
 #
 #[app@demo]
 #title = My Application (demo)
@@ -448,6 +454,6 @@ warn_on_root = 1
 #[app:source.exclude_patterns@demo]
 #images/hd/*
 #
-#    Then, invoke the command line with the "demo" profile:
+#    Then, invoke the command line with the "demo" profile:
 #
 #buildozer --profile demo android debug

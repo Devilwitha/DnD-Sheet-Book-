@@ -11,6 +11,23 @@
             size_hint_y: None
             height: 80
 
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50
+            spacing: 10
+            Label:
+                text: "Sitzungsname:"
+                size_hint_x: 0.4
+            TextInput:
+                id: session_name_input
+                text: "DM's Spiel"
+                multiline: False
+            Button:
+                text: "Bestätigen"
+                size_hint_x: 0.3
+                on_press: root.confirm_session_name()
+
         Label:
             text: "Verbundenen Spieler:"
             font_size: '20sp'

@@ -17,7 +17,7 @@ from kivy.properties import ObjectProperty
 from kivy.app import App
 
 from utils.data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
-from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, get_user_saves_dir
 
 class CharacterSheet(Screen):
     """Finaler Charakterbogen mit allen neuen Features."""
@@ -419,8 +419,7 @@ class CharacterSheet(Screen):
         self.manager.current = 'level_up'
 
     def save_character(self):
-        saves_dir = "saves"
-        os.makedirs(saves_dir, exist_ok=True)
+        saves_dir = get_user_saves_dir("characters")
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)
         try:

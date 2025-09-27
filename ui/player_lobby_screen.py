@@ -10,7 +10,7 @@ from kivy.clock import Clock
 from zeroconf import ServiceBrowser, Zeroconf
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
-from utils.helpers import apply_background, apply_styles_to_widget, ensure_character_attributes, create_styled_popup
+from utils.helpers import apply_background, apply_styles_to_widget, ensure_character_attributes, create_styled_popup, get_user_saves_dir
 from core.character import Character
 import socket
 
@@ -91,8 +91,7 @@ class PlayerLobbyScreen(Screen):
         content = BoxLayout(orientation='vertical', spacing=10)
         popup_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         popup_layout.bind(minimum_height=popup_layout.setter('height'))
-        saves_dir = "saves"
-        os.makedirs(saves_dir, exist_ok=True)
+        saves_dir = get_user_saves_dir("characters")
         files = [f for f in os.listdir(saves_dir) if f.endswith('.char')]
         for filename in files:
             btn = Button(text=filename, size_hint_y=None, height=44)
@@ -119,7 +118,8 @@ class PlayerLobbyScreen(Screen):
             return
 
         try:
-            filepath = os.path.join("saves", self.selected_char_file)
+            saves_dir = get_user_saves_dir("characters")
+            filepath = os.path.join(saves_dir, self.selected_char_file)
             with open(filepath, 'rb') as f:
                 character = pickle.load(f)
             character = ensure_character_attributes(character)

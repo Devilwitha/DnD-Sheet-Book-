@@ -10,7 +10,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
-from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup
+from utils.helpers import apply_background, apply_styles_to_widget, create_styled_popup, get_user_saves_dir
 
 class DMSpielScreen(Screen):
     """Screen for DM Spiel options."""
@@ -56,9 +56,8 @@ class DMSpielScreen(Screen):
         scroll_content = GridLayout(cols=1, spacing=10, size_hint_y=None)
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
 
-        saves_dir = "saves"
-        os.makedirs(saves_dir, exist_ok=True)
-        session_files = [f for f in os.listdir(saves_dir) if f.endswith('.session')]
+        saves_dir = get_user_saves_dir("sessions")
+        session_files = [f for f in os.listdir(saves_dir) if f.endswith('.json')]
         if not session_files:
             create_styled_popup(title="Keine Sitzungen", content=Label(text="Keine gespeicherten Sitzungen gefunden."), size_hint=(0.6, 0.4)).open()
             return
@@ -77,7 +76,7 @@ class DMSpielScreen(Screen):
 
     def do_load_file(self, filename, instance):
         """Loads the selected file and transitions to the lobby."""
-        filepath = os.path.join("saves", filename)
+        filepath = os.path.join(get_user_saves_dir("sessions"), filename)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 session_data = json.load(f)
