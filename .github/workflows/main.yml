@@ -1,11 +1,23 @@
-name: Build Raspberry Pi Image with Autostart
+name: Build Raspberry Pi Images for Zero, 3, 4, 5 with Autostart
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-pi-image:
+  build-pi-images:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: rpi-zero
+            image_url: https://downloads.raspberrypi.org/raspios_lite_armhf_latest
+            image_name: rpi-zero.img
+          - name: rpi-3-4
+            image_url: https://downloads.raspberrypi.org/raspios_lite_arm64_latest
+            image_name: rpi-3-4.img
+          - name: rpi-5
+            image_url: https://downloads.raspberrypi.com/raspios_arm64/images/raspios_arm64-2024-03-15/2024-03-15-raspios-bookworm-arm64.img.xz
+            image_name: rpi-5.img
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -15,23 +27,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qemu-utils kpartx
 
-      - name: Download Raspberry Pi OS Lite image
+      - name: Download Raspberry Pi OS image
         run: |
-          wget -O rpi.img.xz https://downloads.raspberrypi.org/raspios_lite_armhf_latest
-          xz -d rpi.img.xz
+          wget -O ${{ matrix.image_name }}.xz ${{ matrix.image_url }}
+          xz -d ${{ matrix.image_name }}.xz
 
       - name: Mount image and copy project with autostart
         run: |
-          sudo losetup -Pf rpi.img
-          sudo kpartx -av rpi.img
+          set -e
+          sudo losetup -Pf ${{ matrix.image_name }}
+          sudo partprobe /dev/loop0
+          sudo kpartx -av ${{ matrix.image_name }}
           sleep 2
+          if [ ! -e /dev/mapper/loop0p2 ]; then
+            echo "Partition /dev/mapper/loop0p2 not found!"
+            sudo kpartx -dv ${{ matrix.image_name }}
+            sudo losetup -d /dev/loop0
+            exit 1
+          fi
           MOUNTDIR=$(mktemp -d)
           sudo mount /dev/mapper/loop0p2 $MOUNTDIR
-          # Install Python dependencies and set up autostart
           sudo mkdir -p $MOUNTDIR/home/pi/DnD-Sheet-Book-
           sudo cp -r . $MOUNTDIR/home/pi/DnD-Sheet-Book-
           sudo chown -R 1000:1000 $MOUNTDIR/home/pi/DnD-Sheet-Book-
-          # Create autostart script
           sudo tee $MOUNTDIR/home/pi/start_dnd_app.sh > /dev/null <<'EOF'
           #!/bin/bash
           cd /home/pi/DnD-Sheet-Book-
@@ -39,14 +57,15 @@ jobs:
           python3 main.py
           EOF
           sudo chmod +x $MOUNTDIR/home/pi/start_dnd_app.sh
-          # Add autostart to rc.local
-          sudo sed -i '/^exit 0/i su - pi -c "/home/pi/start_dnd_app.sh &"' $MOUNTDIR/etc/rc.local
+          if ! grep -q start_dnd_app.sh $MOUNTDIR/etc/rc.local; then
+            sudo sed -i '/^exit 0/i su - pi -c "/home/pi/start_dnd_app.sh &"' $MOUNTDIR/etc/rc.local
+          fi
           sudo umount $MOUNTDIR
-          sudo kpartx -dv rpi.img
+          sudo kpartx -dv ${{ matrix.image_name }}
           sudo losetup -d /dev/loop0
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
-          name: raspberry-pi-image-autostart
-          path: rpi.img
+          name: ${{ matrix.name }}-image-autostart
+          path: ${{ matrix.image_name }}
