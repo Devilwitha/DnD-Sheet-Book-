@@ -1,15 +1,19 @@
-from kivy.uix.screenmanager import Screen
-from kivy.properties import StringProperty, ListProperty, BooleanProperty
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.clock import Clock
-from utils.helpers import apply_background, apply_styles_to_widget, get_local_ip, get_user_saves_dir
+
 import os
 import socket
 import threading
 import time
-from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo
 import platform
+import logging
+from kivy.uix.screenmanager import Screen
+from kivy.properties import StringProperty, ListProperty, BooleanProperty, NumericProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.clock import Clock
+from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo
+from utils.helpers import apply_background, apply_styles_to_widget, get_local_ip, get_user_saves_dir
+
+logger = logging.getLogger(__name__)
 
 class FileCheckBox(BoxLayout):
     text = StringProperty('')
@@ -28,6 +32,8 @@ class TransferScreen(Screen):
     status_message = StringProperty("Wähle eine Aktion")
     files_for_transfer = ListProperty([])
     discovered_services = ListProperty([])
+    progress = NumericProperty(0.0)  # Fortschritt 0.0 - 1.0
+    progress_text = StringProperty("")
 
     DATA_TYPE_INFO = {
         'characters': {'dir': get_user_saves_dir('characters'), 'ext': '.char', 'name': 'Charaktere'},
@@ -44,12 +50,14 @@ class TransferScreen(Screen):
         self.browser = None
         self.service_info = None
         self.current_transfer_type = None
+        logger.debug("TransferScreen initialized")
         for info in self.DATA_TYPE_INFO.values():
             os.makedirs(info['dir'], exist_ok=True)
 
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
+        logger.debug("TransferScreen entered")
 
     def _update_service_list_ui(self):
         service_list_widget = self.ids.service_list
@@ -98,12 +106,17 @@ class TransferScreen(Screen):
             if file_path in self.selected_files:
                 self.selected_files.remove(file_path)
 
+
     def send_files(self):
         if not self.selected_files:
             self.status_message = "Keine Dateien zum Senden ausgewählt."
+            logger.warning("No files selected for sending.")
             return
         self.status_message = "Starte Server... Warte auf Verbindung."
+        self.progress = 0.0
+        self.progress_text = ""
         threading.Thread(target=self._start_server).start()
+
 
     def _start_server(self):
         host = '0.0.0.0'
@@ -111,6 +124,7 @@ class TransferScreen(Screen):
         info = self.DATA_TYPE_INFO.get(self.current_transfer_type)
         if not info:
             self.status_message = "Fehler: Transfertyp nicht gesetzt."
+            logger.error("Transfer type not set.")
             return
 
         service_name = f"{platform.node()}._dndchar._tcp.local."
@@ -128,6 +142,7 @@ class TransferScreen(Screen):
         )
         self.zeroconf.register_service(self.service_info, allow_name_change=True)
         self.status_message = f"Server gestartet, sichtbar als '{platform.node()}'"
+        logger.info("Server started for file transfer.")
 
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -136,11 +151,20 @@ class TransferScreen(Screen):
                 conn, addr = s.accept()
                 with conn:
                     self.status_message = f"Verbunden mit {addr}"
+                    logger.info(f"Connected to {addr}")
                     num_files = len(self.selected_files)
                     conn.sendall(str(num_files).encode('utf-8'))
                     time.sleep(0.1)
 
+                    total_bytes = 0
+                    total_size = 0
+                    file_sizes = []
                     for file_name in self.selected_files:
+                        file_path = os.path.join(info['dir'], file_name)
+                        file_sizes.append(os.path.getsize(file_path))
+                        total_size += file_sizes[-1]
+
+                    for idx, file_name in enumerate(self.selected_files):
                         conn.sendall(file_name.encode('utf-8'))
                         time.sleep(0.1)
                         file_path = os.path.join(info['dir'], file_name)
@@ -148,13 +172,24 @@ class TransferScreen(Screen):
                             data = f.read()
                             conn.sendall(str(len(data)).encode('utf-8'))
                             time.sleep(0.1)
-                            conn.sendall(data)
+                            sent = 0
+                            chunk_size = 4096
+                            while sent < len(data):
+                                chunk = data[sent:sent+chunk_size]
+                                conn.sendall(chunk)
+                                sent += len(chunk)
+                                total_bytes += len(chunk)
+                                self.progress = total_bytes / total_size if total_size > 0 else 1.0
+                                self.progress_text = f"{int(self.progress*100)}% ({sent}/{len(data)} bytes für {file_name})"
+                                logger.debug(f"Sent {sent}/{len(data)} bytes for {file_name}")
                     self.status_message = f"{num_files} Dateien erfolgreich gesendet."
         finally:
             if self.service_info:
                 self.zeroconf.unregister_service(self.service_info)
                 self.service_info = None
             self.status_message = "Übertragung beendet."
+            self.progress = 1.0
+            self.progress_text = "Fertig"
 
     def connect_to_sender(self, service_info):
         host = socket.inet_ntoa(service_info.addresses[0])

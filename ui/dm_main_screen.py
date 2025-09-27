@@ -302,9 +302,12 @@ class DMMainScreen(Screen):
             )
 
     def log_message(self, message):
-        # A check to prevent errors during __init__
+        # Aktuellste Log-Einträge immer oben anzeigen
         if hasattr(self, 'ids') and self.ids.get('log_output'):
-            self.ids.log_output.text += f"{message}\n"
+            current = self.ids.log_output.text
+            if current and not current.endswith('\n'):
+                current += '\n'
+            self.ids.log_output.text = f"{message}\n" + current
         else:
             print(f"LOG: {message}")
 

@@ -1,43 +1,52 @@
+
 <OptionsScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
         spacing: 10
-
-        Label:
-            text: "Optionen"
-            font_size: '28sp'
-            size_hint_y: 0.12
-
-        Button:
-            text: "Gui Einstellungen"
-            on_press: root.go_to_screen('settings')
-            size_hint_y: 0.10
-            font_size: '20sp'
-
-        Button:
-            text: "SaveData übertragen"
-            on_press: root.go_to_screen('transfer')
-            size_hint_y: 0.10
-            font_size: '20sp'
-
-        Button:
-            text: "System Einstellungen"
-            on_press: root.go_to_screen('system')
-            size_hint_y: 0.10
-            font_size: '20sp'
-
-        Button:
-            text: "Info"
-            on_press: root.go_to_screen('info_menu')
-            size_hint_y: 0.10
-            font_size: '20sp'
-
-        BoxLayout:
-            size_hint_y: 1.0
-
-        Button:
-            text: "Zurück"
-            on_press: app.change_screen('main')
-            size_hint_y: 0.10
-            font_size: '20sp'
+        ScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            GridLayout:
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 10
+                Label:
+                    text: "Optionen"
+                    font_size: '28sp'
+                    size_hint_y: None
+                    height: 60
+                Button:
+                    text: "Gui Einstellungen"
+                    on_press: root.go_to_screen('settings')
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Button:
+                    text: "SaveData übertragen"
+                    on_press: root.go_to_screen('transfer')
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Button:
+                    text: "System Einstellungen"
+                    on_press: root.go_to_screen('system')
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Button:
+                    text: "Info"
+                    on_press: root.go_to_screen('info_menu')
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Widget:
+                    size_hint_y: None
+                    height: 20
+                Button:
+                    text: "Zurück"
+                    on_press: app.change_screen('main')
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'

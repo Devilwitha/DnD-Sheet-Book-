@@ -1,78 +1,77 @@
+
 <SystemScreen>:
     BoxLayout:
-        id: system_layout
         orientation: 'vertical'
         padding: 10
         spacing: 10
-
-        Label:
-            text: "System Einstellungen"
-            font_size: '30sp'
-            size_hint_y: None
-            height: 80
-
-        Button:
-            id: update_button
-            text: "Nach Updates suchen"
-            on_press: root.update_app()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            id: wifi_button
-            text: "WLAN"
-            on_press: root.open_wifi_settings()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        BoxLayout:
-            size_hint_y: None
-            height: 80
-            Label:
-                text: "On-Screen Keyboard"
-                font_size: '20sp'
-            Switch:
-                id: keyboard_switch
-                on_active: root.toggle_keyboard(self.active)
-
-        Button:
-            text: "Changelog"
-            on_press: root.go_to_screen('changelog')
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            text: "Anwendung neustarten"
-            on_press: root.restart_app_popup()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            id: shutdown_button
-            text: "System herunterfahren"
-            on_press: root.shutdown_system()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            id: restart_button
-            text: "System neustarten"
-            on_press: root.restart_system()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        BoxLayout:
-            size_hint_y: 1.0 # Spacer
-
-        Button:
-            text: "Zurück"
-            on_press: root.go_back()
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
+        ScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            GridLayout:
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 10
+                Label:
+                    text: "System Einstellungen"
+                    font_size: '30sp'
+                    size_hint_y: None
+                    height: 60
+                Button:
+                    id: update_button
+                    text: "Nach Updates suchen"
+                    on_press: root.update_app()
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Button:
+                    id: wifi_button
+                    text: "WLAN"
+                    on_press: root.open_wifi_settings()
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                BoxLayout:
+                    size_hint_y: None
+                    height: 56
+                    Label:
+                        text: "On-Screen Keyboard"
+                        font_size: '20sp'
+                    Switch:
+                        id: keyboard_switch
+                        on_active: root.toggle_keyboard(self.active)
+                Button:
+                    text: "Changelog"
+                    on_press: root.go_to_screen('changelog')
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Button:
+                    text: "Anwendung neustarten"
+                    on_press: root.restart_app_popup()
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Button:
+                    id: shutdown_button
+                    text: "System herunterfahren"
+                    on_press: root.shutdown_system()
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Button:
+                    id: restart_button
+                    text: "System neustarten"
+                    on_press: root.restart_system()
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'
+                Widget:
+                    size_hint_y: None
+                    height: 20
+                Button:
+                    text: "Zurück"
+                    on_press: root.go_back()
+                    size_hint_y: None
+                    height: 56
+                    font_size: '20sp'

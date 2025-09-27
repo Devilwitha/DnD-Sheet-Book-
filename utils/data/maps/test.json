@@ -196,25 +196,25 @@
         },
         "(3, 2)": {
             "type": "Floor",
-            "object": null,
+            "object": "Bugbear #1",
             "furniture": null,
             "trigger_message": null
         },
         "(3, 3)": {
             "type": "Floor",
-            "object": "Goblin #1",
+            "object": null,
             "furniture": null,
             "trigger_message": null
         },
         "(3, 4)": {
             "type": "Floor",
-            "object": "Orc #1",
+            "object": null,
             "furniture": null,
             "trigger_message": null
         },
         "(3, 5)": {
             "type": "Floor",
-            "object": "Goblin #2",
+            "object": null,
             "furniture": null,
             "trigger_message": null
         },
@@ -249,13 +249,10 @@
             "trigger_message": null
         },
         "(4, 1)": {
-            "type": "Trigger",
+            "type": "Floor",
             "object": null,
-            "furniture": {
-                "type": "Bookshelf",
-                "is_mimic": false
-            },
-            "trigger_message": "test"
+            "furniture": null,
+            "trigger_message": null
         },
         "(4, 2)": {
             "type": "Floor",
@@ -343,7 +340,7 @@
         },
         "(5, 6)": {
             "type": "Floor",
-            "object": null,
+            "object": "dfh",
             "furniture": null,
             "trigger_message": null
         },
@@ -571,7 +568,7 @@
         },
         "(9, 4)": {
             "type": "Floor",
-            "object": "yfdfgggr",
+            "object": null,
             "furniture": null,
             "trigger_message": null
         },
@@ -607,8 +604,61 @@
         }
     },
     "enemies": [
-        "Goblin #1",
-        "Orc #1",
-        "Goblin #2"
+        "Bugbear #1"
+    ],
+    "offline_players": [
+        {
+            "name": "dfh",
+            "race": "",
+            "char_class": "",
+            "level": 1,
+            "base_abilities": {
+                "St\u00e4rke": 10,
+                "Geschicklichkeit": 10,
+                "Konstitution": 10,
+                "Intelligenz": 10,
+                "Weisheit": 10,
+                "Charisma": 10
+            },
+            "abilities": {
+                "St\u00e4rke": 10,
+                "Geschicklichkeit": 10,
+                "Konstitution": 10,
+                "Intelligenz": 10,
+                "Weisheit": 10,
+                "Charisma": 10
+            },
+            "hit_points": 0,
+            "max_hit_points": 0,
+            "speed": 6,
+            "actions_per_turn": 1,
+            "initiative": 0,
+            "armor_class": 10,
+            "inventory": [],
+            "equipment": {},
+            "currency": {
+                "KP": 0,
+                "SP": 0,
+                "EP": 0,
+                "GM": 0,
+                "PP": 0
+            },
+            "equipped_weapon": "Unbewaffneter Schlag",
+            "background": "",
+            "alignment": "",
+            "personality_traits": "",
+            "ideals": "",
+            "bonds": "",
+            "flaws": "",
+            "features": [],
+            "proficiencies": [],
+            "languages": [],
+            "spells": {},
+            "max_spell_slots": {},
+            "current_spell_slots": {},
+            "max_hit_dice": 0,
+            "hit_dice": 0,
+            "fighting_style": null
+        }
     ]
 }
