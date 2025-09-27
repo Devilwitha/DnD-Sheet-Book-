@@ -30,7 +30,17 @@ def get_user_saves_dir(folder_name="saves"):
     """Gets the path to a user-specific saves folder (characters, maps, etc.)."""
     # In this test-compatible version, we save relative to the resource path.
     # A better implementation would use app.user_data_dir, but that breaks tests.
-    saves_path = resource_path(folder_name)
+    # Spezialspeicherorte für verschiedene Datentypen
+    if folder_name == "sessions":
+        saves_path = resource_path(os.path.join("utils", "data", "sessions"))
+    elif folder_name == "enemies":
+        saves_path = resource_path(os.path.join("utils", "data", "enemies"))
+    elif folder_name == "characters":
+        saves_path = resource_path(os.path.join("utils", "data", "characters"))
+    elif folder_name == "maps":
+        saves_path = resource_path(os.path.join("utils", "data", "maps"))
+    else:
+        saves_path = resource_path(folder_name)
     if not os.path.exists(saves_path):
         os.makedirs(saves_path)
     return saves_path
@@ -158,6 +168,43 @@ def apply_styles_to_widget(widget):
                         w.color = [1, 1, 1, 1]
                 except Exception:
                     pass
+
+        # If running on Android, convert fixed pixel sizes to proportional
+        # size_hint values so controls use the available screen space.
+        try:
+            if platform == 'android':
+                # Delay Window import until runtime and only on Android
+                try:
+                    from kivy.core.window import Window
+                except Exception:
+                    Window = None
+
+                if Window:
+                    try:
+                        # Convert fixed height -> size_hint_y when appropriate
+                        if hasattr(w, 'size_hint_y') and (getattr(w, 'size_hint_y') is None or w.size_hint_y == 0):
+                            h = getattr(w, 'height', None)
+                            if h and Window.height:
+                                frac = max(0.03, min(0.9, float(h) / float(Window.height)))
+                                try:
+                                    w.size_hint_y = frac
+                                except Exception:
+                                    pass
+
+                        # Convert fixed width -> size_hint_x when appropriate
+                        if hasattr(w, 'size_hint_x') and (getattr(w, 'size_hint_x') is None or w.size_hint_x == 0):
+                            wid = getattr(w, 'width', None)
+                            if wid and Window.width:
+                                fracx = max(0.05, min(1.0, float(wid) / float(Window.width)))
+                                try:
+                                    w.size_hint_x = fracx
+                                except Exception:
+                                    pass
+                    except Exception:
+                        # Fail silently to avoid breaking desktop tests
+                        pass
+        except Exception:
+            pass
 
         if hasattr(w, 'children'):
             for child in w.children:

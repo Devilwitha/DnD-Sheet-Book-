@@ -9,14 +9,17 @@ EventLoop.ensure_window()
 from kivy.app import App
 App.get_running_app = MagicMock()
 
+
 from ui.dm_prep_screen import DMPrepScreen
 from core.enemy import Enemy
+from utils.helpers import get_user_saves_dir
 
 class TestDMPrepScreen(unittest.TestCase):
 
+
     def setUp(self):
         self.screen = DMPrepScreen()
-        self.saves_dir = "enemies"
+        self.saves_dir = get_user_saves_dir("enemies")
         self.test_file = os.path.join(self.saves_dir, "my_enemies.enemies")
 
         # Clean up any old test files

@@ -5,14 +5,15 @@
         Image:
             id: logo_image
             source: ''  # Source will be set in Python
-            size_hint: None, None
-            size: 400, 400
+            size_hint: 0.5, 0.5
+            allow_stretch: True
+            keep_ratio: True
             pos_hint: {'center_x': 0.5, 'center_y': 0.6}
 
         Label:
             id: pulsating_label
             text: "Reise beginnen"
             font_size: '30sp'
-            size_hint_y: None
+            size_hint: 0.8, None
             height: self.texture_size[1]
-            pos_hint: {'center_x': 0.5, 'y': 0.2}
+            pos_hint: {'center_x': 0.5, 'y': 0.12}

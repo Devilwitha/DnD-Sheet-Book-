@@ -195,5 +195,11 @@ def setup_test_environment():
     # --- Teardown ---
     # Restore the original function and remove the test database
     database.get_dest_db_path = original_get_path
+    # Versuche, alle SQLite-Connections zu schließen, bevor gelöscht wird
+    try:
+        from utils.db_test_helper import close_all_sqlite_connections
+        close_all_sqlite_connections(TEST_DB_PATH)
+    except Exception:
+        pass
     if os.path.exists(TEST_DB_PATH):
         os.remove(TEST_DB_PATH)

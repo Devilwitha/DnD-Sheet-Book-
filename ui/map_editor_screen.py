@@ -42,6 +42,25 @@ class MapEditorScreen(Screen):
 
     def load_existing_map(self, map_data):
         self.map_data = map_data
+        # Lade offline_players aus map_data falls vorhanden und setze sie im GameManager
+        offline_players_raw = map_data.get('offline_players', [])
+        offline_players = []
+        from core.character import Character
+        for p in offline_players_raw:
+            if isinstance(p, Character):
+                offline_players.append(p)
+            elif isinstance(p, dict):
+                offline_players.append(Character.from_dict(p))
+        if hasattr(self.app, 'game_manager'):
+            self.app.game_manager.offline_players = offline_players
+            # Versuche, die Offline-Spieler-Liste im DM-Screen zu aktualisieren
+            try:
+                if hasattr(self.app, 'root') and hasattr(self.app.root, 'get_screen'):
+                    dm_screen = self.app.root.get_screen('dm_main_screen')
+                    if hasattr(dm_screen, 'update_offline_players_list'):
+                        dm_screen.update_offline_players_list()
+            except Exception as e:
+                print(f"[WARN] Konnte Offline-Spieler-Liste im DM-Screen nicht aktualisieren: {e}")
         if self.map_data and self.map_data.get('tiles'):
             first_key = next(iter(self.map_data['tiles']), None)
             if isinstance(first_key, str):
@@ -55,12 +74,23 @@ class MapEditorScreen(Screen):
         self.ids.enemy_spinner.values = ["None"] + sorted(enemy_names)
 
         player_names = []
+        # Online Spieler
         try:
             if self.app.network_manager and self.app.network_manager.mode == 'dm':
                 with self.app.network_manager.lock:
                     player_names = [client['character'].name for client in self.app.network_manager.clients.values()]
         except Exception as e:
             print(f"[WARN] Could not get player list for map editor: {e}")
+        # Offline Spieler aus GameManager ergänzen
+        try:
+            offline_names = []
+            if hasattr(self.app, 'game_manager'):
+                offline_names = [char.name for char in getattr(self.app.game_manager, 'offline_players', [])]
+            for name in offline_names:
+                if name not in player_names:
+                    player_names.append(name)
+        except Exception as e:
+            print(f"[WARN] Could not get offline player list: {e}")
         self.ids.player_spinner.values = ["None"] + sorted(player_names)
 
         furniture_items = ["None", "Table", "Chair", "Chest", "Bed", "Barrel", "Bookcase"]
@@ -128,10 +158,18 @@ class MapEditorScreen(Screen):
                                     if obj == base_name and highest_num == 0: highest_num = 1
                     tile_data['object'], tile_data['furniture'] = f"{base_name} #{highest_num + 1}", None
                 else: # Player
+                    # Prüfe, ob der Spieler schon irgendwo platziert ist
+                    already_placed = False
                     for r in range(self.map_data['rows']):
                         for c in range(self.map_data['cols']):
                             if self.map_data['tiles'].get((r,c),{}).get('object') == object_to_place:
-                                self.map_data['tiles'][(r,c)]['object'] = None
+                                already_placed = True
+                                break
+                        if already_placed:
+                            break
+                    if already_placed:
+                        create_styled_popup(title="Fehler", content=Label(text=f"{object_to_place} ist bereits auf der Karte!"), size_hint=(0.5, 0.3)).open()
+                        return
                     tile_data['object'], tile_data['furniture'] = object_to_place, None
             elif furniture_to_place != "None":
                 tile_data['object'], tile_data['furniture'] = None, {'type': furniture_to_place, 'is_mimic': self.ids.mimic_checkbox.active}
@@ -182,6 +220,9 @@ class MapEditorScreen(Screen):
                 save_data = self.map_data.copy()
                 save_data['tiles'] = {str(k): v for k, v in self.map_data['tiles'].items()}
                 save_data['enemies'] = enemies
+                # Offline-Spieler speichern
+                if hasattr(self.app.game_manager, 'offline_players'):
+                    save_data['offline_players'] = [c.to_dict() for c in self.app.game_manager.offline_players]
                 json.dump(save_data, f, indent=4)
             self.app.edited_map_data = self.map_data
             self.current_map_filename = filename
