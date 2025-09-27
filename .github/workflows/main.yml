@@ -40,14 +40,14 @@ jobs:
           # Attach loop device
           sudo losetup -Pf ${{ matrix.image_name }}
           sudo partprobe /dev/loop0
-          # Resize partition 2 to fill image
-          echo -e "resizepart 2 Yes\n100%\nquit" | sudo parted /dev/loop0 ---pretend-input-tty
+          # Resize partition 2 to fill image (non-interactive)
+          sudo parted --script /dev/loop0 resizepart 2 100%
           sudo partprobe /dev/loop0
           # Map partitions
           sudo kpartx -av ${{ matrix.image_name }}
           sleep 2
-          # Run fsck and resize2fs on root partition
-          sudo e2fsck -f /dev/mapper/loop0p2 || true
+          # Run fsck and resize2fs on root partition (non-interactive)
+          sudo e2fsck -f -y /dev/mapper/loop0p2 || true
           sudo resize2fs /dev/mapper/loop0p2
           # Cleanup
           sudo kpartx -dv ${{ matrix.image_name }}
