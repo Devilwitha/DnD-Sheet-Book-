@@ -33,7 +33,7 @@ source.exclude_dirs = tests
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.3.9
+version = 0.5.0
 #version = Release.mainversion.miniGame
 
 # (str) Application versioning (method 2)
