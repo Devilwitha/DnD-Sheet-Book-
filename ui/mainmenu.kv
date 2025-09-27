@@ -1,8 +1,8 @@
 <MainMenu>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        spacing: 10
+        padding: 5 if app.platform == 'android' else 10
+        spacing: 5 if app.platform == 'android' else 10
 
         Image:
             id: menu_logo_image

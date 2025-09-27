@@ -2,15 +2,16 @@
 
 <DMMainScreen>:
     BoxLayout:
-        orientation: 'horizontal'
-        padding: 10
-        spacing: 10
+        orientation: 'vertical' if app.platform == 'android' else 'horizontal'
+        padding: 5 if app.platform == 'android' else 10
+        spacing: 5 if app.platform == 'android' else 10
 
         # Left side: Players and Enemies
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.25
-            spacing: 10
+            size_hint_x: None if app.platform == 'android' else 0.25
+            size_hint_y: 0.3 if app.platform == 'android' else 1.0
+            spacing: 5 if app.platform == 'android' else 10
 
             Label:
                 text: "Online Spieler"
@@ -63,14 +64,16 @@
         # Center: Map
         MapGridWidget:
             id: dm_map_grid
-            size_hint_x: 0.5
+            size_hint_x: None if app.platform == 'android' else 0.5
+            size_hint_y: 0.5 if app.platform == 'android' else 1.0
 
         # Right side: Controls and Log (Android-optimiert)
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.27
-            padding: 8
-            spacing: 12
+            size_hint_x: None if app.platform == 'android' else 0.27
+            size_hint_y: 0.2 if app.platform == 'android' else 1.0
+            padding: 5 if app.platform == 'android' else 8
+            spacing: 5 if app.platform == 'android' else 12
             canvas.before:
                 Color:
                     rgba: 0.12, 0.12, 0.12, 0.12

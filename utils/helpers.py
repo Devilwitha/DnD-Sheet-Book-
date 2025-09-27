@@ -187,7 +187,8 @@ def apply_styles_to_widget(widget):
                         if hasattr(w, 'size_hint_y') and (getattr(w, 'size_hint_y') is None or w.size_hint_y == 0):
                             h = getattr(w, 'height', None)
                             if h and Window.height:
-                                frac = max(0.03, min(0.9, float(h) / float(Window.height)))
+                                # Larger minimum for Android portrait
+                                frac = max(0.05, min(0.9, float(h) / float(Window.height)))
                                 try:
                                     w.size_hint_y = frac
                                 except Exception:
@@ -202,6 +203,20 @@ def apply_styles_to_widget(widget):
                                     w.size_hint_x = fracx
                                 except Exception:
                                     pass
+                        
+                        # Adjust font sizes for Android portrait mode
+                        if hasattr(w, 'font_size') and hasattr(w, 'text'):
+                            try:
+                                current_size = getattr(w, 'font_size', '16sp')
+                                if isinstance(current_size, str) and current_size.endswith('sp'):
+                                    size_val = float(current_size[:-2])
+                                    # Scale font sizes up for portrait Android
+                                    if Window.height > Window.width:  # Portrait mode
+                                        new_size = max(14, min(32, size_val * 1.2))
+                                        w.font_size = f'{new_size}sp'
+                            except Exception:
+                                pass
+                                
                     except Exception:
                         # Fail silently to avoid breaking desktop tests
                         pass
@@ -259,7 +274,17 @@ def create_styled_popup(title, content, size_hint, **kwargs):
     # On Android, use size_hint for proportional sizing.
     # On desktop, calculate a fixed size from the hint to prevent overly large popups.
     if platform == 'android':
-        popup = Popup(title=title, content=final_content, size_hint=size_hint, **kwargs)
+        # Adjust popup size for portrait mode
+        try:
+            from kivy.core.window import Window
+            if Window and Window.height > Window.width:  # Portrait
+                # Make popups taller and narrower for portrait
+                adjusted_hint = (min(0.95, size_hint[0] + 0.1), min(0.8, size_hint[1] + 0.2))
+                popup = Popup(title=title, content=final_content, size_hint=adjusted_hint, **kwargs)
+            else:
+                popup = Popup(title=title, content=final_content, size_hint=size_hint, **kwargs)
+        except Exception:
+            popup = Popup(title=title, content=final_content, size_hint=size_hint, **kwargs)
     else:
         # Use a fixed size on desktop platforms
         # Import Window here to avoid importing it at module import time

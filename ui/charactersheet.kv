@@ -6,9 +6,10 @@
 
         # Header
         GridLayout:
-            cols: 3
+            cols: 1 if app.platform == 'android' else 3
             size_hint_y: None
-            height: 60
+            height: 120 if app.platform == 'android' else 60
+            spacing: 5
             Label:
                 id: name_label
                 font_size: '20sp'
@@ -20,7 +21,7 @@
         # Content
         ScrollView:
             GridLayout:
-                cols: 2
+                cols: 1 if app.platform == 'android' else 2
                 spacing: 10
                 padding: 10
                 size_hint_y: None
