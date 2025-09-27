@@ -202,4 +202,8 @@ def setup_test_environment():
     except Exception:
         pass
     if os.path.exists(TEST_DB_PATH):
-        os.remove(TEST_DB_PATH)
+        try:
+            os.remove(TEST_DB_PATH)
+        except PermissionError:
+            # File is still in use by another process, skip removal
+            pass

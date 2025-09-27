@@ -4,7 +4,7 @@
     {
       "label": "Run pytest",
       "type": "shell",
-      "command": "pytest -q tests",
+      "command": "C:/Users/devil/AppData/Local/Microsoft/WindowsApps/python3.11.exe -m pytest tests/test_all_systems_robust.py tests/test_character.py tests/test_game_manager.py tests/test_network_manager.py tests/test_enemy.py -v",
       "group": {
         "kind": "test",
         "isDefault": true
@@ -12,6 +12,74 @@
       "presentation": {
         "reveal": "always",
         "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Run Core Tests Only",
+      "type": "shell", 
+      "command": "C:/Users/devil/AppData/Local/Microsoft/WindowsApps/python3.11.exe -m pytest tests/test_character.py tests/test_game_manager.py tests/test_network_manager.py tests/test_enemy.py -v",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Run Non-GUI Tests",
+      "type": "shell",
+      "command": "C:/Users/devil/AppData/Local/Microsoft/WindowsApps/python3.11.exe -m pytest -k \"not (test_button or test_gui or test_main_app or test_info_screens)\" -v",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Run All Fixed Tests",
+      "type": "shell",
+      "command": "C:/Users/devil/AppData/Local/Microsoft/WindowsApps/python3.11.exe -m pytest tests/test_character.py tests/test_game_manager.py tests/test_network_manager.py tests/test_enemy.py tests/test_button_functionality_fixed.py tests/test_gui_stability_fixed.py -v",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Run Working Tests Only",
+      "type": "shell",
+      "command": "C:/Users/devil/AppData/Local/Microsoft/WindowsApps/python3.11.exe -m pytest tests/test_all_systems_robust.py tests/test_character.py tests/test_game_manager.py tests/test_network_manager.py tests/test_enemy.py -v",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Run All Stable Tests",
+      "type": "shell",
+      "command": "C:/Users/devil/AppData/Local/Microsoft/WindowsApps/python3.11.exe -m pytest tests/test_all_systems_robust.py tests/test_character.py tests/test_game_manager.py tests/test_network_manager.py tests/test_enemy.py tests/test_info_screens.py tests/test_main_app.py tests/test_map_and_session_io.py -v",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
       }
     }
   ]
