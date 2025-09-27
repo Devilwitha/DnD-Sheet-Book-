@@ -17,7 +17,11 @@ from utils.helpers import get_user_saves_dir
 class TestDMPrepScreen(unittest.TestCase):
 
 
+
     def setUp(self):
+        # Patch get_user_saves_dir to always use the same directory
+        self._patcher = patch('utils.helpers.get_user_saves_dir', get_user_saves_dir)
+        self._patcher.start()
         self.screen = DMPrepScreen()
         self.saves_dir = get_user_saves_dir("enemies")
         self.test_file = os.path.join(self.saves_dir, "my_enemies.enemies")
@@ -25,6 +29,11 @@ class TestDMPrepScreen(unittest.TestCase):
         # Clean up any old test files
         if os.path.exists(self.test_file):
             os.remove(self.test_file)
+
+    def tearDown(self):
+        if os.path.exists(self.test_file):
+            os.remove(self.test_file)
+        self._patcher.stop()
 
     def tearDown(self):
         # Clean up test files after tests
