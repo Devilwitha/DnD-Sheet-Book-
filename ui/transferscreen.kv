@@ -1,62 +1,145 @@
 
 <TransferScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-        spacing: 10
-        ScrollView:
-            do_scroll_x: False
-            do_scroll_y: True
-            GridLayout:
-                cols: 1
-                size_hint_y: None
-                height: self.minimum_height
+    ScreenManager:
+        id: transfer_sm
+        Screen:
+            name: 'main'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                spacing: 10
+                ScrollView:
+                    do_scroll_x: False
+                    do_scroll_y: True
+                    GridLayout:
+                        cols: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: 10
+                        Label:
+                            text: "Datenübertragung"
+                            font_size: '30sp'
+                            size_hint_y: None
+                            height: 60
+                        Label:
+                            id: status_label
+                            text: root.status_message
+                            font_size: '18sp'
+                            size_hint_y: None
+                            height: 36
+                        ProgressBar:
+                            id: progress_bar
+                            max: 1
+                            value: root.progress
+                            size_hint_y: None
+                            height: 24
+                        Label:
+                            id: progress_text
+                            text: root.progress_text
+                            font_size: '16sp'
+                            size_hint_y: None
+                            height: 24
+                        Button:
+                            text: "Charaktere senden"
+                            on_press: root.go_to_send_view_with_type('characters')
+                            size_hint_y: None
+                            height: 56
+                            font_size: '20sp'
+                        Button:
+                            text: "Karten senden"
+                            on_press: root.go_to_send_view_with_type('maps')
+                            size_hint_y: None
+                            height: 56
+                            font_size: '20sp'
+                        Button:
+                            text: "Gegnerlisten senden"
+                            on_press: root.go_to_send_view_with_type('enemies')
+                            size_hint_y: None
+                            height: 56
+                            font_size: '20sp'
+                        Button:
+                            text: "Sitzungen senden"
+                            on_press: root.go_to_send_view_with_type('sessions')
+                            size_hint_y: None
+                            height: 56
+                            font_size: '20sp'
+                        Button:
+                            text: "Logs senden"
+                            on_press: root.go_to_send_view_with_type('logs')
+                            size_hint_y: None
+                            height: 56
+                            font_size: '20sp'
+                        Button:
+                            text: "Empfangen"
+                            on_press: root.go_to_receive_view()
+                            size_hint_y: None
+                            height: 56
+                            font_size: '20sp'
+                        Button:
+                            text: "Zurück zu den Optionen"
+                            on_press: app.change_screen('options')
+                            size_hint_y: None
+                            height: 56
+                            font_size: '20sp'
+                        Widget:
+                            size_hint_y: None
+                            height: 20
+                        # Die weiteren Screens (select_data_type, send, receive) sollten ebenfalls in ScrollViews und GridLayouts organisiert werden, analog zu oben.
+        Screen:
+            name: 'receive'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
                 spacing: 10
                 Label:
-                    text: "Datenübertragung"
-                    font_size: '30sp'
-                    size_hint_y: None
-                    height: 60
-                Label:
-                    id: status_label
                     text: root.status_message
                     font_size: '18sp'
+                ScrollView:
+                    do_scroll_x: False
+                    do_scroll_y: True
+                    GridLayout:
+                        id: service_list
+                        cols: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: 10
+                Button:
+                    text: "Zurück"
+                    on_press: root.back_to_main_transfer()
                     size_hint_y: None
-                    height: 36
-                ProgressBar:
-                    id: progress_bar
-                    max: 1
-                    value: root.progress
-                    size_hint_y: None
-                    height: 24
+                    height: 56
+                    font_size: '20sp'
+
+        Screen:
+            name: 'send'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                spacing: 10
                 Label:
-                    id: progress_text
-                    text: root.progress_text
-                    font_size: '16sp'
-                    size_hint_y: None
-                    height: 24
+                    text: root.status_message
+                    font_size: '18sp'
+                ScrollView:
+                    do_scroll_x: False
+                    do_scroll_y: True
+                    GridLayout:
+                        id: file_list
+                        cols: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: 10
                 Button:
                     text: "Senden"
-                    on_press: root.go_to_send_view_with_type('main')
+                    on_press: root.send_files()
                     size_hint_y: None
                     height: 56
                     font_size: '20sp'
                 Button:
-                    text: "Empfangen"
-                    on_press: root.go_to_receive_view()
+                    text: "Zurück"
+                    on_press: root.back_to_main_transfer()
                     size_hint_y: None
                     height: 56
                     font_size: '20sp'
-                Button:
-                    text: "Zurück zu den Optionen"
-                    on_press: app.change_screen('options')
-                    size_hint_y: None
-                    height: 56
-                    font_size: '20sp'
-                Widget:
-                    size_hint_y: None
-                    height: 20
-                # Die weiteren Screens (select_data_type, send, receive) sollten ebenfalls in ScrollViews und GridLayouts organisiert werden, analog zu oben.
 
 <FileCheckBox>:
     active: checkbox.active
