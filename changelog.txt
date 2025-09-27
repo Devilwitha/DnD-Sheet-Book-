@@ -1,4 +1,43 @@
 ==========================================
+Build Version:                27.09.2025
+
+Gui Version:               0.7.364
+Firmware Version:          0.10.0 M33
+Updater Version:           1.1.0
+
+------------------------------------------
+feat: Neue Features und Verbesserungen
+
+- Android-Build: Es gibt jetzt eine stabile, getestete Version für Android (0.5.0). Die App läuft auf aktuellen Android-Geräten, inklusive automatischer Anpassung der UI für verschiedene Displaygrößen und Touch-Bedienung.
+- Windows-Build: Die Windows-Version (0.5.2) wurde aktualisiert und stabilisiert. Fehler beim Start, mit Icons und Fenstereinstellungen wurden behoben.
+- Hintergrundverwaltung: Für jeden Bereich (allgemein, Charaktererstellung, Charakterbogen) kann der Hintergrund jetzt einzeln per Switch aktiviert oder deaktiviert werden. Die Einstellungen werden dauerhaft gespeichert und sofort angewendet.
+- Verbesserte Hintergrundauswahl: Die Auswahl und das Setzen von Hintergrundbildern ist jetzt robuster und benutzerfreundlicher.
+- Versionsinformationen: Die Anzeige ist jetzt scrollbar und nutzt 85% des Bildschirms, sodass auch auf kleinen Displays alle Infos sichtbar bleiben.
+- Changelog- und Versionsanzeige: Optisch überarbeitet, besser lesbar und auf allen Plattformen konsistent.
+- Neuer Installer und neue Installationsskripte: Für Linux und Raspberry Pi gibt es jetzt automatisierte Installations- und Update-Skripte, die alle Abhängigkeiten und Autostart korrekt einrichten.
+- Map-Editor: Ein neuer Editor ermöglicht das Erstellen, Bearbeiten und Synchronisieren von Karten in Echtzeit, inklusive Feindverwaltung und Integration in DM/Spieler-Modus.
+- DM-Offline-Modus: Der Dungeon Master kann jetzt auch ohne Netzwerkverbindung eine Session starten und verwalten.
+- Navigation: Die Navigation zwischen allen Screens wurde verbessert, inklusive Back-Button-Handling und plattformspezifischer Popups.
+
+fix: Bugfixes und Refactorings
+
+- Android-Build: Zahlreiche Fixes für Buildozer, Requirements, NDK, Icons, Pfade und Berechtigungen. Die App baut und startet jetzt zuverlässig auf Android.
+- Windows-Build: Fehler mit Icons, Fenstereinstellungen und Startverhalten wurden behoben. Splashscreen und Hauptmenü-Logos werden jetzt korrekt angezeigt.
+- Linux/Pi: Autostart-Skripte und Pfade für Raspberry Pi und Linux-Installationen wurden korrigiert und robuster gemacht.
+- Hintergrund-Switches: Die einzelnen Switches für Hintergründe wirken jetzt unabhängig voneinander und werden korrekt gespeichert und geladen.
+- Dateiübertragung: Die Auswahl und Übertragung von Dateien im Transfer-Screen ist jetzt robuster, inkl. Fehlerbehandlung und Fortschrittsanzeige.
+- SystemInfo-Screen: Auf Android wird der SystemInfo-Screen deaktiviert und die nötigen Berechtigungen werden abgefragt.
+- Bewegungsrate: Die Berechnung und Anzeige der Bewegungsrate im Charakterbogen wurde korrigiert.
+- Fenster-Icon: Das App-Icon wird jetzt unter Windows überall korrekt angezeigt.
+- Diverse Abstürze: Mehrere Abstürze und UI-Probleme (z.B. mit Popups, Zeilenumbruch, Navigation) wurden behoben.
+- Refactoring Map-Editor: Der Map-Editor wurde grundlegend überarbeitet, um Codequalität und Bedienbarkeit zu verbessern.
+- Netzwerk und Datenhaltung: Netzwerkcode, Datenstruktur und Save-Ordner wurden refaktoriert und übersichtlicher gestaltet.
+- Installer und Testbarkeit: Die Testbarkeit des Codes und die Integration in VSCode wurden verbessert, inklusive automatischer Testdatenbank-Erstellung.
+- Build- und Test-Workflows: Die CI/CD-Workflows für Builds und Tests wurden optimiert und an neue Anforderungen angepasst.
+- Code Cleanup: Viele kleinere UI- und Code-Verbesserungen für mehr Stabilität und bessere Nutzererfahrung.
+
+==========================================
+==========================================
 Build Version:                11.09.2025
 
 Gui Version:               0.6.0 Alpha
