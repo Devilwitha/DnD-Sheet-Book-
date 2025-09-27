@@ -51,7 +51,7 @@ jobs:
           sudo resize2fs /dev/mapper/loop0p2
           # Cleanup
           sudo kpartx -dv ${{ matrix.image_name }}
-          sudo losetup -d /dev/loop0
+          sudo losetup -d /dev/loop0 || true
 
       - name: Mount image and copy project with autostart
         run: |
@@ -62,8 +62,8 @@ jobs:
           sleep 2
           if [ ! -e /dev/mapper/loop0p2 ]; then
             echo "Partition /dev/mapper/loop0p2 not found!"
-            sudo kpartx -dv ${{ matrix.image_name }}
-            sudo losetup -d /dev/loop0
+             sudo kpartx -dv ${{ matrix.image_name }}
+             sudo losetup -d /dev/loop0 || true
             exit 1
           fi
           MOUNTDIR=$(mktemp -d)
