@@ -1,0 +1,56 @@
+<Window x:Class="ElectroSchematic.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ElectroSchematic"
+        mc:Ignorable="d"
+        Title="ElectroSchematic Editor" Height="720" Width="1280">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Click="New_Click"/>
+                <MenuItem Header="_Open" Click="Open_Click"/>
+                <MenuItem Header="_Save" Click="Save_Click"/>
+                <Separator />
+                <MenuItem Header="Export _PDF" Click="ExportPdf_Click"/>
+                <Separator />
+                <MenuItem Header="E_xit" Click="Exit_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Settings">
+                <MenuItem Header="Enable Snapping" IsCheckable="True" IsChecked="True" x:Name="MenuSnapToggle" Click="SnapToggle_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Library">
+                <MenuItem Header="Add Custom Component..." Click="AddCustomComponent_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Background="#f0f0f0">
+                <StackPanel>
+                    <Label Content="Toolbox" FontWeight="Bold" FontSize="16" Margin="5"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Height="600">
+                        <StackPanel x:Name="ToolboxPanel" Margin="5">
+                            <!-- Items will be populated dynamically -->
+                        </StackPanel>
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="LightGray">
+                <Canvas x:Name="DrawingCanvas" AllowDrop="True" Drop="DrawingCanvas_Drop" Background="White" Width="2970" Height="2100"
+                        MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
+                        MouseMove="Canvas_MouseMove"
+                        MouseLeftButtonUp="Canvas_MouseLeftButtonUp">
+                    <!-- A4 size roughly at 96 DPI: 29.7cm x 21.0cm is around 1122 x 793,
+                         but let's make it larger so we can scale for PDF -->
+                </Canvas>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>
