@@ -1,0 +1,17 @@
+<SplashScreen>:
+    name: 'splash'
+
+    FloatLayout:
+        Image:
+            source: 'logo/logo.png'
+            size_hint: None, None
+            size: 400, 400
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+
+        Label:
+            id: pulsating_label
+            text: "Reise beginnen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: self.texture_size[1]
+            pos_hint: {'center_x': 0.5, 'y': 0.2}

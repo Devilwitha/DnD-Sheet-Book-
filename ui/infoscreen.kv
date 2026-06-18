@@ -1,0 +1,105 @@
+<InfoScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 15
+
+        Label:
+            text: "Systeminformationen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+            bold: True
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 20
+            size_hint_y: 1
+
+            # Left Column for System Info
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                spacing: 10
+                size_hint_x: 0.6
+
+                Label:
+                    text: "System"
+                    font_size: '22sp'
+                    bold: True
+                    size_hint_y: None
+                    height: 40
+
+                Label:
+                    id: raspberry_model
+                    text: "Raspberry Pi Modell: "
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
+
+                Label:
+                    id: os_version
+                    text: "Betriebssystem: "
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
+
+                Label:
+                    id: resolution
+                    text: "Auflösung: "
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
+
+                Label:
+                    id: folder_size
+                    text: "Größe des App-Ordners: "
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
+
+            # Right Column for Version Info
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                spacing: 10
+                size_hint_x: 0.4
+
+                Label:
+                    text: "Version"
+                    font_size: '22sp'
+                    bold: True
+                    size_hint_y: None
+                    height: 40
+
+                Label:
+                    id: version_info
+                    text: ""
+                    font_size: '18sp'
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.width, None
+                    size_hint_y: 1
+
+        BoxLayout:
+            size_hint_y: 0.5
+
+
+        Button:
+            text: "Zurück zu den Optionen"
+            on_press: root.manager.current = 'options'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

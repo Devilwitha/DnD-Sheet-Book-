@@ -1,0 +1,11 @@
+{
+    "button_transparency": 0.25,
+    "transparency_enabled": true,
+    "background_enabled": true,
+    "background_path": "osbackground/hmbg.png",
+    "cs_creator_background_path": "osbackground/csbg.png",
+    "cs_sheet_background_path": "osbackground/csbg.png",
+    "keyboard_enabled": false,
+    "window_width": 487,
+    "window_height": 720
+}

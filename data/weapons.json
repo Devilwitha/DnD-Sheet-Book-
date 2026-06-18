@@ -1,0 +1,146 @@
+{
+    "Unbewaffneter Schlag": {
+        "damage": "1d4",
+        "ability": "Stärke"
+    },
+    "Keule": {
+        "damage": "1d4",
+        "ability": "Stärke"
+    },
+    "Dolch": {
+        "damage": "1d4",
+        "ability": "Geschicklichkeit"
+    },
+    "Große Keule": {
+        "damage": "1d8",
+        "ability": "Stärke"
+    },
+    "Handaxt": {
+        "damage": "1d6",
+        "ability": "Stärke"
+    },
+    "Wurfspeer": {
+        "damage": "1d6",
+        "ability": "Stärke"
+    },
+    "Leichter Hammer": {
+        "damage": "1d4",
+        "ability": "Stärke"
+    },
+    "Streitkolben": {
+        "damage": "1d6",
+        "ability": "Stärke"
+    },
+    "Kampfstab": {
+        "damage": "1d6",
+        "ability": "Stärke"
+    },
+    "Sichel": {
+        "damage": "1d4",
+        "ability": "Stärke"
+    },
+    "Speer": {
+        "damage": "1d6",
+        "ability": "Stärke"
+    },
+    "Leichte Armbrust": {
+        "damage": "1d8",
+        "ability": "Geschicklichkeit"
+    },
+    "Wurfpfeil": {
+        "damage": "1d4",
+        "ability": "Geschicklichkeit"
+    },
+    "Kurzbogen": {
+        "damage": "1d6",
+        "ability": "Geschicklichkeit"
+    },
+    "Schleuder": {
+        "damage": "1d4",
+        "ability": "Geschicklichkeit"
+    },
+    "Streitaxt": {
+        "damage": "1d8",
+        "ability": "Stärke"
+    },
+    "Flegel": {
+        "damage": "1d8",
+        "ability": "Stärke"
+    },
+    "Glefe": {
+        "damage": "1d10",
+        "ability": "Stärke"
+    },
+    "Großaxt": {
+        "damage": "1d12",
+        "ability": "Stärke"
+    },
+    "Großschwert": {
+        "damage": "2d6",
+        "ability": "Stärke"
+    },
+    "Hellebarde": {
+        "damage": "1d10",
+        "ability": "Stärke"
+    },
+    "Lanze": {
+        "damage": "1d12",
+        "ability": "Stärke"
+    },
+    "Langschwert": {
+        "damage": "1d8",
+        "ability": "Stärke"
+    },
+    "Kriegshammer": {
+        "damage": "1d8",
+        "ability": "Stärke"
+    },
+    "Morgenstern": {
+        "damage": "1d8",
+        "ability": "Stärke"
+    },
+    "Pike": {
+        "damage": "1d10",
+        "ability": "Stärke"
+    },
+    "Rapier": {
+        "damage": "1d8",
+        "ability": "Geschicklichkeit"
+    },
+    "Krummsäbel": {
+        "damage": "1d6",
+        "ability": "Geschicklichkeit"
+    },
+    "Kurzschwert": {
+        "damage": "1d6",
+        "ability": "Geschicklichkeit"
+    },
+    "Dreizack": {
+        "damage": "1d6",
+        "ability": "Stärke"
+    },
+    "Kriegspickel": {
+        "damage": "1d8",
+        "ability": "Stärke"
+    },
+    "Peitsche": {
+        "damage": "1d4",
+        "ability": "Geschicklichkeit"
+    },
+    "Blasrohr": {
+        "damage": "1",
+        "ability": "Geschicklichkeit"
+    },
+    "Handarmbrust": {
+        "damage": "1d6",
+        "ability": "Geschicklichkeit"
+    },
+    "Schwere Armbrust": {
+        "damage": "1d10",
+        "ability": "Geschicklichkeit"
+    },
+    "Langbogen": {
+        "damage": "1d8",
+        "ability": "Geschicklichkeit"
+    }
+}

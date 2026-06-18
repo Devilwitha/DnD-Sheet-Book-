@@ -1,0 +1,49 @@
+<OptionsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Optionen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        Button:
+            text: "Gui Einstellungen"
+            on_press: root.manager.current = 'settings'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "SaveData übertragen"
+            on_press: root.manager.current = 'transfer'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "System Einstellungen"
+            on_press: root.manager.current = 'system'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        Button:
+            text: "Info"
+            on_press: root.switch_to_info()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'
+
+        BoxLayout:
+            size_hint_y: 1.0
+
+        Button:
+            text: "Zurück zum Hauptmenü"
+            on_press: root.manager.current = 'main'
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "KrH58zE8tbU=",
+  "success": true,
+  "projectFilePath": "/app/ElectroSchematic/ElectroSchematic.csproj",
+  "expectedPackageFiles": [
+    "/home/jules/.nuget/packages/microsoft.windowsdesktop.app.ref/10.0.3/microsoft.windowsdesktop.app.ref.10.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

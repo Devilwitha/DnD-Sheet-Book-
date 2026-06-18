@@ -1,0 +1,30 @@
+<LevelUpScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            id: title_label
+            font_size: '24sp'
+            size_hint_y: None
+            height: 50
+
+        ScrollView:
+            GridLayout:
+                id: level_up_layout
+                cols: 1
+                spacing: 10
+                size_hint_y: None
+                height: self.minimum_height
+
+        BoxLayout:
+            size_hint_y: None
+            height: 50
+            spacing: 10
+            Button:
+                text: "Bestätigen"
+                on_press: root.confirm_level_up()
+            Button:
+                text: "Abbrechen"
+                on_press: root.cancel_level_up()

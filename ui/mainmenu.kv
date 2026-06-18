@@ -1,0 +1,20 @@
+<MainMenu>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Image:
+            source: 'logo/logo.png'
+
+        Button:
+            text: "Neuen Charakter erstellen"
+            on_press: root.switch_to_creator()
+
+        Button:
+            text: "Charakter laden"
+            on_press: root.show_load_popup()
+
+        Button:
+            text: "Optionen"
+            on_press: root.switch_to_options()

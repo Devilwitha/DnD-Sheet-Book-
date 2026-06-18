@@ -1,0 +1,127 @@
+{
+    "Drachenblütiger": {
+        "ability_score_increase": {
+            "Stärke": 2,
+            "Charisma": 1
+        },
+        "speed": 9.0,
+        "languages": [
+            "Drakonisch",
+            "Gemeinsprache"
+        ],
+        "proficiencies": []
+    },
+    "Zwerg (Hügelzwerg)": {
+        "ability_score_increase": {
+            "Konstitution": 2,
+            "Weisheit": 1
+        },
+        "speed": 7.5,
+        "languages": [
+            "Gemeinsprache",
+            "Zwergisch"
+        ],
+        "proficiencies": [
+            "Handäxte",
+            "Kampfäxte",
+            "Kriegshämmer",
+            "Leichte Hämmer"
+        ]
+    },
+    "Elf (Hochelf)": {
+        "ability_score_increase": {
+            "Geschicklichkeit": 2,
+            "Intelligenz": 1
+        },
+        "speed": 9.0,
+        "languages": [
+            "Elfisch",
+            "Gemeinsprache"
+        ],
+        "proficiencies": [
+            "Kurzbögen",
+            "Kurzschwerter",
+            "Langbögen",
+            "Langschwerter",
+            "Wahrnehmung"
+        ]
+    },
+    "Gnom (Felsengnom)": {
+        "ability_score_increase": {
+            "Intelligenz": 2,
+            "Konstitution": 1
+        },
+        "speed": 7.5,
+        "languages": [
+            "Gemeinsprache",
+            "Gnomisch"
+        ],
+        "proficiencies": [
+            "Tüftlerwerkzeug"
+        ]
+    },
+    "Halbelf": {
+        "ability_score_increase": {
+            "Charisma": 2
+        },
+        "speed": 9.0,
+        "languages": [
+            "Elfisch",
+            "Gemeinsprache"
+        ],
+        "proficiencies": []
+    },
+    "Halbork": {
+        "ability_score_increase": {
+            "Stärke": 2,
+            "Konstitution": 1
+        },
+        "speed": 9.0,
+        "languages": [
+            "Gemeinsprache",
+            "Orkisch"
+        ],
+        "proficiencies": [
+            "Einschüchtern"
+        ]
+    },
+    "Halbling (Leichtfuß-Halbling)": {
+        "ability_score_increase": {
+            "Geschicklichkeit": 2,
+            "Charisma": 1
+        },
+        "speed": 7.5,
+        "languages": [
+            "Gemeinsprache",
+            "Halbling"
+        ],
+        "proficiencies": []
+    },
+    "Mensch": {
+        "ability_score_increase": {
+            "Stärke": 1,
+            "Geschicklichkeit": 1,
+            "Konstitution": 1,
+            "Intelligenz": 1,
+            "Weisheit": 1,
+            "Charisma": 1
+        },
+        "speed": 9.0,
+        "languages": [
+            "Gemeinsprache"
+        ],
+        "proficiencies": []
+    },
+    "Tiefling": {
+        "ability_score_increase": {
+            "Intelligenz": 1,
+            "Charisma": 2
+        },
+        "speed": 9.0,
+        "languages": [
+            "Gemeinsprache",
+            "Infernalisch"
+        ],
+        "proficiencies": []
+    }
+}
