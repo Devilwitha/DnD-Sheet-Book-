@@ -4,159 +4,229 @@
         id: main_layout
         orientation: 'vertical'
 
-        # Header
-        GridLayout:
-            cols: 3
-            size_hint_y: None
-            height: 60
-            Label:
-                id: name_label
-                font_size: '20sp'
-            Label:
-                id: class_label
-            Label:
-                id: alignment_label
-
-        # Content
-        ScrollView:
-            GridLayout:
-                cols: 2
-                spacing: 10
-                padding: 10
-                size_hint_y: None
-                height: self.minimum_height
-
-                # Left Column
-                BoxLayout:
-                    orientation: 'vertical'
-                    spacing: 10
-                    size_hint_y: None
-                    height: self.minimum_height
-
-                    GridLayout:
-                        id: stats_box
-                        cols: 2
-                        size_hint_y: None
-                        height: 280
-
-                    BoxLayout:
-                        id: hp_box
-                        size_hint_y: None
-                        height: 50
-                        Button:
-                            text: "-"
-                            on_press: root.change_hp(-1)
-                        Label:
-                            id: hp_label
-                        Button:
-                            text: "+"
-                            on_press: root.change_hp(1)
-
-                    GridLayout:
-                        cols: 1
-                        size_hint_y: None
-                        height: 150
-                        spacing: 5
-                        Label:
-                            text: "Ausrüstete Waffe:"
-                        Spinner:
-                            id: weapon_spinner
-                            on_text: root.update_weapon(self.text)
-                        Button:
-                            text: "Schaden auswürfeln"
-                            on_press: root.roll_damage()
-
-                    GridLayout:
-                        id: currency_box
-                        cols: 3
-                        size_hint_y: None
-                        height: 200
-                        spacing: 5
-
-                # Right Column
-                BoxLayout:
-                    orientation: 'vertical'
-                    spacing: 10
-                    size_hint_y: None
-                    height: self.minimum_height
-
-                    Label:
-                        text: "Fähigkeiten"
-                        font_size: '20sp'
-                        size_hint_y: None
-                        height: 40
-                    GridLayout:
-                        id: features_layout
-                        cols: 1
-                        spacing: 5
-                        size_hint_y: None
-                        height: self.minimum_height
-
-                    Label:
-                        text: "Inventar"
-                        font_size: '20sp'
-                        size_hint_y: None
-                        height: 40
-                    GridLayout:
-                        id: inventory_layout
-                        cols: 1
-                        spacing: 5
-                        size_hint_y: None
-                        height: self.minimum_height
-                    Button:
-                        text: "Item hinzufügen"
-                        on_press: root.show_add_item_popup()
-                        size_hint_y: None
-                        height: 44
-
-                    Label:
-                        text: "Ausrüstung"
-                        font_size: '20sp'
-                        size_hint_y: None
-                        height: 40
-                    GridLayout:
-                        id: equipment_layout
-                        cols: 1
-                        spacing: 5
-                        size_hint_y: None
-                        height: self.minimum_height
-                    Button:
-                        text: "Ausrüstung hinzufügen"
-                        on_press: root.show_add_equipment_popup()
-                        size_hint_y: None
-                        height: 44
-
-        # Footer
+        # Navigation (always reachable, outside the ScrollView)
+        # Only one of the two buttons is visible; character_sheet.py sets the height to 0 for the hidden one.
         BoxLayout:
+            orientation: 'vertical'
             size_hint_y: None
-            height: 50
-            spacing: 5
-            Button:
-                text: "Info"
-                on_press: root.show_info_popup()
-            Button:
-                text: "Zauber"
-                on_press: root.show_spells_popup()
-            Button:
-                text: "Rast"
-                on_press: root.show_rest_popup()
-            Button:
-                text: "d20 Wurf"
-                on_press: root.roll_d20()
-            Button:
-                text: "Initiative"
-                on_press: root.roll_initiative()
-            Button:
-                text: "Level Up"
-                on_press: root.open_level_up_screen()
-            Button:
-                text: "Speichern"
-                on_press: root.save_character()
+            height: self.minimum_height
+            spacing: 0
+            padding: 0
             Button:
                 id: main_menu_button
                 text: "Hauptmenü"
                 on_press: app.change_screen('main')
+                size_hint_y: None
+                height: dp(48)
+                text_size: self.width - dp(16), None
+                halign: 'center'
+                valign: 'middle'
             Button:
                 id: dm_back_button
                 text: "Zurück zum DM Screen"
                 on_press: root.go_back()
+                size_hint_y: None
+                height: dp(48)
+                text_size: self.width - dp(16), None
+                halign: 'center'
+                valign: 'middle'
+
+        # Header (wraps; 3 columns on wide, 1 column on narrow)
+        GridLayout:
+            cols: 3 if root.width >= dp(600) else 1
+            size_hint_y: None
+            height: self.minimum_height
+            padding: dp(4), 0
+            Label:
+                id: name_label
+                font_size: '20sp'
+                text_size: self.width, None
+                halign: 'center'
+                size_hint_y: None
+                height: max(dp(30), self.texture_size[1] + dp(6))
+            Label:
+                id: class_label
+                text_size: self.width, None
+                halign: 'center'
+                size_hint_y: None
+                height: max(dp(30), self.texture_size[1] + dp(6))
+            Label:
+                id: alignment_label
+                text_size: self.width, None
+                halign: 'center'
+                size_hint_y: None
+                height: max(dp(30), self.texture_size[1] + dp(6))
+
+        # Content (everything scrolls, including the action buttons)
+        Label:
+            text: 'DM-Spielstand: Stufe und Grundwerte verwaltet die Spielleitung.' if root.client_mode else ''
+            size_hint_y: None
+            height: max(dp(38), self.texture_size[1] + dp(8)) if root.client_mode else 0
+            text_size: self.width - dp(20), None
+            halign: 'center'
+            opacity: 1 if root.client_mode else 0
+        ScrollView:
+            do_scroll_x: False
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 10
+
+                GridLayout:
+                    cols: 2 if root.width >= dp(600) else 1
+                    spacing: 10
+                    padding: 10
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    # Left Column
+                    BoxLayout:
+                        orientation: 'vertical'
+                        spacing: 10
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                        GridLayout:
+                            id: stats_box
+                            cols: 2
+                            size_hint_y: None
+                            height: self.minimum_height
+                            row_default_height: dp(30)
+                            row_force_default: True
+
+                        BoxLayout:
+                            id: hp_box
+                            size_hint_y: None
+                            height: dp(48)
+                            Button:
+                                text: "-"
+                                on_press: root.change_hp(-1)
+                                disabled: root.client_mode
+                            Label:
+                                id: hp_label
+                            Button:
+                                text: "+"
+                                on_press: root.change_hp(1)
+                                disabled: root.client_mode
+
+                        GridLayout:
+                            cols: 1
+                            size_hint_y: None
+                            height: self.minimum_height
+                            row_default_height: dp(48)
+                            row_force_default: True
+                            spacing: 5
+                            Label:
+                                text: "Ausrüstete Waffe:"
+                                text_size: self.width, None
+                                halign: 'center'
+                                valign: 'middle'
+                            Spinner:
+                                id: weapon_spinner
+                                on_text: root.update_weapon(self.text)
+                            Button:
+                                text: "Schaden auswürfeln"
+                                on_press: root.roll_damage()
+
+                        Label:
+                            text: 'Währung'
+                            size_hint_y: None
+                            height: dp(40)
+                        GridLayout:
+                            id: currency_box
+                            cols: 3
+                            size_hint_y: None
+                            height: self.minimum_height
+                            row_default_height: dp(48)
+                            row_force_default: True
+                            spacing: 5
+
+                    # Right Column
+                    BoxLayout:
+                        orientation: 'vertical'
+                        spacing: 10
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                        Label:
+                            text: "Fähigkeiten"
+                            font_size: '20sp'
+                            size_hint_y: None
+                            height: dp(40)
+                        GridLayout:
+                            id: features_layout
+                            cols: 1
+                            spacing: 5
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                        Label:
+                            text: "Inventar"
+                            font_size: '20sp'
+                            size_hint_y: None
+                            height: dp(40)
+                        GridLayout:
+                            id: inventory_layout
+                            cols: 1
+                            spacing: 5
+                            size_hint_y: None
+                            height: self.minimum_height
+                        Button:
+                            text: "Item hinzufügen"
+                            disabled: root.client_mode
+                            on_press: root.show_add_item_popup()
+                            size_hint_y: None
+                            height: dp(48)
+
+                        Label:
+                            text: "Ausrüstung"
+                            font_size: '20sp'
+                            size_hint_y: None
+                            height: dp(40)
+                        GridLayout:
+                            id: equipment_layout
+                            cols: 1
+                            spacing: 5
+                            size_hint_y: None
+                            height: self.minimum_height
+                        Button:
+                            text: "Ausrüstung hinzufügen"
+                            disabled: root.client_mode
+                            on_press: root.show_add_equipment_popup()
+                            size_hint_y: None
+                            height: dp(48)
+
+                # Actions (formerly the footer row): 2 columns narrow, 4 columns wide
+                GridLayout:
+                    cols: 4 if root.width >= dp(720) else 2
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: dp(48)
+                    row_force_default: True
+                    spacing: 5
+                    padding: 10
+                    Button:
+                        text: "Info"
+                        on_press: root.show_info_popup()
+                    Button:
+                        text: "Zauber"
+                        on_press: root.show_spells_popup()
+                    Button:
+                        text: "Rast"
+                        on_press: root.show_rest_popup()
+                    Button:
+                        text: "d20 Wurf"
+                        on_press: root.roll_d20()
+                    Button:
+                        text: "Initiative"
+                        on_press: root.roll_initiative()
+                    Button:
+                        id: level_up_button
+                        text: "Stufe: DM-Verwaltung" if root.client_mode else "Stufenaufstieg"
+                        text_size: self.width - dp(12), None
+                        halign: 'center'
+                        on_press: root.open_level_up_screen()
+                    Button:
+                        text: "Speichern"
+                        on_press: root.save_character()

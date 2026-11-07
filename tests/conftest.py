@@ -4,6 +4,20 @@ import shutil
 import importlib
 from unittest.mock import MagicMock
 import sys
+import tempfile
+
+# Isolate storage before collection: several legacy modules compute paths at import.
+_TEST_ROOT = tempfile.TemporaryDirectory(prefix='dnd-tests-')
+_PREVIOUS_DATA_DIR = os.environ.get('DND_DATA_DIR')
+os.environ['DND_DATA_DIR'] = _TEST_ROOT.name
+
+
+def pytest_unconfigure(config):
+    if _PREVIOUS_DATA_DIR is None:
+        os.environ.pop('DND_DATA_DIR', None)
+    else:
+        os.environ['DND_DATA_DIR'] = _PREVIOUS_DATA_DIR
+    _TEST_ROOT.cleanup()
 
 def pytest_configure(config):
     """
@@ -11,6 +25,8 @@ def pytest_configure(config):
     Mocks Kivy and other modules to prevent import errors.
     """
     import types
+    if not config.option.basetemp:
+        config.option.basetemp = os.path.join(_TEST_ROOT.name, 'pytest')
 
     # Provide a minimal stub for kivy and specific submodules to allow
     # tests to subclass App and create a ScreenManager without the
@@ -134,6 +150,9 @@ def pytest_configure(config):
         'kivy.config': MagicMock(),
         'kivy.core': MagicMock(),
         'kivy.core.window': MagicMock(),
+        'kivy.core.text': MagicMock(),
+        'kivy.logger': MagicMock(),
+        'kivy.uix.stencilview': types.SimpleNamespace(StencilView=object),
         'kivy.graphics': MagicMock(),
     'kivy.lang': kivy_lang,
         'kivy.properties': MagicMock(),
@@ -149,57 +168,22 @@ def pytest_configure(config):
     'kivy.uix.checkbox': checkbox_module,
         'kivy.uix.scrollview': MagicMock(),
         'kivy.uix.textinput': MagicMock(),
+        'kivy.uix.spinner': MagicMock(),
+        'kivy.uix.modalview': MagicMock(),
+        'kivy.uix.filechooser': MagicMock(),
+        'kivy.metrics': MagicMock(dp=lambda value: value, sp=lambda value: value),
         'kivy.utils': MagicMock(),
-        'zeroconf': MagicMock(),
-        'psutil': MagicMock(), # Added the missing mock
     }
     sys.modules.update(mock_modules)
 
-# Define paths
-SOURCE_DB_PATH = os.path.join('utils', 'data', 'dnd.db')
-TEST_DB_PATH = os.path.join('tests', 'test_dnd.db')
-
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 def setup_test_environment():
-    """
-    Pytest fixture for the entire test session.
-    - Mocks Kivy (via pytest_configure).
-    - Creates a temporary, clean database for tests.
-    - Patches the DB path and explicitly initializes data for the test session.
-    """
-    if not os.path.exists(SOURCE_DB_PATH):
-        # Attempt to build the database automatically so tests can run in CI
-        try:
-            from utils import build_database
-            build_database.create_database()
-        except Exception as e:
-            pytest.fail(f"Source database not found at {SOURCE_DB_PATH}. Run utils/build_database.py first. Build attempt failed: {e}")
-
-    if os.path.exists(TEST_DB_PATH):
-        os.remove(TEST_DB_PATH)
-    shutil.copy2(SOURCE_DB_PATH, TEST_DB_PATH)
-
-    # Import the modules now that mocks are in place
     from utils import database, data_manager
-
-    # Patch the function that provides the database path to point to our test DB
-    original_get_path = database.get_dest_db_path
-    database.get_dest_db_path = lambda: TEST_DB_PATH
-
-    # Explicitly initialize data using the patched path
+    from utils.build_database import create_database
+    destination = os.path.join(_TEST_ROOT.name, 'dnd.db')
+    create_database(destination)
+    original = database.DEST_DB
+    database.DEST_DB = destination
     data_manager.initialize_data()
-
-    # Let the tests run
     yield
-
-    # --- Teardown ---
-    # Restore the original function and remove the test database
-    database.get_dest_db_path = original_get_path
-    # Versuche, alle SQLite-Connections zu schließen, bevor gelöscht wird
-    try:
-        from utils.db_test_helper import close_all_sqlite_connections
-        close_all_sqlite_connections(TEST_DB_PATH)
-    except Exception:
-        pass
-    if os.path.exists(TEST_DB_PATH):
-        os.remove(TEST_DB_PATH)
+    database.DEST_DB = original

@@ -1,34 +1,57 @@
 import sqlite3
 import json
 import os
+import tempfile
+from pathlib import Path
 
-def create_database():
+try:
+    from utils.paths import resource_path
+except ModuleNotFoundError:
+    from paths import resource_path
+
+def create_database(db_path=None, json_dir=None):
     """
     Creates and populates the dnd.db from the JSON data files.
     This script will overwrite the existing database file.
     """
-    db_path = os.path.join('utils', 'data', 'dnd.db')
-    json_dir = os.path.join('utils', 'data', 'json_data')
+    db_path = Path(db_path or resource_path('utils/data/dnd.db')).resolve()
+    json_dir = Path(json_dir or resource_path('utils/data/json_data')).resolve()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix='.database-', suffix='.tmp', dir=db_path.parent)
+    os.close(fd)
+    conn = None
+    try:
+        conn = sqlite3.connect(temporary)
+        _populate_database(conn, json_dir)
+        conn.commit()
+        if conn.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
+            raise ValueError('Datenbankprüfung fehlgeschlagen.')
+        conn.close()
+        conn = None
+        with open(temporary, 'r+b') as built:
+            os.fsync(built.fileno())
+        os.replace(temporary, db_path)
+    finally:
+        if conn is not None:
+            conn.close()
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+    return str(db_path)
 
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
-    if os.path.exists(db_path):
-        os.remove(db_path)
-
-    conn = sqlite3.connect(db_path)
+def _populate_database(conn, json_dir):
     cursor = conn.cursor()
 
     def process_json_file(table_name, file_name, primary_key='name', value_column_name='description'):
         file_path = os.path.join(json_dir, file_name)
         if not os.path.exists(file_path):
-            print(f"Warning: JSON file not found: {file_path}. Skipping table '{table_name}'.")
-            return
+            raise FileNotFoundError(f"Erforderliche Regeldaten fehlen: {file_name}")
 
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        if not data:
-            return
+        if not isinstance(data, dict) or not data:
+            raise ValueError(f"Ungültige Regeldaten: {file_name}")
 
         first_item_value = list(data.values())[0]
 
@@ -92,9 +115,6 @@ def create_database():
     process_json_file('spells', 'spells_translated.json', primary_key='name')
     process_json_file('weapons', 'weapons.json')
 
-    conn.commit()
-    conn.close()
-    print(f"Database '{db_path}' created successfully.")
 
 if __name__ == '__main__':
     create_database()

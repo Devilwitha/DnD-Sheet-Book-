@@ -45,6 +45,7 @@ def test_move_object_and_attack(monkeypatch):
     }
 
     c = Character('Hero', 'Human', 'Fighter')
+    c.hit_points = c.max_hit_points = 10
     c.speed = 2
     c.actions_per_turn = 1
     c.initiative = 0
@@ -192,7 +193,7 @@ def test_move_object(game_manager, sample_char_aragorn):
     # Invalid move (too far)
     success, reason = game_manager.move_object("Aragorn", (5, 5))
     assert success is False
-    assert reason == "Not enough movement left."
+    assert "reachable" in reason
     assert game_manager.map_data['tiles'][(0, 1)]['object'] == "Aragorn" # Should not have moved
     assert game_manager.turn_action_state['movement_left'] == 5 # Should not have changed
 
@@ -207,7 +208,7 @@ def test_handle_attack_hit(game_manager, sample_char_aragorn, sample_enemy_orc):
         game_manager.initiative_order = [(10, "Aragorn")]
         game_manager.current_turn_index = 0
         game_manager.turn_action_state = {'attacks_left': 1}
-        game_manager.map_data = {'tiles': {(0, 0): {'object': "Orc #1"}}}
+        game_manager.map_data = {'tiles': {(0, 0): {'object': 'Orc #1'}, (0, 1): {'object': 'Aragorn'}}}
 
         # Aragorn (Character) attacks Orc (Enemy)
         result = game_manager.handle_attack("Aragorn", "Orc #1")

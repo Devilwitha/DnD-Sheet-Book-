@@ -5,63 +5,133 @@
         spacing: 10
 
         Label:
-            text: "DM Vorbereitung"
+            text: "Spielabend vorbereiten"
             font_size: '30sp'
+            text_size: self.width, None
+            halign: 'center'
             size_hint_y: None
-            height: 80
-
-        Label:
-            text: "Gegnerliste"
-            font_size: '20sp'
-            size_hint_y: None
-            height: 40
+            height: max(dp(56), self.texture_size[1] + dp(8))
 
         ScrollView:
-            GridLayout:
-                id: enemy_list_view
-                cols: 1
+            do_scroll_x: False
+            BoxLayout:
+                orientation: 'vertical'
                 size_hint_y: None
                 height: self.minimum_height
+                spacing: 10
 
-        BoxLayout:
-            size_hint_y: None
-            height: 60
-            Button:
-                text: "Gegner hinzufügen"
-                on_press: root.add_enemy_popup()
-            Button:
-                text: "Liste speichern"
-                on_press: root.save_enemy_list()
-            Button:
-                text: "Liste laden"
-                on_press: root.load_enemy_list()
-            Button:
-                text: "Map Editor"
-                on_press: root.open_map_editor()
+                Label:
+                    id: plan_context
+                    text: 'Eigene Kampagne'
+                    size_hint_y: None
+                    height: dp(40)
+                Label:
+                    text: '1. Name und Termin (Termin optional)'
+                    size_hint_y: None
+                    height: dp(40)
+                TextInput:
+                    id: plan_title
+                    text: 'Neuer Spielabend'
+                    multiline: False
+                    size_hint_y: None
+                    height: dp(48)
+                    on_text: root.schedule_save()
+                TextInput:
+                    id: plan_date
+                    hint_text: 'Termin, z.B. Samstag 19:00'
+                    multiline: False
+                    size_hint_y: None
+                    height: dp(48)
+                    on_text: root.schedule_save()
+                Label:
+                    text: '2. Offene Aufgaben und geplanter Ablauf'
+                    size_hint_y: None
+                    height: dp(40)
+                TextInput:
+                    id: plan_tasks
+                    hint_text: 'Was ist noch offen?'
+                    size_hint_y: None
+                    height: dp(120)
+                    on_text: root.schedule_save()
+                TextInput:
+                    id: plan_agenda
+                    hint_text: 'Was soll an diesem Abend passieren? Szenen in Reihenfolge.'
+                    size_hint_y: None
+                    height: dp(160)
+                    on_text: root.schedule_save()
+                Label:
+                    text: '3. Gegner und Karte (optional)'
+                    size_hint_y: None
+                    height: dp(40)
+
+                Label:
+                    text: "Gegnerliste"
+                    font_size: '20sp'
+                    text_size: self.width, None
+                    halign: 'center'
+                    size_hint_y: None
+                    height: max(dp(40), self.texture_size[1] + dp(8))
+
+                GridLayout:
+                    id: enemy_list_view
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                GridLayout:
+                    cols: 4 if root.width >= dp(720) else 2
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: dp(48)
+                    row_force_default: True
+                    spacing: 5
+                    Button:
+                        text: "Gegner hinzufügen"
+                        on_press: root.add_enemy_popup()
+                    Button:
+                        text: "Liste speichern"
+                        on_press: root.save_enemy_list()
+                    Button:
+                        text: "Liste laden"
+                        on_press: root.load_enemy_list()
+                    Button:
+                        text: "Kartenwerkstatt"
+                        on_press: root.open_map_editor()
+
+                Label:
+                    text: "Sitzungsnotizen:"
+                    font_size: '20sp'
+                    text_size: self.width, None
+                    halign: 'center'
+                    size_hint_y: None
+                    height: max(dp(40), self.texture_size[1] + dp(8))
+
+                TextInput:
+                    id: session_notes
+                    size_hint_y: None
+                    height: dp(160)
+                    on_text: root.schedule_save()
 
         Label:
-            text: "Sitzungsnotizen:"
-            font_size: '20sp'
+            id: plan_status
+            text: ''
             size_hint_y: None
-            height: 40
-
-        TextInput:
-            id: session_notes
-            size_hint_y: 2.0
-
-        BoxLayout:
-            size_hint_y: 1.0
-
+            height: dp(48)
+            text_size: self.width - dp(12), self.height
+            halign: 'center'
+        GridLayout:
+            cols: 2
+            size_hint_y: None
+            height: dp(56)
+            spacing: dp(8)
+            Button:
+                text: 'Mit Spielergeräten starten'
+                on_release: root.host_session()
+            Button:
+                text: 'Ohne Netzwerk spielen'
+                on_release: root.host_session(offline=True)
         Button:
-            text: "Sitzung Hosten"
-            on_press: root.host_session()
+            text: 'Speichern & zurück zu Kampagnen'
+            on_release: root.back_to_campaigns()
             size_hint_y: None
-            height: 80
-            font_size: '20sp'
-
-        Button:
-            text: "Zurück"
-            on_press: app.change_screen('dm_spiel')
-            size_hint_y: None
-            height: 80
-            font_size: '20sp'
+            height: dp(52)

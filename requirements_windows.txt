@@ -1,9 +1,4 @@
-kivy
-zeroconf
-psutil
-cython==0.29.36
-pyjnius
-kivy-garden
-kivy_garden.matplotlib
-screeninfo
-pyinstaller
+-r requirements.txt
+PyInstaller==6.16.0
+kivy_deps.sdl2==0.8.0
+kivy_deps.glew==0.3.1

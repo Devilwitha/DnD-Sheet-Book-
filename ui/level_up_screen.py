@@ -1,3 +1,4 @@
+from kivy.metrics import dp
 import random
 from functools import partial
 import os
@@ -11,6 +12,7 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
+from kivy.app import App
 from utils.data_manager import CLASS_DATA, SPELL_DATA
 from utils.helpers import apply_styles_to_widget, create_styled_popup
 
@@ -19,13 +21,17 @@ class LevelUpScreen(Screen):
     def __init__(self, **kwargs):
         super(LevelUpScreen, self).__init__(**kwargs)
         self.character = None
-        self.spell_choices = {}
-        self.ability_choices = {}
+        self.reset_choices()
 
     def on_pre_enter(self, *args):
+        if self.character and self.hp_roll is None:
+            self.update_view()
         apply_styles_to_widget(self)
 
     def set_character(self, character):
+        self.reset_choices()
+        self._confirmed = False
+        self._base_level = character.level
         self.character = character
         self.update_view()
 
@@ -40,12 +46,17 @@ class LevelUpScreen(Screen):
 
         hit_die = CLASS_DATA.get(self.character.char_class, {}).get("hit_die", 8)
         con_modifier = (self.character.abilities["Konstitution"] - 10) // 2
-        hp_increase = random.randint(1, hit_die) + con_modifier
-        level_up_layout.add_widget(Label(text=f"HP-Erhöhung: +{max(1, hp_increase)}", size_hint_y=None, height=40))
+        if self.hp_roll is None:
+            self.hp_roll = random.randint(1, hit_die)  # rolled once per level-up
+        hp_increase = self.hp_roll + con_modifier
+        self.hp_label = Label(text='', size_hint_y=None, height=dp(48))
+        level_up_layout.add_widget(self.hp_label)
+        self.ability_scores_to_increase = {}
+        self.refresh_hp_preview()
 
         features = CLASS_DATA.get(self.character.char_class, {}).get("features", {}).get(new_level, [])
         if features:
-            level_up_layout.add_widget(Label(text="Neue Fähigkeiten:", font_size='20sp', size_hint_y=None, height=40))
+            level_up_layout.add_widget(Label(text="Neue Fähigkeiten:", font_size='20sp', size_hint_y=None, height=dp(48)))
             for feature in features:
                 feature_label = Label(text=f"[b]{feature['name']}[/b]\n{feature['desc']}", markup=True, size_hint_y=None)
                 feature_label.bind(
@@ -59,15 +70,16 @@ class LevelUpScreen(Screen):
         self.ability_increase_labels = {}
         self.ability_buttons = {}
 
-        if any("Attributswerterhöhung" in f['name'] for f in features):
-            level_up_layout.add_widget(Label(text="Attributsverbesserung (verteile 2 Punkte):", font_size='20sp', size_hint_y=None, height=40))
+        self.needs_ability_choice = any('Attributswerterhöhung' in f['name'] for f in features)
+        if self.needs_ability_choice:
+            level_up_layout.add_widget(Label(text="Attributsverbesserung (verteile 2 Punkte):", font_size='20sp', size_hint_y=None, height=dp(48)))
 
-            self.points_label = Label(text="Verbleibende Punkte: 2", size_hint_y=None, height=40)
+            self.points_label = Label(text="Verbleibende Punkte: 2", size_hint_y=None, height=dp(48))
             level_up_layout.add_widget(self.points_label)
 
             abilities = ["Stärke", "Geschicklichkeit", "Konstitution", "Intelligenz", "Weisheit", "Charisma"]
             for ability in abilities:
-                box = BoxLayout(size_hint_y=None, height=40, spacing=10)
+                box = BoxLayout(size_hint_y=None, height=dp(48), spacing=10)
 
                 info_btn = Button(text="?", size_hint_x=0.1, on_press=partial(self.show_ability_info, ability))
                 ability_label = Label(text=f"{ability}: {self.character.abilities[ability]}", size_hint_x=0.4)
@@ -90,7 +102,7 @@ class LevelUpScreen(Screen):
         if "progression" in class_data:
             progression = class_data.get("progression", {})
             if self.character.level + 1 in progression:
-                manage_spells_btn = Button(text="Zauber auswählen", on_press=self.show_spell_selection_popup, size_hint_y=None, height=40)
+                manage_spells_btn = Button(text="Zauber auswählen", on_press=self.show_spell_selection_popup, size_hint_y=None, height=dp(48))
                 level_up_layout.add_widget(manage_spells_btn)
 
     def show_spell_selection_popup(self, instance):
@@ -139,14 +151,14 @@ class LevelUpScreen(Screen):
 
         new_cantrip_checkboxes = {}
         if cantrips_to_learn > 0:
-            scroll_content.add_widget(Label(text=f"Wähle {cantrips_to_learn} neue/n Zaubertrick/s", size_hint_y=None, height=30, font_size='18sp'))
-            cantrip_grid = GridLayout(cols=2, size_hint_y=None, spacing=5)
+            scroll_content.add_widget(Label(text=f"Wähle {cantrips_to_learn} neue/n Zaubertrick/s", size_hint_y=None, height=dp(48), font_size='18sp'))
+            cantrip_grid = GridLayout(cols=1, size_hint_y=None, spacing=5)
             cantrip_grid.bind(minimum_height=cantrip_grid.setter('height'))
             available_cantrips = all_available_spells.get(0, [])
             for spell_name in sorted(available_cantrips):
                 if spell_name not in known_cantrips:
-                    box = BoxLayout(size_hint_y=None, height=30)
-                    cb = CheckBox(size_hint_x=0.1)
+                    box = BoxLayout(size_hint_y=None, height=dp(48))
+                    cb = CheckBox(size_hint_x=None, width=dp(48))
                     new_cantrip_checkboxes[spell_name] = cb
                     info_btn = Button(text=spell_name, on_press=partial(self.show_spell_info_popup, spell_name))
                     box.add_widget(cb)
@@ -156,7 +168,7 @@ class LevelUpScreen(Screen):
 
         new_spell_checkboxes = {}
         if spells_to_learn > 0:
-            scroll_content.add_widget(Label(text=f"Wähle {spells_to_learn} neue/n Zauber (bis Grad {max_spell_level})", size_hint_y=None, height=30, font_size='18sp'))
+            scroll_content.add_widget(Label(text=f"Wähle {spells_to_learn} neue/n Zauber (bis Grad {max_spell_level})", size_hint_y=None, height=dp(48), font_size='18sp'))
             spell_grid = GridLayout(cols=1, size_hint_y=None, spacing=5)
             spell_grid.bind(minimum_height=spell_grid.setter('height'))
             for spell_level in range(1, max_spell_level + 1):
@@ -165,8 +177,8 @@ class LevelUpScreen(Screen):
                     spell_grid.add_widget(Label(text=f"Grad {spell_level}", font_size='16sp', size_hint_y=None, height=25))
                     for spell_name in sorted(available_spells_at_level):
                         if spell_name not in known_spells_flat:
-                            box = BoxLayout(size_hint_y=None, height=30)
-                            cb = CheckBox(size_hint_x=0.1)
+                            box = BoxLayout(size_hint_y=None, height=dp(48))
+                            cb = CheckBox(size_hint_x=None, width=dp(48))
                             new_spell_checkboxes[spell_name] = cb
                             info_btn = Button(text=spell_name, on_press=partial(self.show_spell_info_popup, spell_name))
                             box.add_widget(cb)
@@ -177,8 +189,8 @@ class LevelUpScreen(Screen):
         spell_to_replace_spinner = None
         replacement_spell_spinner = None
         if can_replace_spell and known_spells_flat:
-            scroll_content.add_widget(Label(text="Ersetze einen bekannten Zauber", size_hint_y=None, height=30, font_size='18sp'))
-            replace_box = BoxLayout(size_hint_y=None, height=40, spacing=10)
+            scroll_content.add_widget(Label(text="Ersetze einen bekannten Zauber", size_hint_y=None, height=dp(48), font_size='18sp'))
+            replace_box = BoxLayout(size_hint_y=None, height=dp(48), spacing=10)
 
             spell_to_replace_spinner = Spinner(text="Wähle Zauber...", values=["Keiner"] + sorted(known_spells_flat))
 
@@ -202,7 +214,7 @@ class LevelUpScreen(Screen):
         scroll_view.add_widget(scroll_content)
         popup_content.add_widget(scroll_view)
 
-        btn_box = BoxLayout(size_hint_y=None, height=50, spacing=10)
+        btn_box = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
         confirm_btn = Button(text="Bestätigen")
         cancel_btn = Button(text="Abbrechen")
         btn_box.add_widget(confirm_btn)
@@ -278,7 +290,7 @@ class LevelUpScreen(Screen):
 
         current_increase = self.ability_scores_to_increase.get(ability, 0)
         # Prevent increasing a single ability by more than 2, or by 2 if another ability is already at 1
-        if current_increase >= 2 or (current_increase >= 1 and self.total_points_allocated >=1):
+        if current_increase >= 2:
             self.show_popup("Fehler", "Du kannst ein Attribut um maximal 2, oder zwei Attribute um maximal 1 erhöhen.")
             return
 
@@ -295,10 +307,11 @@ class LevelUpScreen(Screen):
             self.update_ability_increase_display()
 
     def update_ability_increase_display(self):
-        self.points_label.text = f"Verbleibende Punkte: {2 - self.total_points_allocated}"
+        self.points_label.text = f'Verbleibende Punkte: {2 - self.total_points_allocated}'
         for ability, label in self.ability_increase_labels.items():
             increase = self.ability_scores_to_increase.get(ability, 0)
-            label.text = f"+{increase}" if increase > 0 else ""
+            label.text = f'+{increase}' if increase > 0 else ''
+        self.refresh_hp_preview()
 
     def show_ability_info(self, ability_name, instance):
         descriptions = {
@@ -312,28 +325,47 @@ class LevelUpScreen(Screen):
         self.show_popup(f"Info: {ability_name}", descriptions.get(ability_name, "Keine Beschreibung verfügbar."))
 
     def confirm_level_up(self):
+        if not self.character or getattr(self, '_confirmed', False):
+            return
+        app = App.get_running_app()
+        if getattr(getattr(app, 'network_manager', None), 'mode', None) == 'client':
+            self.show_popup('DM-Spielstand', 'Stufenaufstiege nimmt die Spielleitung vor. Der neue Stand wird automatisch übertragen.')
+            return
+        if self.character.level != getattr(self, '_base_level', self.character.level):
+            self.set_character(self.character)
+            self.show_popup('Aktualisiert', 'Die Stufe hat sich geändert. Bitte die neue Auswahl prüfen.')
+            return
         choices = {}
 
-        if hasattr(self, 'total_points_allocated') and self.total_points_allocated > 0:
+        if self.needs_ability_choice:
             if self.total_points_allocated != 2:
-                self.show_popup("Fehler", "Bitte verteile genau 2 Attributspunkte.")
+                self.show_popup('Fehler', 'Bitte verteile genau 2 Attributspunkte.')
                 return
-
             ability_increases = []
             for ability, increase in self.ability_scores_to_increase.items():
-                for _ in range(increase):
-                    ability_increases.append(ability)
-            choices["ability_increase"] = ability_increases
+                ability_increases.extend([ability] * increase)
+            choices['ability_increase'] = ability_increases
 
+        choices.update(self.spell_choices)
+        choices['hp_roll'] = self.hp_roll  # same roll as shown in the preview
 
-        if self.spell_choices:
-            choices.update(self.spell_choices)
+        try:
+            self.character.level_up(choices)
+        except ValueError as e:
+            self.show_popup('Fehler', str(e))
+            return
 
-        self.character.level_up(choices)
+        self._confirmed = True
+        if (getattr(getattr(app, 'network_manager', None), 'mode', None) == 'dm'
+                and getattr(app, 'source_screen', None) == 'dm_main'):
+            self.manager.get_screen('dm_main').commit_character(
+                self.character, f'{self.character.name}: Stufenaufstieg durch den DM auf Stufe {self.character.level}.')
+        self.reset_choices()
         self.manager.get_screen('sheet').load_character(self.character)
         self.manager.current = 'sheet'
 
     def cancel_level_up(self):
+        self.reset_choices()
         self.manager.current = 'sheet'
 
     def show_popup(self, title, message):
@@ -346,3 +378,21 @@ class LevelUpScreen(Screen):
         content.add_widget(label)
         popup = create_styled_popup(title=title, content=content, size_hint=(0.8, 0.8))
         popup.open()
+    def reset_choices(self):
+        self.spell_choices = {}
+        self.ability_choices = {}
+        self.ability_scores_to_increase = {}
+        self.total_points_allocated = 0
+        self.needs_ability_choice = False
+        self.hp_roll = None
+        self.hp_label = None
+        self.points_label = None
+    def refresh_hp_preview(self):
+        """Shows exactly the HP gain Character.level_up will apply for the rolled die."""
+        if not self.character or self.hp_roll is None or self.hp_label is None:
+            return
+        old_mod = (self.character.abilities['Konstitution'] - 10) // 2
+        new_con = self.character.abilities['Konstitution'] + self.ability_scores_to_increase.get('Konstitution', 0)
+        new_mod = (new_con - 10) // 2
+        gain = max(1, self.hp_roll + new_mod) + (new_mod - old_mod) * self.character.level
+        self.hp_label.text = f'HP-Erhöhung: +{gain} (Wurf {self.hp_roll})'

@@ -1,7 +1,9 @@
+from kivy.metrics import dp
 import random
 import json
 import os
-import pickle
+from utils.storage import CharacterRepository, safe_save_path
+from utils.non_ui_helpers import roll_dice
 from functools import partial
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -62,35 +64,27 @@ class PlayerCharacterSheet(Screen):
     def update_inventory_display(self):
         self.ids.inventory_layout.clear_widgets()
         for index, item in enumerate(self.character.inventory):
-            item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
+            item_row = BoxLayout(size_hint_y=None, height=dp(48), spacing=10)
             text = f"{item['name']} ({item['quantity']})"
-            item_row.add_widget(Label(text=text, halign='left', valign='middle'))
-            btn_box = BoxLayout(size_hint_x=0.5)
+            item_label = Label(text=text, halign='left', valign='middle')
+            item_label.bind(width=lambda w, v: setattr(w, 'text_size', (v, None)))
+            item_row.add_widget(item_label)
+            btn_box = BoxLayout(size_hint_x=None, width=dp(104))
             if 'healing' in item:
                 btn = Button(text="Benutzen")
                 btn.bind(on_press=partial(self.use_healing_item, index))
                 btn_box.add_widget(btn)
-            item_row.add_widget(btn_box)
+            if btn_box.children:
+                item_row.add_widget(btn_box)
+            item_label.bind(texture_size=lambda w, v, row=item_row: setattr(row, 'height', max(dp(48), v[1] + dp(12))))
             self.ids.inventory_layout.add_widget(item_row)
 
     def sync_character_to_host(self):
-        """Sends the entire character object to the host."""
-        if not self.character: return
-        self.network_manager.send_to_dm("SET_CHARACTER_DATA", self.character.to_dict())
+        """Legacy entry point: client snapshots must never replace DM state."""
+        self.app._popup('DM-Spielstand', 'Freie Charakteränderungen nimmt die Spielleitung vor.')
 
     def use_healing_item(self, item_index, instance):
-        if 0 <= item_index < len(self.character.inventory):
-            item = self.character.inventory[item_index]
-            if 'healing' in item:
-                total_healed = sum(random.randint(1, item['healing']['dice']) for _ in range(item['healing']['count']))
-                self.character.hit_points = min(self.character.max_hit_points, self.character.hit_points + total_healed)
-                log_msg = f"{self.character.name} benutzt {item['name']} und heilt {total_healed} HP."
-                self.send_log_to_dm(log_msg)
-                item['quantity'] -= 1
-                if item['quantity'] <= 0:
-                    self.character.inventory.pop(item_index)
-                self.update_sheet()
-                self.sync_character_to_host()
+        self.app.request_character_action('healing_item', index=item_index)
 
     def show_spells_popup(self):
         if not hasattr(self.character, 'spells') or not self.character.spells:
@@ -103,9 +97,9 @@ class PlayerCharacterSheet(Screen):
             spell_list = self.character.spells[spell_level]
             if not spell_list: continue
             level_name = f"Level {spell_level}" if spell_level > 0 else "Zaubertricks"
-            grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=40))
+            grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=dp(48)))
             for spell_name in sorted(spell_list):
-                btn = Button(text=spell_name, size_hint_y=None, height=40)
+                btn = Button(text=spell_name, size_hint_y=None, height=dp(48))
                 btn.bind(on_press=partial(self.show_spell_confirmation_popup, spell_name))
                 grid.add_widget(btn)
         scroll = ScrollView(size_hint=(1, 1))
@@ -119,7 +113,7 @@ class PlayerCharacterSheet(Screen):
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
         title_label = Label(text=f"[b]{spell_name}[/b]", markup=True, font_size='18sp')
         desc_label = Label(text=spell.get('desc', 'Keine Beschreibung verfügbar.'), text_size=(self.width*0.7, None))
-        button_box = BoxLayout(size_hint_y=None, height=44, spacing=10)
+        button_box = BoxLayout(size_hint_y=None, height=dp(48), spacing=10)
         cast_button = Button(text="Wirken")
         cancel_button = Button(text="Abbrechen")
         button_box.add_widget(cast_button)
@@ -136,17 +130,7 @@ class PlayerCharacterSheet(Screen):
         popup.open()
 
     def cast_spell(self, spell_name, spell_level):
-        spell_level_str = str(spell_level)
-        if spell_level > 0:
-            if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
-                self.character.current_spell_slots[spell_level_str] -= 1
-            else:
-                create_styled_popup(title="Fehler", content=Label(text="Keine Zauberplätze auf diesem Grad verfügbar.")).open()
-                return
-        log_msg = f"{self.character.name} wirkt {spell_name}."
-        self.send_log_to_dm(log_msg)
-        self.update_sheet()
-        self.sync_character_to_host()
+        self.app.request_character_action('cast_spell', spell=spell_name)
 
     def send_log_to_dm(self, log_message):
         self.network_manager.send_to_dm("LOG", log_message)
@@ -164,9 +148,8 @@ class PlayerCharacterSheet(Screen):
         weapon_info = WEAPON_DATA.get(weapon_name)
         if not weapon_info: return
         damage_str = weapon_info.get('damage', '1d4')
-        num_dice, dice_type = map(int, damage_str.split('d'))
         ability_mod = (self.character.abilities.get(weapon_info.get('ability', 'Stärke'), 10) - 10) // 2
-        roll = sum(random.randint(1, dice_type) for _ in range(num_dice))
+        roll = roll_dice(damage_str)
         total_damage = roll + ability_mod
         result_text = f"Schaden: {roll} + {ability_mod} = {total_damage}"
         self.send_log_to_dm(f"verursacht {total_damage} Schaden mit {weapon_name}.")
@@ -174,26 +157,16 @@ class PlayerCharacterSheet(Screen):
 
     def show_rest_popup(self):
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        short_rest_btn = Button(text="Kurze Rast")
-        long_rest_btn = Button(text="Lange Rast")
+        short_rest_btn = Button(text="Kurze Rast (1 Trefferwürfel)")
+        long_rest_btn = Button(text="Lange Rast (DM-Freigabe)")
         content.add_widget(short_rest_btn)
         content.add_widget(long_rest_btn)
         popup = create_styled_popup(title="Rasten", content=content, size_hint=(0.5, 0.4))
         def do_short_rest(instance):
-            regain_amount = max(1, self.character.level // 2)
-            self.character.hit_dice = min(self.character.max_hit_dice, self.character.hit_dice + regain_amount)
-            self.send_log_to_dm(f"macht eine kurze Rast.")
-            self.update_sheet()
-            self.sync_character_to_host()
+            self.app.request_character_action('short_rest', dice=1)
             popup.dismiss()
         def do_long_rest(instance):
-            self.character.hit_points = self.character.max_hit_points
-            self.character.hit_dice = self.character.max_hit_dice
-            if hasattr(self.character, 'current_spell_slots'):
-                self.character.current_spell_slots = {k: v for k, v in self.character.max_spell_slots.items()}
-            self.send_log_to_dm(f"macht eine lange Rast.")
-            self.update_sheet()
-            self.sync_character_to_host()
+            self.app.request_character_action('long_rest')
             popup.dismiss()
         short_rest_btn.bind(on_press=do_short_rest)
         long_rest_btn.bind(on_press=do_long_rest)
@@ -203,13 +176,13 @@ class PlayerCharacterSheet(Screen):
         player_list_widget = self.ids.player_list_view
         player_list_widget.clear_widgets()
         for player_name in players:
-            player_list_widget.add_widget(Label(text=player_name, size_hint_y=None, height=30))
+            player_list_widget.add_widget(Label(text=player_name, size_hint_y=None, height=dp(48)))
 
     def update_initiative_order(self, initiative_order):
         initiative_widget = self.ids.initiative_view
         initiative_widget.clear_widgets()
         for roll, name in initiative_order:
-            initiative_widget.add_widget(Label(text=f"{roll}: {name}", size_hint_y=None, height=30))
+            initiative_widget.add_widget(Label(text=f"{roll}: {name}", size_hint_y=None, height=dp(48)))
 
     def show_full_character_sheet(self):
         self.app.source_screen = self.name
@@ -223,8 +196,7 @@ class PlayerCharacterSheet(Screen):
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)
         try:
-            with open(filepath, 'wb') as f:
-                pickle.dump(self.character, f)
+            filepath = CharacterRepository().save(self.character)
             create_styled_popup(title="Gespeichert", content=Label(text=f"Charakter als '{filepath}' gespeichert."), size_hint=(0.7, 0.4)).open()
         except Exception as e:
             create_styled_popup(title="Fehler", content=Label(text=f"Fehler beim Speichern: {e}"), size_hint=(0.7, 0.4)).open()

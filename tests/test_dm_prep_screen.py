@@ -23,6 +23,7 @@ class TestDMPrepScreen(unittest.TestCase):
         self._patcher = patch('utils.helpers.get_user_saves_dir', get_user_saves_dir)
         self._patcher.start()
         self.screen = DMPrepScreen()
+        self.screen.ids.enemy_list_view = MagicMock()
         self.saves_dir = get_user_saves_dir("enemies")
         self.test_file = os.path.join(self.saves_dir, "my_enemies.enemies")
 
@@ -34,11 +35,6 @@ class TestDMPrepScreen(unittest.TestCase):
         if os.path.exists(self.test_file):
             os.remove(self.test_file)
         self._patcher.stop()
-
-    def tearDown(self):
-        # Clean up test files after tests
-        if os.path.exists(self.test_file):
-            os.remove(self.test_file)
 
     def test_save_and_load_enemy_list(self):
         # 1. Add a dummy enemy to the list

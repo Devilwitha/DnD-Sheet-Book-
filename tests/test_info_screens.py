@@ -49,6 +49,14 @@ def test_version_screen(test_app, dummy_version_file):
     # Check if the label's text is updated correctly
     assert screen.ids.version_label.text == "Test Version 1.2.3"
 
+
+def test_version_includes_bundled_credits(test_app, tmp_path):
+    version = tmp_path / 'version.txt'
+    version.write_text('1.2.3', encoding='utf-8')
+    (tmp_path / 'CREDITS.txt').write_text('Code by Example', encoding='utf-8')
+    with patch('ui.version_screen.resource_path', return_value=str(version)):
+        assert VersionScreen().get_version_info() == '1.2.3\n\nCode by Example'
+
 @patch('ui.model_screen.ModelScreen.get_model', return_value="Test Model")
 @patch('ui.model_screen.ModelScreen.get_os_version', return_value="Test OS")
 @patch('ui.model_screen.ModelScreen.get_screen_resolution', return_value="1920x1080")

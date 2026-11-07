@@ -1,3 +1,97 @@
+0.9.0-local.1 (13.10.2026)
+- Stabilitätsupdate: vollständige Übertragungscodes, sichere Lobby-Navigation und eindeutige Dialogabschlüsse.
+- Individuelle Wiederverbindungsnachweise, Freigabeschutz, begrenzte Fehlversuche pro Absender und zuverlässige Abmeldungen.
+- Aktionen mit Kennung und Bestätigung werden nicht doppelt ausgeführt; ausstehende Kartenaktionen haben ein Zeitlimit.
+- Spieler bei 0 TP bleiben auf Karte und Initiative; natürliche 1/20 und kritische Schadenswürfel werden berücksichtigt.
+- Altimporte erfolgen atomar; große Karten können gespeichert werden; ungültige Journaleinträge werden vollständig separat erhalten.
+- Zeichnen prüft nur die bearbeitete Karte und benötigt eine statt zwei Undo-Kopien; Flussradieren erhält darunterliegendes Land.
+- UTF-8-Einstellungen mit Typprüfung; Android-Pause behandelt Speicherfehler; Signierschlüssel werden nicht still neu erzeugt.
+- Host und Spieler müssen wegen Protokoll 6 gemeinsam aktualisiert werden.
+
+0.8.4-local.1 (09.10.2026)
+- Regionskarten zeigen den exakt abgegrenzten Ausschnitt der Weltkarte mit Land, Flüssen und Bildern.
+- Bestehende leere Regionen erhalten die Weltgrundlage automatisch beim Öffnen; keine neue Grenzzeichnung nötig.
+- Eigene Regionsdetails bleiben separat bearbeitbar, auch mit Rückgängig/Wiederholen und nach erneutem Laden.
+- Weltänderungen aktualisieren die Grundlage; ausgearbeitete Details behalten ihre Koordinaten.
+- Gespeicherte und übertragene Spielkarten enthalten die Regionsgrundlage; ausgeblendete DM-Notizen werden herausgefiltert.
+
+0.8.3-local.1 (09.10.2026)
+- Regionen statt Gebiete: freie Grenzlinien sofort auf Weltkarten zeichnen, ohne Land vorher zuzuweisen.
+- Erste Grenzlinie erzeugt zwei benannte Regionen in einem Schritt, weitere Linien teilen bestehende Regionen.
+- Grenzpunkte setzen, letzten Punkt zurücknehmen, Grenze übernehmen oder Linie verwerfen; ungültige Entwürfe bleiben sichtbar.
+- Region bearbeiten und Tab 2 öffnen die tatsächliche Regionskarte; keine versteckten Welt-Erstellaktionen im Auswahlmenü.
+- Kompakte schließbare Fehlermeldungen und kontextbezogene Regionswerkzeuge.
+
+0.8.2-local.1 (09.10.2026)
+- Reale Kartengröße in km / m bei Atlas- und Unterkarten-Erstellung; Maßstab später änderbar, horizontale Maßstabsleiste.
+- Weltregionen: Landfläche übernehmen und mit frei gezeichneten Grenzlinien lückenlos teilen. Gemeinsame Grenzen bleiben identisch.
+- Alte Einzelregionen in einer unabhängigen Kopie neu zuordnen, alle Detailkarten erhalten.
+- Vollständiges Rückgängig/Wiederholen für Kartenaufteilungen; Speicherbedarf der Historie begrenzt.
+- POI und Innenräume bleiben getrennte Umrisse/Rechtecke; vorgeschlagene Kartengröße aus Elternkarte.
+
+DnD Lokal 0.8.1-local.1 - 09.10.2026
+Eingabedialoge für Regionen, Beschriftungen, Namen und neue Welten öffnen auf Windows wieder korrekt.
+Ausgeblendete Werkzeugleisten fangen keine Klicks auf sichtbare Karten-Tabs mehr ab.
+Regionen auf der Hauptkarte einzeichnen und benennen; der Editor bleibt auf dieser Karte.
+Kartenstufen bieten Auswahl der vorhandenen Regionen, Orte und Innenräume sowie neue Gebiete auf ihren Elternkarten.
+Beim ersten manuellen Speichern einer unbenannten Welt wird nach einem Namen gefragt; Abbrechen erhält den Entwurf.
+Aktuellen Kartennamen antippen zum Umbenennen. Unter Karte … steht Speichern unter für eine unabhängige Kopie des ganzen Atlas.
+Größenkontrollen bearbeiten das zuletzt platzierte Bild; genaue Breite in Feldern kann eingegeben werden.
+Beschriftungen erstellen, auswählen, nachträglich bearbeiten und ihre Textgröße ändern.
+Echte Dialoge und Zeigerklicks werden im Oberflächentest geprüft; vorherige ersetzte Dialoge deckten den Höhenfehler nicht ab.
+
+DnD Lokal 0.8.0-local.1 - 09.10.2026
+75 lokale Kartenbilder als Assets mit Vorschau, Kategorien, Suche und Qualitätsangabe.
+Bild wählen und platzieren; mit Auswahl verschieben, vergrößern/verkleinern, drehen oder entfernen.
+Weißer Bildhintergrund kann beim Darstellen ausgeblendet werden. Originale bleiben unverändert.
+Vier direkt erreichbare Kartenstufen: Welt, Region, Ort/POI und Innenraum.
+Gebiete als freier Umriss oder Rechteck abgrenzen, benennen und mit eigener Detailkarte verknüpfen.
+Im Gebiete-Werkzeug öffnet Antippen die Detailkarte; Stufenleiste, Pfad und Atlasübersicht navigieren zurück.
+Speichern hält die Zeichenfläche mit den Kartendaten verbunden; Änderungen nach dem Speichern bleiben sofort sichtbar.
+Windows und Android gemeinsam auf 0.8.0 aktualisieren, damit beide die Bild-Assets kennen.
+Die mitgelieferten Motive enthalten teils bekannte Perspektiv-/Qualitätsmängel; Bildgrafiken setzen keine Kollisionsfelder.
+
+DnD Lokal 0.7.1-local.1 - 09.10.2026
+Kartenwerkstatt direkt im Menü „DM Spiel“: Karten ohne Kampagne vorbereiten.
+Durchsuchbare Kartenbibliothek; Vorlagen wiederverwenden und als unabhängige Atlas-Kopien in Vorbereitungen/Sitzungen übernehmen.
+Separate Speicherung von Vorlagen und Sitzungskopien; zugehörige Unterkarten und Verbindungen werden mitkopiert.
+Mausrad vorwärts vergrößert; quadratische Spielfelder bleiben erhalten, neue Karten zeigen standardmäßig keine Rasterlinien.
+PC: kompakte Werkzeugpalette neben der Karte, passende Optionen zum aktiven Werkzeug und Vorschau am Mauszeiger.
+Smartphone: Werkzeugauswahl mit Pfeil, aufklappbare Optionen, größerer Kartenbereich und lesbare Schaltflächen.
+Vorbereitungsfiguren bleiben beim Kartenwechsel erhalten; beschädigte Karten überschreiben keine vorhandene Vorbereitung.
+
+DnD Lokal 0.7.0-local.1 - 09.10.2026
+Kartenatlas: Welt, Region, Ort und Innenraum miteinander verknüpfen und dauerhaft speichern.
+Karte und Werkzeuge in einer Ansicht: Pinsel, freie Landflächen, Linien, Formen, Radierer und Beschriftungen.
+Drei Zeichenebenen mit Sichtbarkeit und Sperre; Auswahl, Verschieben, Umfärben, Rückgängig und Wiederholen.
+Zoom und Handwerkzeug, umschaltbares Raster sowie sechs mitgelieferte Vektorsymbole.
+Bestehende Spielkarten und das Platzieren von Figuren, Möbeln, Wänden und Türen bleiben verwendbar.
+DM und Spieler sehen dieselbe Kartengrafik; ausgeblendete Zeichnungen und Unterkarten bleiben beim DM.
+Host und Smartphone gemeinsam aktualisieren. Bestehende Spielstände bleiben im Benutzerprofil.
+Die umfangreiche eigene Bild-Assetbibliothek ist noch nicht als Stempelbibliothek integriert.
+
+DnD Lokal 0.6.0-local.1 - 08.10.2026
+Eigene Kampagnen und dauerhaft gespeicherte Vorbereitungen mit Termin, Ablauf, Aufgaben, Karte und Gegnern.
+Spielabend ohne Netzwerk starten; nach dem Ende direkt nachbereiten und den nächsten Abend vorbereiten.
+Journal-Rückblick als privater, bearbeitbarer Entwurf; bisherige Zusammenfassungen bleiben erhalten.
+Charaktererstellung in drei Schritten mit Erklärungen und fester Zurück-/Weiter-Navigation.
+Eigene W20-Würfe ohne Bonus eingeben; der Host rechnet und zeigt den Angriffsbonus genau einmal an.
+Vorhandene Journale werden zugeordnet und vor der ersten Kampagnenerweiterung gesichert.
+Host und Smartphone zusammen aktualisieren (Spielprotokoll 5). Keine Beispielkampagne mitgeliefert.
+
+DnD Lokal 0.5.8-local.1 - 03.10.2026
+QR-Code und Sitzungssuche versuchen automatisch mehrere lokale Adressen.
+Windows-Verbindungshilfe mit ausdruecklicher, auf App und LAN begrenzter Freigabe.
+Verstaendliche Verbindungsfehler und datensparsame Diagnose der Versuche.
+Sitzungssuche meldet die korrekte Spielprotokollversion.
+Fuer die neue QR-Einladung bitte Host und Smartphone gemeinsam aktualisieren.
+
+DnD Lokal 0.5.7-local.1 - 02.10.2026
+DM-Spielstand ist verbindlich. Wiederholte Stufenaufstiege werden sofort synchronisiert.
+Neue Charaktere werden vom DM freigegeben; gespeicherte Charaktere vom Host wiederhergestellt.
+Spieleraktionen werden am Host geprueft, Rasten vom DM bestaetigt.
+Bitte Host und Client gemeinsam auf diese Version aktualisieren.
+
 ==========================================
 Build Version:                11.09.2025
 

@@ -1,3 +1,4 @@
+from kivy.metrics import dp
 import os
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -41,7 +42,7 @@ class BackgroundSettingsScreen(Screen):
         filechooser = FileChooserListView(path=initial_path, filters=['*.png', '*.jpg', '*.jpeg', '*.bmp'])
         content.add_widget(filechooser)
 
-        button_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
+        button_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
         select_btn = Button(text="Auswählen")
         cancel_btn = Button(text="Abbrechen")
         button_layout.add_widget(select_btn)

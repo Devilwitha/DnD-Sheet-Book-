@@ -1,3 +1,4 @@
+from kivy.metrics import dp
 import os
 import sys
 from kivy.app import App
@@ -78,7 +79,7 @@ class CustomizationSettingsScreen(Screen):
         color_picker = ColorPicker(color=initial_color)
         content = BoxLayout(orientation='vertical', spacing=10)
         content.add_widget(color_picker)
-        save_btn = Button(text="Speichern", size_hint_y=None, height=44)
+        save_btn = Button(text="Speichern", size_hint_y=None, height=dp(48))
         content.add_widget(save_btn)
         popup = create_styled_popup(title="Farbe auswählen", content=content, size_hint=(0.8, 0.8))
         def save_color(instance):

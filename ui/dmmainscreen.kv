@@ -1,162 +1,318 @@
 #:import MapGridWidget ui.custom_widgets.MapGridWidget
+#:import Window kivy.core.window.Window
+#:import dp kivy.metrics.dp
 
 <DMMainScreen>:
-    BoxLayout:
-        orientation: 'horizontal'
-        padding: 10
-        spacing: 10
+    TabbedPanel:
+        do_default_tab: False
+        tab_pos: 'top_mid'
+        tab_height: dp(48)
+        tab_width: max(dp(96), self.width / 3.0)
 
-        # Left side: Players and Enemies
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 0.25
-            spacing: 10
-
-            Label:
-                text: "Online Spieler"
-                font_size: '20sp'
-                size_hint_y: None
-                height: 40
+        # ---------------- Übersicht ----------------
+        TabbedPanelItem:
+            text: 'Übersicht'
+            font_size: '16sp'
             ScrollView:
+                id: overview_scroll
+                do_scroll_x: False
+                bar_width: dp(6)
                 GridLayout:
-                    id: online_players_list
-                    cols: 1
+                    cols: 2 if root.width >= dp(900) else 1
+                    padding: dp(8)
+                    spacing: dp(8)
                     size_hint_y: None
                     height: self.minimum_height
+                    row_force_default: True
+                    row_default_height: max(dp(220), (overview_scroll.height - dp(24)) / 2.0) if root.width >= dp(900) else dp(240)
 
-            Label:
-                text: "Offline Spieler"
-                font_size: '20sp'
-                size_hint_y: None
-                height: 40
-            ScrollView:
-                GridLayout:
-                    id: offline_players_list
-                    cols: 1
-                    size_hint_y: None
-                    height: self.minimum_height
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text: 'Spieler der Sitzung'
+                            font_size: '18sp'
+                            size_hint_y: None
+                            height: dp(40)
+                        ScrollView:
+                            do_scroll_x: False
+                            bar_width: dp(6)
+                            GridLayout:
+                                id: online_players_list
+                                cols: 1
+                                size_hint_y: None
+                                height: self.minimum_height
 
-            Label:
-                text: "Gegner"
-                font_size: '20sp'
-                size_hint_y: None
-                height: 40
-            ScrollView:
-                GridLayout:
-                    id: enemies_list
-                    cols: 1
-                    size_hint_y: None
-                    height: self.minimum_height
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text: 'Offline Spieler'
+                            font_size: '18sp'
+                            size_hint_y: None
+                            height: dp(40)
+                        ScrollView:
+                            do_scroll_x: False
+                            bar_width: dp(6)
+                            GridLayout:
+                                id: offline_players_list
+                                cols: 1
+                                size_hint_y: None
+                                height: self.minimum_height
 
-            Label:
-                text: "Objekte"
-                font_size: '20sp'
-                size_hint_y: None
-                height: 40
-            ScrollView:
-                GridLayout:
-                    id: objects_list
-                    cols: 1
-                    size_hint_y: None
-                    height: self.minimum_height
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text: 'Gegner'
+                            font_size: '18sp'
+                            size_hint_y: None
+                            height: dp(40)
+                        ScrollView:
+                            do_scroll_x: False
+                            bar_width: dp(6)
+                            GridLayout:
+                                id: enemies_list
+                                cols: 1
+                                size_hint_y: None
+                                height: self.minimum_height
 
-        # Center: Map
-        MapGridWidget:
-            id: dm_map_grid
-            size_hint_x: 0.5
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text: 'Objekte'
+                            font_size: '18sp'
+                            size_hint_y: None
+                            height: dp(40)
+                        ScrollView:
+                            do_scroll_x: False
+                            bar_width: dp(6)
+                            GridLayout:
+                                id: objects_list
+                                cols: 1
+                                size_hint_y: None
+                                height: self.minimum_height
 
-        # Right side: Controls and Log
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 0.25
-            spacing: 10
-
-            Label:
-                text: "Initiative"
-                font_size: '20sp'
-                size_hint_y: None
-                height: 40
-
-            ScrollView:
-                size_hint_y: 0.4
-                GridLayout:
-                    id: initiative_list
-                    cols: 1
-                    size_hint_y: None
-                    height: self.minimum_height
-
-            Label:
-                id: current_turn_label
-                text: "Am Zug: Niemand"
-                font_size: '18sp'
-                size_hint_y: None
-                height: 40
-
-            Button:
-                text: "Runde beenden"
-                on_press: root.end_turn()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Initiative für alle würfeln"
-                on_press: root.roll_initiative_for_all()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Offline Spieler hinzufügen"
-                on_press: root.add_offline_player()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Gegner hinzufügen"
-                on_press: root.add_enemy()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Sitzung speichern"
-                on_press: root.save_session()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Karte laden"
-                on_press: root.load_map_popup()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Neue Karte erstellen"
-                on_press: root.create_new_map()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Karte bearbeiten"
-                on_press: root.edit_existing_map()
-                size_hint_y: None
-                height: 44
-
-            Label:
-                text: "Log"
-                font_size: '20sp'
-                size_hint_y: None
-                height: 40
-
-            ScrollView:
-                size_hint_y: 0.6
+        # ---------------- Karte ----------------
+        TabbedPanelItem:
+            text: 'Karte'
+            font_size: '16sp'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: dp(8)
+                spacing: dp(6)
                 Label:
-                    id: log_output
-                    text: "Game log will appear here..."
-                    size_hint_y: None
-                    height: self.texture_size[1]
+                    id: dm_map_status
+                    text: 'Kampf starten: Initiative würfeln.'
                     text_size: self.width, None
+                    halign: 'center'
+                    size_hint_y: None
+                    height: dp(64)
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(48)
+                    spacing: dp(6)
+                    Spinner:
+                        id: actor_selector
+                        text: 'Figur wählen'
+                        on_text: root.select_map_actor(self.text)
+                    Button:
+                        text: 'Initiative würfeln'
+                        on_release: root.roll_initiative_for_all()
+                MapGridWidget:
+                    id: dm_map_grid
+                Label:
+                    id: dm_map_hint
+                    text: 'Figur und Aktion wählen.'
+                    text_size: self.width, None
+                    halign: 'center'
+                    size_hint_y: None
+                    height: dp(64)
+                GridLayout:
+                    cols: 3
+                    spacing: dp(6)
+                    size_hint_y: None
+                    height: dp(106)
+                    Button:
+                        id: dm_move_button
+                        text: 'Bewegen'
+                        on_release: root.select_map_action('move')
+                    Button:
+                        id: dm_attack_button
+                        text: 'Angreifen'
+                        on_release: root.select_map_action('attack')
+                    Button:
+                        id: dm_interact_button
+                        text: 'Interagieren'
+                        on_release: root.select_map_action('interact')
+                    Button:
+                        id: dm_place_button
+                        text: 'Platzieren'
+                        on_release: root.select_map_action('place')
+                    Button:
+                        text: 'Auswählen'
+                        on_release: root.select_map_action('inspect')
+                    Button:
+                        id: dm_end_turn_button
+                        text: 'Zug beenden'
+                        on_release: root.end_turn()
 
-            Button:
-                text: "Lobby"
-                on_press: app.change_screen('dm_lobby')
-                size_hint_y: None
-                height: 60
+        # ---------------- Leitung ----------------
+        TabbedPanelItem:
+            text: 'Leitung'
+            font_size: '16sp'
+            ScrollView:
+                do_scroll_x: False
+                bar_width: dp(6)
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(10)
+                    spacing: dp(8)
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    Button:
+                        text: 'Spieler einladen: QR-Code und Beitrittscode'
+                        text_size: self.width - dp(12), None
+                        halign: 'center'
+                        size_hint_y: None
+                        height: dp(56)
+                        on_release: root.show_join_qr()
+                    Button:
+                        text: 'Sitzungsarchiv und DM-Notizen'
+                        size_hint_y: None
+                        height: dp(52)
+                        on_release: root.show_archive()
+                    Label:
+                        id: archive_status
+                        text: 'Das Journal wird beim Spielstart automatisch angelegt.'
+                        text_size: self.width - dp(12), None
+                        halign: 'center'
+                        size_hint_y: None
+                        height: max(dp(44), self.texture_size[1] + dp(8))
+                    Label:
+                        text: 'Beitritt ist auch während der laufenden Sitzung möglich.'
+                        text_size: self.width, None
+                        halign: 'center'
+                        size_hint_y: None
+                        height: max(dp(40), self.texture_size[1] + dp(8))
+                    Label:
+                        text: 'Initiative'
+                        font_size: '18sp'
+                        size_hint_y: None
+                        height: dp(40)
+
+                    ScrollView:
+                        size_hint_y: None
+                        height: max(dp(200), root.height * 0.3)
+                        do_scroll_x: False
+                        bar_width: dp(6)
+                        GridLayout:
+                            id: initiative_list
+                            cols: 1
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                    Label:
+                        id: current_turn_label
+                        text: 'Am Zug: Niemand'
+                        font_size: '18sp'
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.width, None
+                        size_hint_y: None
+                        height: max(dp(40), self.texture_size[1] + dp(12))
+
+                    GridLayout:
+                        cols: 2 if root.width >= dp(600) else 1
+                        spacing: dp(6)
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                        Button:
+                            text: 'Zug beenden'
+                            font_size: '16sp'
+                            on_press: root.end_turn()
+                            size_hint_y: None
+                            height: dp(48)
+                        Button:
+                            text: 'Initiative für alle würfeln'
+                            font_size: '16sp'
+                            text_size: self.width - dp(8), None
+                            halign: 'center'
+                            valign: 'middle'
+                            on_press: root.roll_initiative_for_all()
+                            size_hint_y: None
+                            height: dp(48)
+                        Button:
+                            text: 'Offline Spieler hinzufügen'
+                            font_size: '16sp'
+                            text_size: self.width - dp(8), None
+                            halign: 'center'
+                            valign: 'middle'
+                            on_press: root.add_offline_player()
+                            size_hint_y: None
+                            height: dp(48)
+                        Button:
+                            text: 'Gegner hinzufügen'
+                            font_size: '16sp'
+                            on_press: root.add_enemy()
+                            size_hint_y: None
+                            height: dp(48)
+                        Button:
+                            text: 'Sitzung speichern'
+                            font_size: '16sp'
+                            on_press: root.save_session()
+                            size_hint_y: None
+                            height: dp(48)
+                        Button:
+                            text: 'Karte laden'
+                            font_size: '16sp'
+                            on_press: root.load_map_popup()
+                            size_hint_y: None
+                            height: dp(48)
+                        Button:
+                            text: 'Neue Karte erstellen'
+                            font_size: '16sp'
+                            on_press: root.create_new_map()
+                            size_hint_y: None
+                            height: dp(48)
+                        Button:
+                            text: 'Karte bearbeiten'
+                            font_size: '16sp'
+                            on_press: root.edit_existing_map()
+                            size_hint_y: None
+                            height: dp(48)
+
+                    Label:
+                        text: 'Letzte Ereignisse · vollständiges Journal im Sitzungsarchiv'
+                        text_size: self.width, None
+                        halign: 'center'
+                        font_size: '18sp'
+                        size_hint_y: None
+                        height: dp(40)
+
+                    ScrollView:
+                        size_hint_y: None
+                        height: max(dp(240), root.height * 0.35)
+                        do_scroll_x: False
+                        bar_width: dp(6)
+                        Label:
+                            id: log_output
+                            text: 'Das Spielprotokoll erscheint hier...'
+                            font_size: '14sp'
+                            halign: 'left'
+                            valign: 'top'
+                            size_hint_y: None
+                            height: self.texture_size[1] + dp(8)
+                            text_size: self.width, None
+
+                    Button:
+                        text: 'Lobby'
+                        font_size: '18sp'
+                        on_press: app.change_screen('dm_lobby')
+                        size_hint_y: None
+                        height: dp(56)
+
+                    Button:
+                        text: 'Ganze Sitzung beenden'
+                        on_release: root.confirm_end_session()
+                        size_hint_y: None
+                        height: dp(52)

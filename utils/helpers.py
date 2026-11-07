@@ -3,6 +3,8 @@ import sys
 import json
 import socket
 import random
+import math
+from copy import deepcopy
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
@@ -13,47 +15,46 @@ from kivy.utils import platform
 # Delay importing Window until runtime in functions so Config can be set
 # early (e.g. in main.py) before Window initializes.
 
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    if hasattr(sys, '_MEIPASS'):
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    else:
-        # In development, the path is relative to the main script
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
+from utils.paths import resource_path, get_user_saves_dir, user_data_dir
 
-DATA_DIR = resource_path('utils/data')
-SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
+DATA_DIR = resource_path("utils/data")
+SETTINGS_FILE = os.path.join(user_data_dir(), "settings.json")
 
-def get_user_saves_dir(folder_name="saves"):
-    """Gets the path to a user-specific saves folder (characters, maps, etc.)."""
-    # In this test-compatible version, we save relative to the resource path.
-    # A better implementation would use app.user_data_dir, but that breaks tests.
-    # Spezialspeicherorte für verschiedene Datentypen
-    if folder_name == "sessions":
-        saves_path = resource_path(os.path.join("utils", "data", "sessions"))
-    elif folder_name == "enemies":
-        saves_path = resource_path(os.path.join("utils", "data", "enemies"))
-    elif folder_name == "characters":
-        saves_path = resource_path(os.path.join("utils", "data", "characters"))
-    elif folder_name == "maps":
-        saves_path = resource_path(os.path.join("utils", "data", "maps"))
-    else:
-        saves_path = resource_path(folder_name)
-    if not os.path.exists(saves_path):
-        os.makedirs(saves_path)
-    return saves_path
+def validated_settings(defaults, loaded):
+    result = deepcopy(defaults)
+    if not isinstance(loaded, dict):
+        return result
+    for key, value in loaded.items():
+        if key not in defaults and key != 'lobby_background_path':
+            continue
+        default = defaults.get(key, '')
+        valid = False
+        if type(default) is bool:
+            valid = type(value) is bool
+        elif isinstance(default, list):
+            valid = (isinstance(value, list) and len(value) == 4 and
+                     all(type(v) in (int, float) and math.isfinite(v) and 0 <= v <= 1 for v in value))
+        elif key in ('window_width', 'window_height'):
+            valid = type(value) in (int, float) and math.isfinite(value) and 320 <= value <= 8192
+            if valid:
+                value = int(value)
+        elif key == 'button_transparency':
+            valid = type(value) in (int, float) and math.isfinite(value) and 0 <= value <= 1
+        elif isinstance(default, str):
+            valid = isinstance(value, str) and len(value) <= 4096 and '\x00' not in value
+        if valid:
+            result[key] = deepcopy(value)
+    return result
 
 def load_settings():
     """Lädt die Einstellungen aus der JSON-Datei."""
     # Standardeinstellung für die Tastatur basierend auf dem Betriebssystem
-    keyboard_default = sys.platform.startswith('linux')
+    keyboard_default = platform == 'linux'
 
     defaults = {
         'button_transparency': 0.25,
-        'transparency_enabled': True,
-        'background_enabled': True,
+        'transparency_enabled': False,
+        'background_enabled': False,
         'background_path': 'osbackground/hmbg.png',
         'cs_creator_background_path': 'osbackground/csbg.png',
         'cs_sheet_background_path': 'osbackground/csbg.png',
@@ -72,22 +73,21 @@ def load_settings():
     if not os.path.exists(SETTINGS_FILE):
         return defaults
     try:
-        with open(SETTINGS_FILE, 'r') as f:
+        with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
             loaded_settings = json.load(f)
-        defaults.update(loaded_settings)
-        return defaults
-    except (IOError, json.JSONDecodeError):
+        return validated_settings(defaults, loaded_settings)
+    except (IOError, UnicodeError, json.JSONDecodeError):
         return defaults
 
 def save_settings(settings):
     """Speichert die Einstellungen in der JSON-Datei."""
-    with open(SETTINGS_FILE, 'w') as f:
-        json.dump(settings, f, indent=4)
+    from utils.storage import atomic_write_json
+    atomic_write_json(SETTINGS_FILE, settings)
 
 def apply_styles_to_widget(widget):
     """Durchläuft ein Widget und seine Kinder und wendet Stile an."""
     settings = load_settings()
-    use_transparency = settings.get('transparency_enabled', True)
+    use_transparency = settings.get('transparency_enabled', False)
     font_color_enabled = settings.get('font_color_enabled', False)
     custom_font_color = settings.get('custom_font_color', [1, 1, 1, 1])
     button_font_color_enabled = settings.get('button_font_color_enabled', False)
@@ -169,42 +169,7 @@ def apply_styles_to_widget(widget):
                 except Exception:
                     pass
 
-        # If running on Android, convert fixed pixel sizes to proportional
-        # size_hint values so controls use the available screen space.
-        try:
-            if platform == 'android':
-                # Delay Window import until runtime and only on Android
-                try:
-                    from kivy.core.window import Window
-                except Exception:
-                    Window = None
-
-                if Window:
-                    try:
-                        # Convert fixed height -> size_hint_y when appropriate
-                        if hasattr(w, 'size_hint_y') and (getattr(w, 'size_hint_y') is None or w.size_hint_y == 0):
-                            h = getattr(w, 'height', None)
-                            if h and Window.height:
-                                frac = max(0.03, min(0.9, float(h) / float(Window.height)))
-                                try:
-                                    w.size_hint_y = frac
-                                except Exception:
-                                    pass
-
-                        # Convert fixed width -> size_hint_x when appropriate
-                        if hasattr(w, 'size_hint_x') and (getattr(w, 'size_hint_x') is None or w.size_hint_x == 0):
-                            wid = getattr(w, 'width', None)
-                            if wid and Window.width:
-                                fracx = max(0.05, min(1.0, float(wid) / float(Window.width)))
-                                try:
-                                    w.size_hint_x = fracx
-                                except Exception:
-                                    pass
-                    except Exception:
-                        # Fail silently to avoid breaking desktop tests
-                        pass
-        except Exception:
-            pass
+        # Styling preserves layout constraints and scroll extents.
 
         if hasattr(w, 'children'):
             for child in w.children:
@@ -212,7 +177,7 @@ def apply_styles_to_widget(widget):
 
     apply_to_children(widget)
 
-def create_styled_popup(title, content, size_hint, **kwargs):
+def create_styled_popup(title, content, size_hint=(0.85, 0.75), **kwargs):
     settings = load_settings()
     popup_color_enabled = settings.get('popup_color_enabled', False)
     custom_popup_color = settings.get('custom_popup_color', [0.1, 0.1, 0.1, 0.9])
@@ -262,9 +227,14 @@ def create_styled_popup(title, content, size_hint, **kwargs):
         # Use a fixed size on desktop platforms
         # Import Window here to avoid importing it at module import time
         from kivy.core.window import Window
-        fixed_width = Window.width * size_hint[0]
-        fixed_height = Window.height * size_hint[1]
-        popup = Popup(title=title, content=final_content, size_hint=(None, None), size=(fixed_width, fixed_height), **kwargs)
+        # A None hint means an explicit pixel dimension, as in name/text
+        # dialogs. Preserve width/height/size kwargs without multiplying None
+        # or passing the same argument twice to Popup.
+        dimensions = kwargs.pop('size', (Window.width * .85, Window.height * .75))
+        fixed_width = kwargs.pop('width', dimensions[0] if size_hint[0] is None else Window.width * size_hint[0])
+        fixed_height = kwargs.pop('height', dimensions[1] if size_hint[1] is None else Window.height * size_hint[1])
+        popup = Popup(title=title, content=final_content, size_hint=(None, None),
+                      size=(fixed_width, fixed_height), **kwargs)
 
     if popup_color_enabled:
         popup.background_color = custom_popup_color
@@ -285,7 +255,7 @@ def apply_background(screen):
         screen.canvas.before.remove(old_bg_rect)
         screen._background_rect = None
 
-    if settings.get('background_enabled', True):
+    if settings.get('background_enabled', False):
         bg_path = settings.get('background_path', 'osbackground/hmbg.png')
         if screen.name == 'creator':
             bg_path = settings.get('cs_creator_background_path', bg_path)
@@ -311,20 +281,12 @@ def apply_background(screen):
                 print(f"Fehler beim Laden des Hintergrundbildes: {e}")
 
 def get_local_ip():
-    s = None
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        try:
-            IP = socket.gethostbyname(socket.gethostname())
-        except Exception:
-            IP = '127.0.0.1'
-    finally:
-        if s:
-            s.close()
-    return IP
+    from utils.wire import get_local_ipv4s
+    addresses = get_local_ipv4s()
+    if not addresses:
+        raise OSError('Keine aktive lokale IPv4-Netzwerkschnittstelle gefunden.')
+    return addresses[0]
+
 
 def ensure_character_attributes(character):
     """Adds missing attributes to older character objects for forward compatibility."""

@@ -1,151 +1,224 @@
+#:import dp kivy.metrics.dp
+
+<AtlasButton@Button>:
+    font_size: '14sp'
+    background_normal: ''
+    background_down: ''
+    fill_color: (.19, .25, .29, 1)
+    background_color: 0, 0, 0, 0
+    size_hint_y: None
+    height: dp(44)
+    text_size: self.width - dp(12), self.height
+    halign: 'center'
+    valign: 'middle'
+    canvas.before:
+        Color:
+            rgba: ((.12, .4, .38, 1) if self.state == 'down' else self.fill_color) if not self.disabled else (.14, .18, .20, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(7)]
+
+<AtlasSpinner@Spinner>:
+    font_size: '14sp'
+    background_normal: ''
+    background_color: .19, .25, .29, 1
+    size_hint_y: None
+    height: dp(44)
+
+<AtlasLabel@Label>:
+    font_size: '13sp'
+    color: .72, .8, .81, 1
+    size_hint_y: None
+    height: dp(25)
+    text_size: self.size
+    halign: 'left'
+    valign: 'middle'
+
 <MapEditorScreen>:
     BoxLayout:
-        orientation: 'horizontal'
-        padding: 10
-        spacing: 10
-
-        # Controls on the left
+        orientation: 'vertical'
+        padding: dp(8)
+        spacing: dp(6)
+        canvas.before:
+            Color:
+                rgba: .065, .09, .105, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
         BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 0.3
-            spacing: 10
-
+            size_hint_y: None
+            height: dp(44)
+            spacing: dp(6)
+            AtlasButton:
+                text: 'Zurück'
+                size_hint_x: None
+                width: dp(64)
+                on_release: root.go_back()
             Label:
-                text: "Map Controls"
-                font_size: '20sp'
-                size_hint_y: None
-                height: 40
-
-            GridLayout:
-                cols: 2
-                size_hint_y: None
-                height: 120
-                spacing: 5
-
-                Label:
-                    text: "Rows:"
-                TextInput:
-                    id: rows_input
-                    text: "10"
-                    input_filter: 'int'
-                Label:
-                    text: "Cols:"
-                TextInput:
-                    id: cols_input
-                    text: "10"
-                    input_filter: 'int'
-                Button:
-                    text: "Create Grid"
-                    on_press: root.create_grid()
-
-            Label:
-                text: "Paint Tool"
-                font_size: '18sp'
-                size_hint_y: None
-                height: 30
-
-            Spinner:
-                id: tile_type_spinner
-                text: "Floor"
-                values: ["Floor", "Wall", "Door"]
-                size_hint_y: None
-                height: 44
-
-            Label:
-                text: "Place Enemy"
-                font_size: '18sp'
-                size_hint_y: None
-                height: 30
-
-            Spinner:
-                id: enemy_spinner
-                text: "None"
-                values: ["None"]
-                size_hint_y: None
-                height: 44
-
-            Label:
-                text: "Place Player"
-                font_size: '18sp'
-                size_hint_y: None
-                height: 30
-
-            Spinner:
-                id: player_spinner
-                text: "None"
-                values: ["None"]
-                size_hint_y: None
-                height: 44
-
-            Label:
-                text: "Place Furniture"
-                font_size: '18sp'
-                size_hint_y: None
-                height: 30
-
-            Spinner:
-                id: furniture_spinner
-                text: "None"
-                values: ["None"]
-                size_hint_y: None
-                height: 44
-
+                text: ('Werkstatt' if root.purpose == 'library' else 'Sitzungskarte') if root.width < dp(760) else ('Kartenwerkstatt · freie Bibliothek' if root.purpose == 'library' else 'Kartenwerkstatt · Arbeitskopie')
+                font_size: '16sp'
+                text_size: self.size
+                halign: 'left'
+                valign: 'middle'
+                shorten: True
+            AtlasButton:
+                text: 'Speichern'
+                size_hint_x: None
+                width: dp(82)
+                fill_color: .13, .42, .36, 1
+                on_release: root.save_map()
+            AtlasButton:
+                text: 'Bibliothek'
+                size_hint_x: None
+                width: dp(86)
+                on_release: root.load_map_popup()
+        BoxLayout:
+            size_hint_y: None
+            height: dp(44)
+            spacing: dp(6)
+            ScrollView:
+                id: breadcrumbs_scroll
+                do_scroll_y: False
+                bar_width: dp(2)
+                BoxLayout:
+                    id: breadcrumbs
+                    size_hint_x: None
+                    width: self.minimum_width
+                    spacing: dp(4)
+            AtlasButton:
+                text: 'Atlas'
+                size_hint_x: None
+                width: dp(60)
+                on_release: root.show_hierarchy()
+            AtlasButton:
+                text: 'Karte …'
+                size_hint_x: None
+                width: dp(72)
+                on_release: root.show_settings()
+        BoxLayout:
+            id: level_bar
+            size_hint_y: None
+            height: dp(44)
+            spacing: dp(4)
+        AtlasButton:
+            text: root.scale_title + ' · Maßstab ändern'
+            height: dp(28)
+            font_size: '12sp'
+            on_release: root.edit_scale()
+        EditorResponsiveBox:
+            size_hint_y: None
+            height: dp(44) if root.width < dp(760) else 0
+            opacity: 1 if root.width < dp(760) else 0
+            disabled: root.width >= dp(760)
+            spacing: dp(6)
+            AtlasSpinner:
+                id: mobile_tool
+                text: root.tool_title
+                values: ['Auswahl', 'Assets', 'Hand', 'Pinsel', 'Landfläche', 'Linie', 'Rechteck', 'Ellipse', 'Radierer', 'Text', 'Skizzen', 'Regionen', 'Ortpunkt', 'Spielfelder']
+                on_text: root.choose_tool_title(self.text)
+            AtlasButton:
+                text: 'Optionen schließen' if root.inspector_open else 'Optionen'
+                on_release: root.inspector_open = not root.inspector_open
+        BoxLayout:
+            spacing: dp(8) if root.width >= dp(760) else 0
+            EditorResponsiveBox:
+                orientation: 'vertical'
+                size_hint_x: None
+                width: dp(168) if root.width >= dp(760) else 0
+                opacity: 1 if root.width >= dp(760) else 0
+                disabled: root.width < dp(760)
+                spacing: dp(8)
+                AtlasLabel:
+                    text: 'WERKZEUGE'
+                GridLayout:
+                    id: tool_row
+                    cols: 2
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: dp(44)
+                    row_force_default: True
+                    spacing: dp(6)
+                AtlasLabel:
+                    text: 'Mausrad vor: näher\nMittlere Taste: verschieben'
+                    height: dp(60)
+                    font_size: '12sp'
+                Widget:
             BoxLayout:
-                size_hint_y: None
-                height: 30
-                CheckBox:
-                    id: mimic_checkbox
-                Label:
-                    text: "Is Mimic?"
-
-            Button:
-                text: "Save Map"
-                on_press: root.save_map()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Save Map As..."
-                on_press: root.save_map_as_popup()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Load Map"
-                on_press: root.load_map_popup()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Load Enemy List"
-                on_press: root.load_enemy_list_popup()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Reset Enemy List"
-                on_press: root.reset_enemy_list()
-                size_hint_y: None
-                height: 44
-
-            BoxLayout:
-                size_hint_y: 1.0 # Spacer
-
-            Button:
-                text: "Info"
-                on_press: root.show_info_popup()
-                size_hint_y: None
-                height: 44
-
-            Button:
-                text: "Zurück"
-                on_press: root.go_back()
-                size_hint_y: None
-                height: 80
-                font_size: '20sp'
-
-        # Map grid on the right
-        GridLayout:
-            id: map_grid
-            cols: 10 # Default
-            spacing: 2
+                orientation: 'horizontal' if root.width >= dp(760) else 'vertical'
+                spacing: dp(8)
+                EditorCanvas:
+                    id: map_canvas
+                    controller: root
+                ScrollView:
+                    id: inspector_scroll
+                    do_scroll_x: False
+                    size_hint_x: None if root.width >= dp(760) else 1
+                    width: dp(244) if root.width >= dp(760) else self.parent.width
+                    size_hint_y: 1 if root.width >= dp(760) else None
+                    height: self.parent.height if root.width >= dp(760) else ((dp(218) if root.height >= dp(720) else dp(128)) if root.inspector_open else 0)
+                    opacity: 1 if root.width >= dp(760) or root.inspector_open else 0
+                    disabled: root.width < dp(760) and not root.inspector_open
+                    bar_width: dp(4)
+                    BoxLayout:
+                        id: inspector
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: dp(6)
+                        padding: dp(10)
+                        canvas.before:
+                            Color:
+                                rgba: .105, .15, .17, 1
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+        BoxLayout:
+            size_hint_y: None
+            height: dp(44)
+            spacing: dp(6)
+            AtlasButton:
+                text: 'Rückgängig'
+                font_size: '12sp' if root.width < dp(760) else '14sp'
+                text_size: self.width - dp(4), self.height
+                size_hint_x: None
+                width: min(dp(110), max(dp(54), (self.parent.width - dp(118)) / 3))
+                disabled: not root.can_undo
+                on_release: root.undo()
+            AtlasButton:
+                text: 'Wiederholen'
+                font_size: '12sp' if root.width < dp(760) else '14sp'
+                text_size: self.width - dp(4), self.height
+                size_hint_x: None
+                width: min(dp(110), max(dp(54), (self.parent.width - dp(118)) / 3))
+                disabled: not root.can_redo
+                on_release: root.redo()
+            AtlasButton:
+                text: '−'
+                size_hint_x: None
+                width: dp(44)
+                on_release: map_canvas.zoom_by(1 / 1.3)
+            AtlasButton:
+                text: '+'
+                size_hint_x: None
+                width: dp(44)
+                on_release: map_canvas.zoom_by(1.3)
+            AtlasButton:
+                text: 'Einpassen'
+                font_size: '12sp' if root.width < dp(760) else '14sp'
+                text_size: self.width - dp(4), self.height
+                size_hint_x: None
+                width: min(dp(110), max(dp(54), (self.parent.width - dp(118)) / 3))
+                on_release: map_canvas.fit()
+            Widget:
+                size_hint_x: 1
+        Label:
+            text: ('Nicht gespeichert · ' if root.dirty else '') + root.status
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            font_size: '12sp'
+            color: .72, .81, .82, 1
+            size_hint_y: None
+            height: dp(38)

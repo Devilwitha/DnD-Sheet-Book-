@@ -1,0 +1,14 @@
+#:import dp kivy.metrics.dp
+
+<Spinner>:
+    # Reserve space for a permanent chevron, including programmatically created spinners.
+    text_size: self.width - dp(42), None
+    halign: 'left'
+    shorten: True
+    shorten_from: 'right'
+    canvas.after:
+        Color:
+            rgba: self.disabled_color if self.disabled else self.color
+        Line:
+            points: [self.right - dp(25), self.center_y + dp(3), self.right - dp(19), self.center_y - dp(3), self.right - dp(13), self.center_y + dp(3)]
+            width: dp(1.3)

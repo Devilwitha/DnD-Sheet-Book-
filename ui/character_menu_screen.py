@@ -1,5 +1,7 @@
+from kivy.metrics import dp
 import os
-import pickle
+from utils.storage import CharacterRepository, safe_save_path
+from utils.non_ui_helpers import roll_dice
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -21,14 +23,6 @@ class CharacterMenuScreen(Screen):
     def on_pre_enter(self, *args):
         apply_background(self)
         apply_styles_to_widget(self)
-        if platform == 'android':
-            for btn_id in ('btn_neu', 'btn_laden', 'btn_zurueck'):
-                btn = self.ids.get(btn_id)
-                if btn:
-                    btn.size_hint_y = 0.10
-            lbl = self.ids.get('lbl_header')
-            if lbl:
-                lbl.size_hint_y = 0.12
 
     def go_to_screen(self, screen_name):
         self.app.change_screen(screen_name)
@@ -43,9 +37,13 @@ class CharacterMenuScreen(Screen):
 
         files = [f for f in os.listdir(self.saves_dir) if f.endswith('.char')]
         for filename in files:
-            char_layout = BoxLayout(size_hint_y=None, height=40)
+            char_layout = BoxLayout(size_hint_y=None, height=dp(48))
 
-            load_btn = Button(text=filename)
+            try:
+                title = CharacterRepository().load(filename).name
+            except ValueError:
+                title = filename + ' (altes oder ungültiges Format)'
+            load_btn = Button(text=title)
             load_btn.bind(on_release=lambda btn, fn=filename: self.load_character(fn))
 
             edit_btn = Button(text="Bearbeiten", size_hint_x=0.3)
@@ -84,7 +82,7 @@ class CharacterMenuScreen(Screen):
         self.confirmation_popup.open()
 
     def delete_character(self, filename):
-        filepath = os.path.join(self.saves_dir, filename)
+        filepath = safe_save_path(self.saves_dir, filename)
         try:
             os.remove(filepath)
             self.confirmation_popup.dismiss()
@@ -94,22 +92,46 @@ class CharacterMenuScreen(Screen):
             self.show_popup("Fehler", f"Fehler beim Löschen des Charakters: {e}")
 
     def load_character(self, filename):
-        filepath = os.path.join(self.saves_dir, filename)
+        filepath = safe_save_path(self.saves_dir, filename)
         try:
-            with open(filepath, 'rb') as f:
-                character = pickle.load(f)
+            character = CharacterRepository().load(filename)
             character = ensure_character_attributes(character)
             self.manager.get_screen('sheet').load_character(character)
             self.app.change_screen('sheet')
             self.popup.dismiss()
         except Exception as e:
-            self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
+            from utils.storage import LEGACY_MSG
+            if str(e) == LEGACY_MSG:
+                self.confirm_legacy_import(filename)
+            else:
+                self.show_popup("Fehler", f"Fehler beim Laden des Charakters: {e}")
+
+    def confirm_legacy_import(self, filename):
+        content = BoxLayout(orientation='vertical', spacing=10)
+        content.add_widget(Label(text='Alten Charakter in das neue Format übernehmen?\nDie Originaldatei bleibt erhalten.'))
+        convert = Button(text='Übernehmen')
+        cancel = Button(text='Abbrechen')
+        content.add_widget(convert)
+        content.add_widget(cancel)
+        popup = create_styled_popup(title='Altes Charakterformat', content=content)
+        cancel.bind(on_release=popup.dismiss)
+
+        def apply(instance):
+            try:
+                from utils.legacy_character import convert_legacy_character
+                new_name = convert_legacy_character(self.saves_dir, filename)
+            except Exception as error:
+                self.show_popup('Übernahme fehlgeschlagen', str(error))
+                return
+            popup.dismiss()
+            self.load_character(new_name)
+        convert.bind(on_release=apply)
+        popup.open()
 
     def edit_character(self, filename):
-        filepath = os.path.join(self.saves_dir, filename)
+        filepath = safe_save_path(self.saves_dir, filename)
         try:
-            with open(filepath, 'rb') as f:
-                character = pickle.load(f)
+            character = CharacterRepository().load(filename)
             character = ensure_character_attributes(character)
             editor_screen = self.manager.get_screen('editor')
             editor_screen.load_character(character)

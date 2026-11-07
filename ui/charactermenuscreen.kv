@@ -1,31 +1,49 @@
+#:import dp kivy.metrics.dp
+
 <CharacterMenuScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-        spacing: 10
-
-        Label:
-            id: lbl_header
-            text: "Charakter"
-            font_size: '28sp'
-
-        Button:
-            id: btn_neu
-            text: "Neuen Charakter erstellen"
-            on_press: root.go_to_screen('creator')
-            font_size: '20sp'
-
-        Button:
-            id: btn_laden
-            text: "Charakter laden"
-            on_press: root.show_load_popup()
-            font_size: '20sp'
-
+    ScrollView:
+        do_scroll_x: False
+        bar_width: dp(6)
         BoxLayout:
-            size_hint_y: 1.0
+            orientation: 'vertical'
+            padding: dp(16)
+            spacing: dp(12)
+            size_hint_y: None
+            height: self.minimum_height
 
-        Button:
-            id: btn_zurueck
-            text: "Zurück"
-            on_press: root.go_back()
-            font_size: '20sp'
+            Label:
+                id: lbl_header
+                text: 'Charakter'
+                font_size: '28sp'
+                size_hint_y: None
+                height: dp(64)
+
+            Button:
+                id: btn_neu
+                text: 'Neuen Charakter erstellen'
+                on_press: root.go_to_screen('creator')
+                font_size: '18sp'
+                size_hint_y: None
+                height: dp(60)
+                text_size: self.width - dp(16), None
+                halign: 'center'
+                valign: 'middle'
+
+            Button:
+                id: btn_laden
+                text: 'Charakter laden'
+                on_press: root.show_load_popup()
+                font_size: '18sp'
+                size_hint_y: None
+                height: dp(60)
+                text_size: self.width - dp(16), None
+                halign: 'center'
+                valign: 'middle'
+
+            Button:
+                id: btn_zurueck
+                text: 'Zurück'
+                on_press: root.go_back()
+                font_size: '18sp'
+                size_hint_y: None
+                height: dp(60)

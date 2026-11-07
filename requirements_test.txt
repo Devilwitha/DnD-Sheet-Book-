@@ -1,4 +1,3 @@
-kivy==2.1.0
-zeroconf
-psutil
-pytest
+-r requirements.txt
+pytest==8.4.2
+pypdf==6.1.3

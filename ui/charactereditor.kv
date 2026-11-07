@@ -1,10 +1,36 @@
+#:import Window kivy.core.window.Window
+#:import dp kivy.metrics.dp
+
 <CharacterEditor>:
-    ScrollView:
-        size_hint: (1, 1)
-        GridLayout:
-            id: editor_layout
-            cols: 2
-            padding: 10
-            spacing: 10
+    BoxLayout:
+        orientation: 'vertical'
+
+        BoxLayout:
             size_hint_y: None
-            height: self.minimum_height
+            height: dp(56)
+            padding: dp(4)
+            spacing: dp(8)
+            Button:
+                text: 'Zurück'
+                size_hint_x: None
+                width: dp(120)
+                font_size: '16sp'
+                on_release: root.manager.current = 'main'
+            Label:
+                text: 'Charakter bearbeiten'
+                font_size: '20sp'
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.size
+
+        ScrollView:
+            size_hint: (1, 1)
+            do_scroll_x: False
+            bar_width: dp(6)
+            GridLayout:
+                id: editor_layout
+                cols: 2 if root.width >= dp(700) else 1
+                padding: dp(12)
+                spacing: dp(10)
+                size_hint_y: None
+                height: self.minimum_height

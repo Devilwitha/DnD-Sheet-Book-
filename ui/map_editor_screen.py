@@ -1,3 +1,4 @@
+from kivy.metrics import dp
 import json
 import os
 from kivy.uix.screenmanager import Screen
@@ -14,11 +15,13 @@ from utils.helpers import apply_background, apply_styles_to_widget, create_style
 from utils.data_manager import ENEMY_DATA
 from kivy.app import App
 from kivy.uix.checkbox import CheckBox
+from utils.formats import decode_map, encode_map
+from utils.storage import read_json, atomic_write_json, safe_save_path
 
-class MapEditorScreen(Screen):
+class LegacyMapEditorScreen(Screen):
     """Screen for creating and editing maps."""
     def __init__(self, **kwargs):
-        super(MapEditorScreen, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.map_data = {}
         self.preloaded_map_data = None
@@ -41,7 +44,8 @@ class MapEditorScreen(Screen):
             self.current_map_filename = None
 
     def load_existing_map(self, map_data):
-        self.map_data = map_data
+        self.map_data = decode_map(map_data)
+        map_data = self.map_data
         # Lade offline_players aus map_data falls vorhanden und setze sie im GameManager
         offline_players_raw = map_data.get('offline_players', [])
         offline_players = []
@@ -52,19 +56,16 @@ class MapEditorScreen(Screen):
             elif isinstance(p, dict):
                 offline_players.append(Character.from_dict(p))
         if hasattr(self.app, 'game_manager'):
-            self.app.game_manager.offline_players = offline_players
+            known = {c.name for c in self.app.game_manager.offline_players}
+            self.app.game_manager.offline_players.extend(c for c in offline_players if c.name not in known)
             # Versuche, die Offline-Spieler-Liste im DM-Screen zu aktualisieren
             try:
                 if hasattr(self.app, 'root') and hasattr(self.app.root, 'get_screen'):
-                    dm_screen = self.app.root.get_screen('dm_main_screen')
+                    dm_screen = self.app.root.get_screen('dm_main')
                     if hasattr(dm_screen, 'update_offline_players_list'):
                         dm_screen.update_offline_players_list()
             except Exception as e:
                 print(f"[WARN] Konnte Offline-Spieler-Liste im DM-Screen nicht aktualisieren: {e}")
-        if self.map_data and self.map_data.get('tiles'):
-            first_key = next(iter(self.map_data['tiles']), None)
-            if isinstance(first_key, str):
-                self.map_data['tiles'] = {eval(k): v for k, v in self.map_data['tiles'].items()}
         self.ids.rows_input.text = str(self.map_data.get('rows', 10))
         self.ids.cols_input.text = str(self.map_data.get('cols', 10))
         self.recreate_grid_from_data()
@@ -86,6 +87,7 @@ class MapEditorScreen(Screen):
             offline_names = []
             if hasattr(self.app, 'game_manager'):
                 offline_names = [char.name for char in getattr(self.app.game_manager, 'offline_players', [])]
+                offline_names += list(self.app.game_manager.disconnected_players)
             for name in offline_names:
                 if name not in player_names:
                     player_names.append(name)
@@ -100,6 +102,8 @@ class MapEditorScreen(Screen):
         try:
             rows = int(self.ids.rows_input.text)
             cols = int(self.ids.cols_input.text)
+            if not (1 <= rows <= 100 and 1 <= cols <= 100):
+                raise ValueError('Kartengröße muss zwischen 1 und 100 liegen.')
         except ValueError:
             create_styled_popup(title="Error", content=Label(text="Invalid number of rows/cols."), size_hint=(0.5, 0.3)).open()
             return
@@ -125,12 +129,13 @@ class MapEditorScreen(Screen):
 
     def on_tile_touch_down(self, row, col, instance, touch):
         if instance.collide_point(*touch.pos):
-            if touch.button == 'right':
+            if getattr(touch, 'button', 'left') == 'right' or self.ids.tile_type_spinner.text == 'Optionen':
                 self.show_tile_context_menu(row, col)
                 return
 
             # If it's not a right-click, proceed with the normal logic
             paint_tool = self.ids.tile_type_spinner.text
+            paint_tool = {'Boden': 'Floor', 'Wand': 'Wall', 'Tür': 'Door', 'Auslöser': 'Trigger'}.get(paint_tool, paint_tool)
             enemy_to_place = self.ids.enemy_spinner.text
             player_to_place = self.ids.player_spinner.text
             furniture_to_place = self.ids.furniture_spinner.text
@@ -210,29 +215,37 @@ class MapEditorScreen(Screen):
                 child.text, child.color = furn['type'][:2], (1,0.5,1,1) if furn.get('is_mimic') else (0.7,0.7,0.7,1)
             child.background_color = bg
 
+    def map_with_characters(self):
+        """Carry character definitions both on disk and when returning to the DM."""
+        data = dict(self.map_data)
+        gm = self.app.game_manager
+        data['offline_players'] = [p.to_dict() for p in gm.offline_players]
+        data['online_players'] = [p.to_dict() for p in
+                                  {**gm.disconnected_players, **gm.online_players}.values()]
+        return data
+
     def do_save(self, filename):
         if not filename.endswith('.json'): filename += '.json'
         saves_dir = get_user_saves_dir("maps")
-        filepath = os.path.join(saves_dir, filename)
         try:
+            filepath = safe_save_path(saves_dir, filename)
             enemies = [obj for tile in self.map_data.get('tiles',{}).values() if (obj := tile.get('object')) and obj.split('#')[0].strip() in ENEMY_DATA]
-            with open(filepath, 'w', encoding='utf-8') as f:
-                save_data = self.map_data.copy()
-                save_data['tiles'] = {str(k): v for k, v in self.map_data['tiles'].items()}
-                save_data['enemies'] = enemies
-                # Offline-Spieler speichern
-                if hasattr(self.app.game_manager, 'offline_players'):
-                    save_data['offline_players'] = [c.to_dict() for c in self.app.game_manager.offline_players]
-                json.dump(save_data, f, indent=4)
-            self.app.edited_map_data = self.map_data
+            save_data = self.map_with_characters()
+            save_data['enemies'] = enemies
+            if hasattr(self.app.game_manager, 'offline_players'):
+                save_data['offline_players'] = [c.to_dict() for c in self.app.game_manager.offline_players]
+            atomic_write_json(filepath, encode_map(save_data))
+            self.app.edited_map_data = save_data
             self.current_map_filename = filename
+            return True
         except Exception as e:
             create_styled_popup(title="Error", content=Label(text=f"Error saving map:\n{e}"), size_hint=(0.6, 0.4)).open()
+            return False
 
     def save_map(self):
         if self.current_map_filename:
-            self.do_save(self.current_map_filename)
-            create_styled_popup(title="Gespeichert", content=Label(text=f"Map '{self.current_map_filename}' gespeichert."), size_hint=(0.6, 0.4)).open()
+            if self.do_save(self.current_map_filename):
+                create_styled_popup(title="Gespeichert", content=Label(text=f"Map '{self.current_map_filename}' gespeichert."), size_hint=(0.6, 0.4)).open()
         else:
             self.save_map_as_popup()
 
@@ -245,8 +258,8 @@ class MapEditorScreen(Screen):
         popup = create_styled_popup(title="Save Map As...", content=content, size_hint=(0.7, 0.4))
         def save_action(instance):
             filename = filename_input.text.strip()
-            if filename: self.do_save(filename)
-            popup.dismiss()
+            if filename and self.do_save(filename):
+                popup.dismiss()
         save_btn.bind(on_press=save_action)
         popup.open()
 
@@ -257,7 +270,7 @@ class MapEditorScreen(Screen):
         grid.bind(minimum_height=grid.setter('height'))
         saves = get_user_saves_dir("maps")
         for f in [f for f in os.listdir(saves) if f.endswith('.json')]:
-            btn = Button(text=f, size_hint_y=None, height=44)
+            btn = Button(text=f, size_hint_y=None, height=dp(48))
             btn.bind(on_press=partial(self.do_load_map, f))
             grid.add_widget(btn)
         scroll.add_widget(grid)
@@ -267,10 +280,9 @@ class MapEditorScreen(Screen):
 
     def do_load_map(self, filename, instance):
         maps_dir = get_user_saves_dir("maps")
-        filepath = os.path.join(maps_dir, filename)
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                loaded_data = json.load(f)
+            filepath = safe_save_path(maps_dir, filename)
+            loaded_data = read_json(filepath)
             self.load_existing_map(loaded_data)
             self.current_map_filename = filename
             if hasattr(self, 'load_popup'): self.load_popup.dismiss()
@@ -284,7 +296,7 @@ class MapEditorScreen(Screen):
         grid.bind(minimum_height=grid.setter('height'))
         saves_dir = get_user_saves_dir("enemies")
         for f in [f for f in os.listdir(saves_dir) if f.endswith('.enemies')]:
-            btn = Button(text=f, size_hint_y=None, height=44)
+            btn = Button(text=f, size_hint_y=None, height=dp(48))
             btn.bind(on_press=partial(self.do_load_enemy_list, f))
             grid.add_widget(btn)
         scroll.add_widget(grid)
@@ -294,10 +306,9 @@ class MapEditorScreen(Screen):
 
     def do_load_enemy_list(self, filename, instance):
         saves_dir = get_user_saves_dir("enemies")
-        filepath = os.path.join(saves_dir, filename)
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            filepath = safe_save_path(saves_dir, filename)
+            data = read_json(filepath)
             self.custom_enemy_list = [e.get('name') for e in data if e.get('name')]
             self.populate_spinners()
             self.enemy_list_popup.dismiss()
@@ -310,7 +321,7 @@ class MapEditorScreen(Screen):
 
     def go_back(self):
         if self.map_data.get('tiles'):
-             self.app.edited_map_data = self.map_data
+             self.app.edited_map_data = self.map_with_characters()
         self.app.go_back_screen()
 
     def show_info_popup(self):
@@ -340,7 +351,7 @@ class MapEditorScreen(Screen):
         content = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
         content.bind(minimum_height=content.setter('height'))
 
-        reset_button = Button(text="Reset Tile", size_hint_y=None, height=44)
+        reset_button = Button(text="Reset Tile", size_hint_y=None, height=dp(48))
 
         popup = create_styled_popup(title=f"Options for Tile ({row}, {col})", content=content, size_hint=(0.5, 0.5))
 
@@ -354,7 +365,7 @@ class MapEditorScreen(Screen):
         if tile_data.get('furniture'):
             is_mimic = tile_data['furniture'].get('is_mimic', False)
             mimic_button_text = "Remove Mimic Flag" if is_mimic else "Flag as Mimic"
-            mimic_button = Button(text=mimic_button_text, size_hint_y=None, height=44)
+            mimic_button = Button(text=mimic_button_text, size_hint_y=None, height=dp(48))
 
             def mimic_action(instance):
                 self.toggle_mimic(row, col)
@@ -380,3 +391,11 @@ class MapEditorScreen(Screen):
             tile_data['furniture'] = None
             tile_data.pop('trigger_message', None)
             self.update_grid_visuals()
+
+
+from ui.map_editor_tools import MapEditorTools
+
+
+class MapEditorScreen(MapEditorTools, LegacyMapEditorScreen):
+    """Integrated atlas editor with existing game-tile placement."""
+    pass

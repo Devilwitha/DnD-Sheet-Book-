@@ -1,6 +1,8 @@
+from kivy.metrics import dp
 import random
 from functools import partial
-import pickle
+from utils.storage import CharacterRepository, safe_save_path
+from utils.non_ui_helpers import roll_dice
 import os
 
 from kivy.uix.boxlayout import BoxLayout
@@ -13,7 +15,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, BooleanProperty
 from kivy.app import App
 
 from utils.data_manager import WEAPON_DATA, SKILL_LIST, SPELL_DATA
@@ -22,20 +24,24 @@ from utils.helpers import apply_background, apply_styles_to_widget, create_style
 class CharacterSheet(Screen):
     """Finaler Charakterbogen mit allen neuen Features."""
     main_layout = ObjectProperty(None)
+    client_mode = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(CharacterSheet, self).__init__(**kwargs)
         self.character = None
         self.currency_labels = {}
+        self._rendering_weapon = False
 
     def on_pre_enter(self, *args):
+        self.client_mode = self.is_client()
         apply_background(self)
         apply_styles_to_widget(self)
 
         app = App.get_running_app()
         if hasattr(app, 'source_screen') and app.source_screen:
-            self.ids.dm_back_button.text = f"Zurück zu {app.source_screen.replace('_', ' ').title()}"
-            self.ids.dm_back_button.height = 50
+            destination = {'dm_main': 'Spielleitung', 'player_sheet': 'Spiel'}.get(app.source_screen, 'Übersicht')
+            self.ids.dm_back_button.text = f"Zurück zu {destination}"
+            self.ids.dm_back_button.height = dp(48)
             self.ids.dm_back_button.opacity = 1
             self.ids.dm_back_button.disabled = False
             self.ids.main_menu_button.height = 0
@@ -45,11 +51,12 @@ class CharacterSheet(Screen):
             self.ids.dm_back_button.height = 0
             self.ids.dm_back_button.opacity = 0
             self.ids.dm_back_button.disabled = True
-            self.ids.main_menu_button.height = 50
+            self.ids.main_menu_button.height = dp(48)
             self.ids.main_menu_button.opacity = 1
             self.ids.main_menu_button.disabled = False
 
     def load_character(self, character):
+        self.client_mode = self.is_client()
         self.character = character
         if self.character:
             if hasattr(self.character, 'normalize_spells'):
@@ -75,28 +82,32 @@ class CharacterSheet(Screen):
         self.ids.stats_box.add_widget(Label(text="Initiative:"))
         self.ids.stats_box.add_widget(Label(text=f"{self.character.initiative:+}"))
         self.ids.stats_box.add_widget(Label(text="Bewegungsrate:"))
-        self.ids.stats_box.add_widget(Label(text=f"{self.character.speed}m ({int(self.character.speed / 1.5)} Felder)"))
+        self.ids.stats_box.add_widget(Label(text=f"{self.character.speed * 1.5:g}m ({self.character.speed} Felder)"))
         self.ids.stats_box.add_widget(Label(text="Trefferwürfel:"))
         self.ids.stats_box.add_widget(Label(text=f"{self.character.hit_dice}/{self.character.max_hit_dice}"))
 
 
         self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
 
-        self.ids.weapon_spinner.text = self.character.equipped_weapon
-        self.ids.weapon_spinner.values = sorted(WEAPON_DATA.keys())
+        self._rendering_weapon = True
+        try:
+            self.ids.weapon_spinner.text = self.character.equipped_weapon
+            owned = {i['name'] for i in self.character.inventory if i.get('quantity', 1) > 0}
+            owned.update(self.character.equipment)
+            owned.update(('Unbewaffneter Schlag', self.character.equipped_weapon))
+            self.ids.weapon_spinner.values = sorted(owned & WEAPON_DATA.keys()) if self.is_client() else sorted(WEAPON_DATA)
+        finally:
+            self._rendering_weapon = False
 
         self.ids.currency_box.clear_widgets()
-        self.ids.currency_box.add_widget(Label(text="Währung", size_hint_x=None, width=100))
-        self.ids.currency_box.add_widget(Label())
-        self.ids.currency_box.add_widget(Label())
         for curr in ["KP", "SP", "EP", "GM", "PP"]:
             self.ids.currency_box.add_widget(Label(text=f"{curr}:"))
             self.currency_labels[curr] = Label(text=str(self.character.currency[curr]))
             self.ids.currency_box.add_widget(self.currency_labels[curr])
             btn_box = BoxLayout()
 
-            minus_btn = Button(text="-", on_press=partial(self.change_currency, curr, -1))
-            plus_btn = Button(text="+", on_press=partial(self.change_currency, curr, 1))
+            minus_btn = Button(text="-", disabled=self.is_client(), on_press=partial(self.change_currency, curr, -1))
+            plus_btn = Button(text="+", disabled=self.is_client(), on_press=partial(self.change_currency, curr, 1))
 
             apply_styles_to_widget(minus_btn)
             apply_styles_to_widget(plus_btn)
@@ -107,7 +118,7 @@ class CharacterSheet(Screen):
 
         self.ids.features_layout.clear_widgets()
         for feature in self.character.features:
-            btn = Button(text=feature['name'], size_hint_y=None, height=40, halign='left', valign='middle', padding=(10, 0))
+            btn = Button(text=feature['name'], size_hint_y=None, height=dp(48), halign='left', valign='middle', padding=(10, 0))
             btn.bind(on_press=partial(self.show_feature_popup, feature))
             apply_styles_to_widget(btn)
             self.ids.features_layout.add_widget(btn)
@@ -127,10 +138,22 @@ class CharacterSheet(Screen):
         create_styled_popup(title=title, content=content, size_hint=(0.8, 0.8)).open()
 
     def update_weapon(self, text):
+        if getattr(self, '_rendering_weapon', False) or not self.character or text == self.character.equipped_weapon:
+            return
+        if self.is_client():
+            App.get_running_app().request_character_action('equip_weapon', weapon=text)
+            self._rendering_weapon = True
+            try:
+                self.ids.weapon_spinner.text = self.character.equipped_weapon
+            finally:
+                self._rendering_weapon = False
+            return
         self.character.equipped_weapon = text
         self.sync_character()
 
     def change_hp(self, amount):
+        if not self.allow_dm_edit():
+            return
         self.character.hit_points += amount
         self.character.hit_points = max(0, min(self.character.hit_points, self.character.max_hit_points))
         self.ids.hp_label.text = f"HP: {self.character.hit_points} / {self.character.max_hit_points}"
@@ -145,22 +168,30 @@ class CharacterSheet(Screen):
             self.sync_character_to_host()
 
     def sync_character_to_host(self):
-        """Sends the entire character object to the host."""
-        app = App.get_running_app()
-        if not self.character or not app.network_manager or app.network_manager.mode != 'client':
-            return
-        app.network_manager.send_to_dm("SET_CHARACTER_DATA", self.character.to_dict())
+        self.show_popup('DM-Spielstand', 'Änderungen am Charakterbogen nimmt die Spielleitung vor.')
 
     def sync_character_to_client(self):
-        """If the DM is viewing this sheet, send the updated character to the client."""
+        """DM edits: keep authoritative references consistent, then send a quiet SYNC_CHARACTER."""
         app = App.get_running_app()
-        if hasattr(app, 'source_screen') and app.source_screen and app.network_manager.mode == 'dm':
-            nm = app.network_manager
-            client_addr = nm.get_client_addr_by_name(self.character.name)
-            if client_addr:
-                nm.send_message(client_addr, "SET_CHARACTER_DATA", self.character.to_dict())
+        nm = app.network_manager
+        if not self.character or nm.mode != 'dm' or not getattr(app, 'source_screen', None):
+            return
+        self.manager.get_screen('dm_main').commit_character(self.character)
+
+    @staticmethod
+    def is_client():
+        app = App.get_running_app()
+        return getattr(getattr(app, 'network_manager', None), 'mode', None) == 'client'
+
+    def allow_dm_edit(self):
+        if self.is_client():
+            self.show_popup('DM-Spielstand', 'Während der Sitzung verwaltet der DM Stufe, HP, Geld und Inventar. Spieleraktionen werden vom Host bestätigt.')
+            return False
+        return True
 
     def change_currency(self, currency, amount, instance):
+        if not self.allow_dm_edit():
+            return
         self.character.currency[currency] += amount
         self.character.currency[currency] = max(0, self.character.currency[currency])
         self.currency_labels[currency].text = str(self.character.currency[currency])
@@ -169,20 +200,28 @@ class CharacterSheet(Screen):
     def update_inventory_display(self):
         self.ids.inventory_layout.clear_widgets()
         for index, item in enumerate(self.character.inventory):
-            item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
+            item_row = BoxLayout(size_hint_y=None, height=dp(48), spacing=10)
             text = f"{item['name']} ({item['quantity']})"
             if 'healing' in item:
                 text += f" (Heilung: {item['healing']['count']}d{item['healing']['dice']})"
-            item_row.add_widget(Label(text=text, halign='left', valign='middle'))
-            btn_box = BoxLayout(size_hint_x=0.5)
+            item_label = Label(text=text, halign='left', valign='middle')
+            item_label.bind(width=lambda w, v: setattr(w, 'text_size', (v, None)))
+            item_row.add_widget(item_label)
+            btn_box = BoxLayout(size_hint_x=None if self.is_client() else 0.5,
+                                width=dp(104) if self.is_client() else dp(160))
             if 'healing' in item:
                 btn_box.add_widget(Button(text="Benutzen", on_press=partial(self.use_healing_item, index)))
-            btn_box.add_widget(Button(text="-", on_press=partial(self.adjust_item_quantity, index, -1)))
-            btn_box.add_widget(Button(text="+", on_press=partial(self.adjust_item_quantity, index, 1)))
-            item_row.add_widget(btn_box)
+            if not self.is_client():
+                btn_box.add_widget(Button(text="-", on_press=partial(self.adjust_item_quantity, index, -1)))
+                btn_box.add_widget(Button(text="+", on_press=partial(self.adjust_item_quantity, index, 1)))
+            if btn_box.children:
+                item_row.add_widget(btn_box)
+            item_label.bind(texture_size=lambda w, v, row=item_row: setattr(row, 'height', max(dp(48), v[1] + dp(12))))
             self.ids.inventory_layout.add_widget(item_row)
 
     def adjust_item_quantity(self, item_index, amount, instance):
+        if not self.allow_dm_edit():
+            return
         if 0 <= item_index < len(self.character.inventory):
             self.character.inventory[item_index]['quantity'] += amount
             if self.character.inventory[item_index]['quantity'] <= 0:
@@ -191,6 +230,9 @@ class CharacterSheet(Screen):
             self.sync_character()
 
     def use_healing_item(self, item_index, instance):
+        if self.is_client():
+            App.get_running_app().request_character_action('healing_item', index=item_index)
+            return
         if 0 <= item_index < len(self.character.inventory):
             item = self.character.inventory[item_index]
             healing_info = item.get('healing')
@@ -206,14 +248,16 @@ class CharacterSheet(Screen):
     def update_equipment_display(self):
         self.ids.equipment_layout.clear_widgets()
         for item_name, ac_bonus in self.character.equipment.items():
-            item_row = BoxLayout(size_hint_y=None, height=40, spacing=10)
+            item_row = BoxLayout(size_hint_y=None, height=dp(48), spacing=10)
             item_row.add_widget(Label(text=f"{item_name} (AC: +{ac_bonus})", halign='left', valign='middle'))
-            remove_btn = Button(text="-", size_hint_x=0.2)
+            remove_btn = Button(text="-", disabled=self.is_client(), size_hint_x=0.2)
             remove_btn.bind(on_press=partial(self.remove_equipment, item_name))
             item_row.add_widget(remove_btn)
             self.ids.equipment_layout.add_widget(item_row)
 
     def remove_equipment(self, item_name, instance):
+        if not self.allow_dm_edit():
+            return
         if item_name in self.character.equipment:
             del self.character.equipment[item_name]
             self.character.calculate_armor_class()
@@ -221,6 +265,8 @@ class CharacterSheet(Screen):
             self.sync_character()
 
     def show_add_equipment_popup(self):
+        if not self.allow_dm_edit():
+            return
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         name_input = TextInput(hint_text="Ausrüstungsname", multiline=False)
         ac_input = TextInput(hint_text="AC Bonus", multiline=False)
@@ -248,10 +294,12 @@ class CharacterSheet(Screen):
         popup.open()
 
     def show_add_item_popup(self):
+        if not self.allow_dm_edit():
+            return
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         item_input = TextInput(hint_text="Gegenstandname", multiline=False)
         content.add_widget(item_input)
-        healing_box = BoxLayout(size_hint_y=None, height=44)
+        healing_box = BoxLayout(size_hint_y=None, height=dp(48))
         healing_box.add_widget(Label(text="Heilitem:"))
         is_healing_checkbox = CheckBox()
         healing_box.add_widget(is_healing_checkbox)
@@ -313,10 +361,7 @@ class CharacterSheet(Screen):
         weapon_info = WEAPON_DATA.get(weapon_name, WEAPON_DATA["Unbewaffneter Schlag"])
         ability_name = weapon_info["ability"]
         modifier = (self.character.abilities[ability_name] - 10) // 2
-        parts = weapon_info["damage"].split('d')
-        num_dice = int(parts[0])
-        dice_type = int(parts[1])
-        roll_total = sum(random.randint(1, dice_type) for _ in range(num_dice))
+        roll_total = roll_dice(weapon_info['damage'])
         total_damage = roll_total + modifier
         self.show_popup(
             "Schadenswurf",
@@ -360,7 +405,7 @@ class CharacterSheet(Screen):
         grid = GridLayout(cols=1, size_hint_y=None, spacing=5, padding=10)
         grid.bind(minimum_height=grid.setter('height'))
         if not self.character.spells:
-            grid.add_widget(Label(text="Dieser Charakter kann nicht zaubern.", size_hint_y=None, height=40))
+            grid.add_widget(Label(text="Dieser Charakter kann nicht zaubern.", size_hint_y=None, height=dp(48)))
         else:
             for spell_level in sorted(self.character.spells.keys()):
                 spell_list = self.character.spells[spell_level]
@@ -370,9 +415,9 @@ class CharacterSheet(Screen):
                     max_slots = self.character.max_spell_slots.get(str(spell_level), 0)
                     current_slots = self.character.current_spell_slots.get(str(spell_level), 0)
                     level_name += f" ({current_slots}/{max_slots})"
-                grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=40))
+                grid.add_widget(Label(text=level_name, font_size='18sp', size_hint_y=None, height=dp(48)))
                 for spell_name in sorted(spell_list):
-                    btn = Button(text=spell_name, size_hint_y=None, height=40)
+                    btn = Button(text=spell_name, size_hint_y=None, height=dp(48))
                     btn.bind(on_press=partial(self.show_spell_details_popup, spell_name))
                     grid.add_widget(btn)
         content.add_widget(grid)
@@ -397,13 +442,17 @@ class CharacterSheet(Screen):
         content.add_widget(scroll_view)
         popup = create_styled_popup(title=spell_name, content=content, size_hint=(0.8, 0.9))
         if spell_info.get("level", 0) > 0:
-            cast_btn = Button(text="Wirken", size_hint_y=None, height=44)
+            cast_btn = Button(text="Wirken", size_hint_y=None, height=dp(48))
             cast_btn.bind(on_press=lambda x: (self.cast_spell(spell_name, spell_info.get('level'), popup)))
             content.add_widget(cast_btn)
         apply_styles_to_widget(content)
         popup.open()
 
     def cast_spell(self, spell_name, spell_level, spell_details_popup):
+        if self.is_client():
+            App.get_running_app().request_character_action('cast_spell', spell=spell_name)
+            spell_details_popup.dismiss()
+            return
         spell_level_str = str(spell_level)
         if self.character.current_spell_slots.get(spell_level_str, 0) > 0:
             self.character.current_spell_slots[spell_level_str] -= 1
@@ -415,6 +464,8 @@ class CharacterSheet(Screen):
             self.show_popup("Keine Zauberplätze", f"Keine Zauberplätze für Level {spell_level} mehr übrig.")
 
     def open_level_up_screen(self):
+        if not self.allow_dm_edit():
+            return
         self.manager.get_screen('level_up').set_character(self.character)
         self.manager.current = 'level_up'
 
@@ -423,8 +474,7 @@ class CharacterSheet(Screen):
         filename = f"{self.character.name.lower().replace(' ', '_')}.char"
         filepath = os.path.join(saves_dir, filename)
         try:
-            with open(filepath, 'wb') as f:
-                pickle.dump(self.character, f)
+            filepath = CharacterRepository().save(self.character)
             self.show_popup("Gespeichert", f"Charakter als '{filepath}' gespeichert.")
         except Exception as e:
             self.show_popup("Fehler", f"Fehler beim Speichern: {e}")
@@ -451,6 +501,9 @@ class CharacterSheet(Screen):
         popup.open()
 
     def do_long_rest(self):
+        if self.is_client():
+            App.get_running_app().request_character_action('long_rest')
+            return
         self.character.long_rest()
         self.update_sheet()
         self.show_popup("Grosse Rast", "Du bist vollständig ausgeruht. HP und Zauberplätze wurden wiederhergestellt.")
@@ -480,6 +533,10 @@ class CharacterSheet(Screen):
                 try:
                     dice_to_spend = int(dice_input.text)
                     if 0 < dice_to_spend <= self.character.hit_dice:
+                        if self.is_client():
+                            App.get_running_app().request_character_action('short_rest', dice=dice_to_spend)
+                            p.dismiss()
+                            return
                         healed_amount = self.character.short_rest(dice_to_spend)
                         self.update_sheet()
                         self.show_popup("Heilung", f"Du hast {healed_amount} HP wiederhergestellt.")

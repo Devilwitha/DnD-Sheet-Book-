@@ -1,25 +1,22 @@
-import os
 import sqlite3
-from utils import build_database
+import pytest
+from utils.build_database import create_database
 
 
-def test_create_database_creates_db_and_tables(tmp_path):
-    # Ensure a clean environment: remove db if exists
-    db_path = os.path.join('utils', 'data', 'dnd.db')
-    if os.path.exists(db_path):
-        os.remove(db_path)
+def test_create_database_creates_all_required_tables(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    db_path = tmp_path / 'private' / 'dnd.db'
+    create_database(db_path)
+    with sqlite3.connect(db_path) as connection:
+        tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    assert tables == {'enemies','races','classes','backgrounds','alignments','fighting_styles','skills','spells','weapons'}
 
-    # Create database
-    build_database.create_database()
 
-    assert os.path.exists(db_path), "Database file was not created."
-
-    # Check that at least some expected tables exist
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    tables = [row[0] for row in cursor.fetchall()]
-    conn.close()
-
-    # Expect tables like 'enemies' or 'races' to exist
-    assert 'enemies' in tables or 'races' in tables, "Expected tables not found in database."
+def test_failed_build_keeps_original_database(tmp_path):
+    destination = tmp_path / 'dnd.db'
+    create_database(destination)
+    before = destination.read_bytes()
+    with pytest.raises(FileNotFoundError):
+        create_database(destination, tmp_path / 'missing')
+    assert destination.read_bytes() == before
+    assert not list(tmp_path.glob('.database-*'))
