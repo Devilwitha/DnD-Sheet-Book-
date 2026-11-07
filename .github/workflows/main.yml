@@ -3,6 +3,9 @@ name: Build Raspberry Pi Image with Autostart
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-pi-image:
     runs-on: ubuntu-latest
