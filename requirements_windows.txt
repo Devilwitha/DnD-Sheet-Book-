@@ -1,0 +1,4 @@
+-r requirements.txt
+PyInstaller==6.16.0
+kivy_deps.sdl2==0.8.0
+kivy_deps.glew==0.3.1

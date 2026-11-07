@@ -1,0 +1,76 @@
+<ModelScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Model Informationen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
+
+            Label:
+                id: model
+                text: "Modell: "
+                font_size: '18sp'
+                halign: 'left'
+                valign: 'top'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1] + 10
+
+            Label:
+                id: os_version
+                text: "Betriebssystem: "
+                font_size: '18sp'
+                halign: 'left'
+                valign: 'top'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1] + 10
+
+            Label:
+                id: resolution
+                text: "Auflösung: "
+                font_size: '18sp'
+                halign: 'left'
+                valign: 'top'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1] + 10
+
+            Label:
+                id: git_branch
+                text: "Aktueller Branch: "
+                font_size: '18sp'
+                halign: 'left'
+                valign: 'top'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1] + 10
+
+            Label:
+                id: folder_size
+                text: "Größe des App-Ordners: "
+                font_size: '18sp'
+                halign: 'left'
+                valign: 'top'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1] + 10
+
+        BoxLayout:
+            size_hint_y: 1.0
+
+        Button:
+            text: "Zurück"
+            on_press: root.go_back()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

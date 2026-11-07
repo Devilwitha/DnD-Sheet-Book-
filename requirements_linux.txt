@@ -1,0 +1,8 @@
+kivy
+zeroconf
+psutil
+cython==0.29.36
+pyjnius
+kivy-garden
+kivy_garden.matplotlib
+screeninfo

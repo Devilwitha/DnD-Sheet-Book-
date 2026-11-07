@@ -1,0 +1,605 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "GEB-001",
+      "name": "Bauernhaus",
+      "category": "Häuser und Gebäude",
+      "qa": "Nacharbeit",
+      "filename": "GEB-001.jpg",
+      "sha256": "9bb23e97d055b4ca996d09f78bc73ad141d419e2c700dbabbe7c6c5146fd5ca5"
+    },
+    {
+      "id": "GEB-002",
+      "name": "Fachwerkhaus",
+      "category": "Häuser und Gebäude",
+      "qa": "Perspektive korrigieren",
+      "filename": "GEB-002.jpg",
+      "sha256": "6065eb9aaf07a05d329616516d9f1e8fdb6a137dabb36e064eb242c5f5af6132"
+    },
+    {
+      "id": "GEB-003",
+      "name": "Stadthaus",
+      "category": "Häuser und Gebäude",
+      "qa": "Nacharbeit",
+      "filename": "GEB-003.jpg",
+      "sha256": "da920a0fbcc64cbfd80b4305cca1bf02ae22d4a0b6776072332c8bd8ce568ca2"
+    },
+    {
+      "id": "GEB-004",
+      "name": "Waldhütte",
+      "category": "Häuser und Gebäude",
+      "qa": "Perspektive korrigieren",
+      "filename": "GEB-004.jpg",
+      "sha256": "2014b67b0bb49c24209c451dcde534e0722c5924ac7c6c7da69fe2d515a123b1"
+    },
+    {
+      "id": "GEB-005",
+      "name": "Scheune",
+      "category": "Häuser und Gebäude",
+      "qa": "Nacharbeit",
+      "filename": "GEB-005.jpg",
+      "sha256": "7e7915168f9e34e1e9f369ec639098b08a896333a0f1175601d827789e27ed0e"
+    },
+    {
+      "id": "GEB-006",
+      "name": "Stall",
+      "category": "Häuser und Gebäude",
+      "qa": "Nacharbeit",
+      "filename": "GEB-006.jpg",
+      "sha256": "f152af4f2cb529935d26e2b9356ddf35cd7fe91ccfba4e23a6ae010fa3bf86cc"
+    },
+    {
+      "id": "GEB-007",
+      "name": "Windmühle",
+      "category": "Häuser und Gebäude",
+      "qa": "Perspektive korrigieren",
+      "filename": "GEB-007.jpg",
+      "sha256": "c5b724330a49751722d5e79c1d980fa37a38340e1863e97ddb8f47ce90c7dbe0"
+    },
+    {
+      "id": "GEB-008",
+      "name": "Taverne",
+      "category": "Häuser und Gebäude",
+      "qa": "Perspektive korrigieren",
+      "filename": "GEB-008.jpg",
+      "sha256": "4d4fc219c9679722c3b19f41c9b0583214cbd75811b7b9cb457d30701a6a0180"
+    },
+    {
+      "id": "GEB-009",
+      "name": "Schmiede",
+      "category": "Häuser und Gebäude",
+      "qa": "Nacharbeit",
+      "filename": "GEB-009.jpg",
+      "sha256": "c7302708976bc4697adf6e44024a23d3c855228ab8e71ea7f32a722a40b8f917"
+    },
+    {
+      "id": "GEB-011",
+      "name": "Tempel",
+      "category": "Häuser und Gebäude",
+      "qa": "Motiv brauchbar",
+      "filename": "GEB-011.jpg",
+      "sha256": "e3623669fd2aa4987a090fbc98e9cf167f7207ac725f4fd3e8db0c80de83cd06"
+    },
+    {
+      "id": "BAU-001",
+      "name": "Eiche",
+      "category": "Bäume",
+      "qa": "Nacharbeit",
+      "filename": "BAU-001.jpg",
+      "sha256": "b647f6bee6ecfbdbb89b71329590c3abeec910280eb20f7de7d7ac0b68dd1967"
+    },
+    {
+      "id": "BAU-002",
+      "name": "Birke",
+      "category": "Bäume",
+      "qa": "Perspektive korrigieren",
+      "filename": "BAU-002.jpg",
+      "sha256": "e1b76a56b800a1a8bed2b50dc5b18df837baf3f069b51c1583c80b89d29de8c4"
+    },
+    {
+      "id": "BAU-003",
+      "name": "Weide",
+      "category": "Bäume",
+      "qa": "Motiv brauchbar",
+      "filename": "BAU-003.jpg",
+      "sha256": "c2c497b8bd60d5ce3b034e452d2179e528fa0f437196955f704c2964fcf628b4"
+    },
+    {
+      "id": "BAU-004",
+      "name": "Obstbaum",
+      "category": "Bäume",
+      "qa": "Motiv brauchbar",
+      "filename": "BAU-004.jpg",
+      "sha256": "91c7d2b1b834f445a50335bd850a246dd8f2331abfdc5594644ad57361dcc44d"
+    },
+    {
+      "id": "BAU-005",
+      "name": "Tanne",
+      "category": "Bäume",
+      "qa": "Motiv brauchbar",
+      "filename": "BAU-005.jpg",
+      "sha256": "b320cb96166837d653dc716e2215f7c272adde08d6d2d0901a73fd4a6cda7e4f"
+    },
+    {
+      "id": "BAU-006",
+      "name": "Kiefer",
+      "category": "Bäume",
+      "qa": "Motiv brauchbar",
+      "filename": "BAU-006.jpg",
+      "sha256": "88d01df024780781c17c65fe394ec7d20adfca31423d5f21c510f10fc93a4169"
+    },
+    {
+      "id": "BAU-007",
+      "name": "Palme",
+      "category": "Bäume",
+      "qa": "Nacharbeit",
+      "filename": "BAU-007.jpg",
+      "sha256": "936f81da826ae73ad5821fa021a10e57d05838c96f378f9f92d4b0ada6ddf998"
+    },
+    {
+      "id": "BAU-008",
+      "name": "Toter Baum",
+      "category": "Bäume",
+      "qa": "Motiv brauchbar",
+      "filename": "BAU-008.jpg",
+      "sha256": "cfe6a387a414f6ba7f61c5c85c32a5ec7517bd69c51e43626c863482714a3e0b"
+    },
+    {
+      "id": "BAU-010",
+      "name": "Baumstumpf",
+      "category": "Bäume",
+      "qa": "Motiv brauchbar",
+      "filename": "BAU-010.jpg",
+      "sha256": "535215400989ee80a4af881444cc9b2f65ec75bb206a11be109147379a97c944"
+    },
+    {
+      "id": "VEG-001",
+      "name": "Rundbusch",
+      "category": "Büsche und Vegetation",
+      "qa": "Motiv brauchbar",
+      "filename": "VEG-001.jpg",
+      "sha256": "76bd3ab15d530b4eaf2a32b987046da6fe4c30166c3ceb8b63cafbc017526728"
+    },
+    {
+      "id": "VEG-002",
+      "name": "Beerenstrauch",
+      "category": "Büsche und Vegetation",
+      "qa": "Motiv brauchbar",
+      "filename": "VEG-002.jpg",
+      "sha256": "d88049ab88af2e82c4ff8dc8ae874b69bf9c9fd0b614ab541dff11a047ab1389"
+    },
+    {
+      "id": "VEG-003",
+      "name": "Dornenbusch",
+      "category": "Büsche und Vegetation",
+      "qa": "Motiv brauchbar",
+      "filename": "VEG-003.jpg",
+      "sha256": "32db11eee393589fcbc6b3b74e2c1a2c291e60df214130efcbe566dec6274da5"
+    },
+    {
+      "id": "VEG-008",
+      "name": "Farngruppe",
+      "category": "Büsche und Vegetation",
+      "qa": "Motiv brauchbar",
+      "filename": "VEG-008.jpg",
+      "sha256": "08fd24741ff64941878c83fd9a86438196dd9fc480a4fa45ba17eccfc79314d1"
+    },
+    {
+      "id": "VEG-009",
+      "name": "Blumenbüschel",
+      "category": "Büsche und Vegetation",
+      "qa": "Nacharbeit",
+      "filename": "VEG-009.jpg",
+      "sha256": "4dd0a1dec330bb39cd368cafd5cb29325f2fa6537e72d449051f83cbf852b46a"
+    },
+    {
+      "id": "VEG-010",
+      "name": "Pilzgruppe",
+      "category": "Büsche und Vegetation",
+      "qa": "Motiv brauchbar",
+      "filename": "VEG-010.jpg",
+      "sha256": "6b1135531e24a80e8311e612610331b98556bf5b7cb3356896a34ad3f807f522"
+    },
+    {
+      "id": "MOE-001",
+      "name": "Holzstuhl",
+      "category": "Möbel",
+      "qa": "Perspektive korrigieren",
+      "filename": "MOE-001.jpg",
+      "sha256": "a5ede8440741b0bab9d8daa8d68e88c88fe9d874e3add35ea40c3355e5f3af0c"
+    },
+    {
+      "id": "MOE-002",
+      "name": "Holzhocker",
+      "category": "Möbel",
+      "qa": "Motiv korrigieren",
+      "filename": "MOE-002.jpg",
+      "sha256": "e4a4e43ef4701a257095c4840d4892b6ca6996c909df01a3fb1e3f08b4b79634"
+    },
+    {
+      "id": "MOE-003",
+      "name": "Holzbank",
+      "category": "Möbel",
+      "qa": "Motiv brauchbar",
+      "filename": "MOE-003.jpg",
+      "sha256": "adc2e05d8c404433a7bfa8357e56adbda7814a4025937133259aa317980bce5c"
+    },
+    {
+      "id": "MOE-005",
+      "name": "Thron",
+      "category": "Möbel",
+      "qa": "Perspektive korrigieren",
+      "filename": "MOE-005.jpg",
+      "sha256": "3e07cb13ea35ce25039e9550c5bd592f9dcded71fd696acb0fd787f649231017"
+    },
+    {
+      "id": "MOE-006",
+      "name": "Holztisch",
+      "category": "Möbel",
+      "qa": "Motiv brauchbar",
+      "filename": "MOE-006.jpg",
+      "sha256": "a442101bd7c47cc2a83698249265fcde48d540f2df50527c71b672fbbd374ac3"
+    },
+    {
+      "id": "MOE-007",
+      "name": "Runder Tisch",
+      "category": "Möbel",
+      "qa": "Motiv brauchbar",
+      "filename": "MOE-007.jpg",
+      "sha256": "1369d0ca22586bc7021c1ec60407479dec972f23c6ec74169f82d6ee970806e0"
+    },
+    {
+      "id": "MOE-008",
+      "name": "Schreibtisch",
+      "category": "Möbel",
+      "qa": "Motiv brauchbar",
+      "filename": "MOE-008.jpg",
+      "sha256": "d3f6b70ddbc33588fcec937642ff528aca618beabe7bde285fa83bec5c5d3a8c"
+    },
+    {
+      "id": "MOE-009",
+      "name": "Schanktresen",
+      "category": "Möbel",
+      "qa": "Motiv brauchbar",
+      "filename": "MOE-009.jpg",
+      "sha256": "5a2cc4a7d6bbaf82bc602c7459bbd3b52a86ad03b7a6e98794beb14580ed9ba8"
+    },
+    {
+      "id": "MOE-010",
+      "name": "Einfaches Bett",
+      "category": "Möbel",
+      "qa": "Motiv brauchbar",
+      "filename": "MOE-010.jpg",
+      "sha256": "51d73fb8a2b16d80aa030e4d4adb195ccf6b6f1c0339b3f8d54d77d3f0cd7776"
+    },
+    {
+      "id": "MOE-011",
+      "name": "Doppelbett",
+      "category": "Möbel",
+      "qa": "Motiv brauchbar",
+      "filename": "MOE-011.jpg",
+      "sha256": "0a5b4a0f8da95cb3019424e16d27c3b726ab9668b46aa54dc4c679cda15a1c14"
+    },
+    {
+      "id": "MOE-012",
+      "name": "Strohlager",
+      "category": "Möbel",
+      "qa": "Motiv brauchbar",
+      "filename": "MOE-012.jpg",
+      "sha256": "fe50bae3d8414d39b1ee23a50ff5496975f40620947eb55fedfafb75967a9b27"
+    },
+    {
+      "id": "MOE-018",
+      "name": "Werkbank",
+      "category": "Möbel",
+      "qa": "Nacharbeit",
+      "filename": "MOE-018.jpg",
+      "sha256": "28e1c725359c57f0a9ca28ee7ab0ed508dbe95624bc87e3452235fbee6b2b912"
+    },
+    {
+      "id": "MOE-020",
+      "name": "Alchemietisch",
+      "category": "Möbel",
+      "qa": "Nacharbeit",
+      "filename": "MOE-020.jpg",
+      "sha256": "d4e82b1e426902dad84ea3dd7db667657aec24f806d844d257d0176411533843"
+    },
+    {
+      "id": "BEH-001",
+      "name": "Holzkiste",
+      "category": "Behälter und Vorräte",
+      "qa": "Motiv brauchbar",
+      "filename": "BEH-001.jpg",
+      "sha256": "0ca45ae5fa954c3ce6f2033afaadbd388d876f93a00ff901e5bf89a297e4da1d"
+    },
+    {
+      "id": "BEH-002",
+      "name": "Truhe",
+      "category": "Behälter und Vorräte",
+      "qa": "Perspektive korrigieren",
+      "filename": "BEH-002.jpg",
+      "sha256": "091632e6b47257c9bcbaea9c1c18706d8310f7e1a02b6bf61a4a56c263514ca6"
+    },
+    {
+      "id": "BEH-003",
+      "name": "Kistenstapel",
+      "category": "Behälter und Vorräte",
+      "qa": "Perspektive korrigieren",
+      "filename": "BEH-003.jpg",
+      "sha256": "3b76071a54cf7b534577472cd2aa8a467cb2c2b7e7c5e48f41820494ecbc8cd5"
+    },
+    {
+      "id": "BEH-004",
+      "name": "Holzfass",
+      "category": "Behälter und Vorräte",
+      "qa": "Motiv brauchbar",
+      "filename": "BEH-004.jpg",
+      "sha256": "99b298eec3e15501c4742d836defde21787e5c080412d8c0fdf59aa7b974bb25"
+    },
+    {
+      "id": "BEH-005",
+      "name": "Tonkrug",
+      "category": "Behälter und Vorräte",
+      "qa": "Motiv brauchbar",
+      "filename": "BEH-005.jpg",
+      "sha256": "edef46ba1c5ea785d80520733764a7152a84003eb82d434c8c998fd7ddf0d6e6"
+    },
+    {
+      "id": "BEH-006",
+      "name": "Korb",
+      "category": "Behälter und Vorräte",
+      "qa": "Nacharbeit",
+      "filename": "BEH-006.jpg",
+      "sha256": "5c0ff1c6d3786a0f50a5899b0ec487fdbc9212c356594ed5e248b747efdcea72"
+    },
+    {
+      "id": "BEH-007",
+      "name": "Vorratssack",
+      "category": "Behälter und Vorräte",
+      "qa": "Perspektive korrigieren",
+      "filename": "BEH-007.jpg",
+      "sha256": "dcf8e9a604ea7ee557cda030f80817bd3e7d39128bf1a7defca2f434f9cc7f80"
+    },
+    {
+      "id": "BEH-008",
+      "name": "Brennholzstapel",
+      "category": "Behälter und Vorräte",
+      "qa": "Perspektive korrigieren",
+      "filename": "BEH-008.jpg",
+      "sha256": "ff53d6adf3f2d9c8e4bd5a3e8e703dd5403d61c4a03eaeb24be8c5e4e360a4c8"
+    },
+    {
+      "id": "BEH-009",
+      "name": "Heuballen",
+      "category": "Behälter und Vorräte",
+      "qa": "Motiv brauchbar",
+      "filename": "BEH-009.jpg",
+      "sha256": "9d2090b1ad0b5ef38a991f8d806f0f29236eae53715e55c2c139c6182d6a4c5a"
+    },
+    {
+      "id": "WER-002",
+      "name": "Kochkessel",
+      "category": "Küche und Werkstatt",
+      "qa": "Motiv brauchbar",
+      "filename": "WER-002.jpg",
+      "sha256": "480e3817cd758e5b434582a257eae13086159119d57ef9d1307b008ca96ccacb"
+    },
+    {
+      "id": "WER-006",
+      "name": "Amboss",
+      "category": "Küche und Werkstatt",
+      "qa": "Nacharbeit",
+      "filename": "WER-006.jpg",
+      "sha256": "b8b24720ca34583ed18bd9cddc5d7872706865f4907de0fc3d71454f004aaef3"
+    },
+    {
+      "id": "WER-010",
+      "name": "Mühlstein",
+      "category": "Küche und Werkstatt",
+      "qa": "Motiv brauchbar",
+      "filename": "WER-010.jpg",
+      "sha256": "484a6f43ff9f5d90b16c69df6507a11213ec34aa07c11ea08a9be84bf33efd9d"
+    },
+    {
+      "id": "FEL-001",
+      "name": "Felsblock",
+      "category": "Felsen und Höhlen",
+      "qa": "Motiv brauchbar",
+      "filename": "FEL-001.jpg",
+      "sha256": "4bf64069ab0285df2da3ae289e2bb2e8864370878f3305e3b66ce0298dc010fb"
+    },
+    {
+      "id": "FEL-002",
+      "name": "Felsgruppe",
+      "category": "Felsen und Höhlen",
+      "qa": "Perspektive korrigieren",
+      "filename": "FEL-002.jpg",
+      "sha256": "9b0b98f83b77026f3f0e599ebaf4dad235c2881e0187da6322192485fb6b132e"
+    },
+    {
+      "id": "FEL-003",
+      "name": "Flacher Felsen",
+      "category": "Felsen und Höhlen",
+      "qa": "Perspektive korrigieren",
+      "filename": "FEL-003.jpg",
+      "sha256": "bc38400d4ef3f4ac4f254069b2f52036b44028ab51233dba7147b80f7e2e78cd"
+    },
+    {
+      "id": "FEL-004",
+      "name": "Geröllhaufen",
+      "category": "Felsen und Höhlen",
+      "qa": "Motiv brauchbar",
+      "filename": "FEL-004.jpg",
+      "sha256": "385f4d9b98eaa3017b3b6f5d465b2d6dc2ea1252239f94e6b068e6569b5c0be0"
+    },
+    {
+      "id": "LAG-001",
+      "name": "Zelt",
+      "category": "Lager und Dorfplatz",
+      "qa": "Perspektive korrigieren",
+      "filename": "LAG-001.jpg",
+      "sha256": "8b007ea0571ba19731b2bb5ed821b3f5f81d85186b97d5ba3e16e0076af72277"
+    },
+    {
+      "id": "LAG-002",
+      "name": "Lagerfeuer",
+      "category": "Lager und Dorfplatz",
+      "qa": "Motiv brauchbar",
+      "filename": "LAG-002.jpg",
+      "sha256": "3467550125a61e4ab102152e66b0d7c05678c314584ed5598aee169c9e48a629"
+    },
+    {
+      "id": "LAG-003",
+      "name": "Schlafrolle",
+      "category": "Lager und Dorfplatz",
+      "qa": "Motiv brauchbar",
+      "filename": "LAG-003.jpg",
+      "sha256": "eac6e6f0e4ad73b63eb6722c83396e2dd72e5844f82f35a23ef5ac8cb3f13cf7"
+    },
+    {
+      "id": "LAG-005",
+      "name": "Brunnen",
+      "category": "Lager und Dorfplatz",
+      "qa": "Nacharbeit",
+      "filename": "LAG-005.jpg",
+      "sha256": "13203c479ab84ee1c6dac34042c2bfaf0ece970f3fb60fce287c8a15302fc72c"
+    },
+    {
+      "id": "LAG-008",
+      "name": "Tränke",
+      "category": "Lager und Dorfplatz",
+      "qa": "Motiv brauchbar",
+      "filename": "LAG-008.jpg",
+      "sha256": "e102f37107dedb8312b8c63ce4b684580e82371abd6d4753bfd852fb04762446"
+    },
+    {
+      "id": "DUN-008",
+      "name": "Mauerbruchstück",
+      "category": "Dungeon und Ruinen",
+      "qa": "Motiv korrigieren",
+      "filename": "DUN-008.jpg",
+      "sha256": "c55b83f1e3005fe106a1503e51fef9db8466d2ce03430247b7110160b3f6d09c"
+    },
+    {
+      "id": "DUN-009",
+      "name": "Trümmerhaufen",
+      "category": "Dungeon und Ruinen",
+      "qa": "Motiv brauchbar",
+      "filename": "DUN-009.jpg",
+      "sha256": "5cc406234d725d35e579b1834aef7bfd203c24e1af0441d39732be250aa07f63"
+    },
+    {
+      "id": "DUN-010",
+      "name": "Sarkophag",
+      "category": "Dungeon und Ruinen",
+      "qa": "Motiv brauchbar",
+      "filename": "DUN-010.jpg",
+      "sha256": "c02bb2bceaa11767df255f6d5143c3d17334d6d2458ebd0c833a7b0692a22a7d"
+    },
+    {
+      "id": "DUN-011",
+      "name": "Grabstein",
+      "category": "Dungeon und Ruinen",
+      "qa": "Perspektive korrigieren",
+      "filename": "DUN-011.jpg",
+      "sha256": "ca5498daa1a31703dbaf29524be8dc9fd63532aa823c6a6c7667f68a6cf1d0ab"
+    },
+    {
+      "id": "DUN-012",
+      "name": "Knochenhaufen",
+      "category": "Dungeon und Ruinen",
+      "qa": "Motiv brauchbar",
+      "filename": "DUN-012.jpg",
+      "sha256": "d535a25040bc1ab72c9f1821608d245e8800426c5d7ce893246bb24319ad31a8"
+    },
+    {
+      "id": "TRA-001",
+      "name": "Handkarren",
+      "category": "Transport und Handel",
+      "qa": "Motiv korrigieren",
+      "filename": "TRA-001.jpg",
+      "sha256": "60ec37a16bf15c515ae16d523ab6ea0797a4ad216e9aec87871812d898f01312"
+    },
+    {
+      "id": "TRA-002",
+      "name": "Planwagen",
+      "category": "Transport und Handel",
+      "qa": "Perspektive korrigieren",
+      "filename": "TRA-002.jpg",
+      "sha256": "f4818c8b1b27e30d3d466d102e75f2878d1fd2041528e968cd6f42c78e01bda8"
+    },
+    {
+      "id": "TRA-003",
+      "name": "Kutsche",
+      "category": "Transport und Handel",
+      "qa": "Perspektive korrigieren",
+      "filename": "TRA-003.jpg",
+      "sha256": "2469270ef2d596c23899299fe1fd67429f7fdb5588fd1e1c65590b3655a5f419"
+    },
+    {
+      "id": "TRA-004",
+      "name": "Ruderboot",
+      "category": "Transport und Handel",
+      "qa": "Motiv brauchbar",
+      "filename": "TRA-004.jpg",
+      "sha256": "a16957bff24c8b86ef21032891e05b26811441df04c67524156f7eba73c93fe8"
+    },
+    {
+      "id": "TRA-005",
+      "name": "Floß",
+      "category": "Transport und Handel",
+      "qa": "Motiv brauchbar",
+      "filename": "TRA-005.jpg",
+      "sha256": "63627a823637900f76f54540aa19c8af706d73217a330c67bae5aafdc7a71e8b"
+    },
+    {
+      "id": "TRA-007",
+      "name": "Marktstand",
+      "category": "Transport und Handel",
+      "qa": "Perspektive korrigieren",
+      "filename": "TRA-007.jpg",
+      "sha256": "fe1282f9f6f609afd86bc9163d2779467d53931a4c390f395fbfa9984cf8ade4"
+    },
+    {
+      "id": "DEK-004",
+      "name": "Feuerschale",
+      "category": "Dekoration und Licht",
+      "qa": "Motiv brauchbar",
+      "filename": "DEK-004.jpg",
+      "sha256": "4a9747e30f97819f925d9a38d3955401491efd5a8dd1b8234b167b5d2fd0534d"
+    },
+    {
+      "id": "DEK-009",
+      "name": "Statue",
+      "category": "Dekoration und Licht",
+      "qa": "Perspektive korrigieren",
+      "filename": "DEK-009.jpg",
+      "sha256": "cbf3a200bbf1a05bb00ebac87b31c67c3a2301cee9d49bd7a2217bb33f495451"
+    },
+    {
+      "id": "DEK-010",
+      "name": "Büchergruppe",
+      "category": "Dekoration und Licht",
+      "qa": "Nacharbeit",
+      "filename": "DEK-010.jpg",
+      "sha256": "ffb1cc271bea550243fdcff4ed7008312cffadb71feca2da0dda556dca8d01b1"
+    },
+    {
+      "id": "DEK-011",
+      "name": "Schriftrolle",
+      "category": "Dekoration und Licht",
+      "qa": "Motiv brauchbar",
+      "filename": "DEK-011.jpg",
+      "sha256": "1c3afc74eb1200ec6b43ed750e08ab949f13f257a1922cee1f1c259b5d954626"
+    },
+    {
+      "id": "DEK-012",
+      "name": "Münzhaufen",
+      "category": "Dekoration und Licht",
+      "qa": "Motiv brauchbar",
+      "filename": "DEK-012.jpg",
+      "sha256": "2c68d486beb311561bcf4150ae7a35b36f902e9a6b7bf5fc53d62bf6c1ed0360"
+    }
+  ]
+}

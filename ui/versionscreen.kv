@@ -1,0 +1,36 @@
+<VersionScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Versionsinformationen"
+            font_size: '30sp'
+            size_hint_y: None
+            height: 80
+
+        ScrollView:
+            do_scroll_x: False
+            Label:
+                id: version_label
+                text: ""
+                font_size: '20sp'
+                size_hint_y: None
+                text_size: self.width - 20, None
+                height: self.texture_size[1] + 20
+                halign: 'center'
+
+        Button:
+            text: "Technische Logs exportieren"
+            on_release: root.export_logs()
+            size_hint_y: None
+            height: '56dp'
+            font_size: '18sp'
+
+        Button:
+            text: "Zurück"
+            on_press: root.go_back()
+            size_hint_y: None
+            height: 80
+            font_size: '20sp'

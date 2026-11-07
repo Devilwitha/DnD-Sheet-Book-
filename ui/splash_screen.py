@@ -1,12 +1,15 @@
 from kivy.uix.screenmanager import Screen, FadeTransition
 from kivy.animation import Animation
 from kivy.clock import Clock
+from utils.helpers import resource_path
 
 class SplashScreen(Screen):
     """A splash screen that appears at startup."""
 
     def on_enter(self, *args):
         """Called when the screen is entered. Starts the animation."""
+        # Set the logo source using the resource_path helper
+        self.ids.logo_image.source = resource_path('logo/logo.png')
         self.start_pulsating_animation()
 
     def start_pulsating_animation(self):

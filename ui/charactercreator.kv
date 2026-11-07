@@ -1,10 +1,57 @@
+#:import Window kivy.core.window.Window
+#:import dp kivy.metrics.dp
+
 <CharacterCreator>:
-    ScrollView:
-        size_hint: (1, 1)
-        GridLayout:
-            id: creator_layout
-            cols: 2
-            padding: 10
-            spacing: 10
+    BoxLayout:
+        orientation: 'vertical'
+
+        BoxLayout:
             size_hint_y: None
-            height: self.minimum_height
+            height: dp(56)
+            padding: dp(4)
+            spacing: dp(8)
+            Button:
+                text: 'Zurück'
+                size_hint_x: None
+                width: dp(120)
+                font_size: '16sp'
+                on_release: root.manager.current = 'main'
+            Label:
+                text: 'Charakter erstellen'
+                font_size: '20sp'
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.size
+
+        Label:
+            id: creator_step_label
+            text: '1 / 3 · Grundidee'
+            size_hint_y: None
+            height: dp(40)
+
+        ScrollView:
+            id: creator_scroll
+            size_hint: (1, 1)
+            do_scroll_x: False
+            bar_width: dp(6)
+            GridLayout:
+                id: creator_layout
+                cols: 1
+                padding: dp(12)
+                spacing: dp(10)
+                size_hint_y: None
+                height: self.minimum_height
+
+        BoxLayout:
+            size_hint_y: None
+            height: dp(56)
+            padding: dp(4)
+            spacing: dp(8)
+            Button:
+                id: creator_previous
+                text: 'Vorheriger Schritt'
+                on_release: root.show_creator_step(root._creator_step - 1)
+            Button:
+                id: creator_next
+                text: 'Weiter'
+                on_release: root.creator_next()

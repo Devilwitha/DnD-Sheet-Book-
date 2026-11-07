@@ -1,0 +1,58 @@
+#:import dp kivy.metrics.dp
+
+<PlayerWaitingScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(16)
+        spacing: dp(12)
+
+        Label:
+            id: waiting_label
+            text: 'Verbindung wird hergestellt...'
+            font_size: '22sp'
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.width, None
+            size_hint_y: None
+            height: max(dp(56), self.texture_size[1] + dp(16))
+
+        ScrollView:
+            size_hint_y: 0.3
+            do_scroll_x: False
+            bar_width: dp(6)
+            Label:
+                id: summary_label
+                font_size: '16sp'
+                text: ''
+                halign: 'left'
+                valign: 'top'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1] + dp(8)
+
+        Label:
+            text: 'Verbundene Spieler:'
+            font_size: '16sp'
+            halign: 'left'
+            valign: 'middle'
+            text_size: self.size
+            size_hint_y: None
+            height: dp(32)
+
+        ScrollView:
+            size_hint_y: 0.7
+            do_scroll_x: False
+            bar_width: dp(6)
+            GridLayout:
+                id: player_list
+                cols: 1
+                spacing: dp(4)
+                size_hint_y: None
+                height: self.minimum_height
+
+        Button:
+            text: 'Verbindung abbrechen'
+            font_size: '16sp'
+            on_press: root.network_manager.shutdown()
+            size_hint_y: None
+            height: dp(56)

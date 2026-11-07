@@ -1,0 +1,220 @@
+#:import Window kivy.core.window.Window
+#:import dp kivy.metrics.dp
+
+<PlayerCharacterSheet>:
+    main_layout: main_layout
+    BoxLayout:
+        id: main_layout
+        orientation: 'vertical'
+
+        # Header
+        GridLayout:
+            cols: 3 if root.width >= dp(700) else 1
+            size_hint_y: None
+            height: self.minimum_height
+            padding: dp(4)
+            Label:
+                id: name_label
+                font_size: '20sp'
+                text_size: self.width, None
+                halign: 'center'
+                size_hint_y: None
+                height: max(dp(36), self.texture_size[1] + dp(8))
+            Label:
+                id: class_label
+                font_size: '16sp'
+                text_size: self.width, None
+                halign: 'center'
+                size_hint_y: None
+                height: max(dp(32), self.texture_size[1] + dp(8))
+            Label:
+                id: alignment_label
+                font_size: '16sp'
+                text_size: self.width, None
+                halign: 'center'
+                size_hint_y: None
+                height: max(dp(32), self.texture_size[1] + dp(8))
+
+        # Content
+        ScrollView:
+            do_scroll_x: False
+            bar_width: dp(6)
+            GridLayout:
+                cols: 2 if root.width >= dp(700) else 1
+                spacing: dp(10)
+                padding: dp(10)
+                size_hint_y: None
+                height: self.minimum_height
+
+                # Left Column
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: dp(10)
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    GridLayout:
+                        id: stats_box
+                        cols: 2
+                        size_hint_y: None
+                        height: max(dp(280), self.minimum_height)
+
+                    BoxLayout:
+                        id: hp_box
+                        size_hint_y: None
+                        height: dp(56)
+                        Label:
+                            id: hp_label
+                            font_size: '18sp'
+                            text_size: self.width, None
+                            halign: 'center'
+                            valign: 'middle'
+
+                    GridLayout:
+                        cols: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: dp(5)
+                        Label:
+                            text: 'Ausgerüstete Waffe:'
+                            font_size: '16sp'
+                            text_size: self.width, None
+                            halign: 'left'
+                            size_hint_y: None
+                            height: dp(32)
+                        Label:
+                            id: weapon_label
+                            font_size: '16sp'
+                            text_size: self.width, None
+                            halign: 'left'
+                            size_hint_y: None
+                            height: max(dp(32), self.texture_size[1] + dp(8))
+                        Button:
+                            text: 'Schaden auswürfeln'
+                            font_size: '16sp'
+                            on_press: root.roll_damage()
+                            size_hint_y: None
+                            height: dp(48)
+
+                    GridLayout:
+                        id: currency_box
+                        cols: 2
+                        size_hint_y: None
+                        height: max(dp(200), self.minimum_height)
+                        spacing: dp(5)
+
+                # Right Column
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: dp(10)
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    Label:
+                        text: 'Inventar'
+                        font_size: '20sp'
+                        size_hint_y: None
+                        height: dp(40)
+                    GridLayout:
+                        id: inventory_layout
+                        cols: 1
+                        spacing: dp(5)
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                    Label:
+                        text: 'Spieler'
+                        font_size: '20sp'
+                        size_hint_y: None
+                        height: dp(40)
+                    GridLayout:
+                        id: player_list_view
+                        cols: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                    Label:
+                        text: 'Initiative'
+                        font_size: '20sp'
+                        size_hint_y: None
+                        height: dp(40)
+                    GridLayout:
+                        id: initiative_view
+                        cols: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+
+        # Footer
+        BoxLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            spacing: dp(4)
+            padding: dp(4)
+            GridLayout:
+                cols: 6
+                size_hint_y: None
+                height: dp(48)
+                spacing: dp(4)
+                Button:
+                    text: 'STR'
+                    font_size: '14sp'
+                    on_press: root.roll_d20('Stärke')
+                Button:
+                    text: 'DEX'
+                    font_size: '14sp'
+                    on_press: root.roll_d20('Geschicklichkeit')
+                Button:
+                    text: 'CON'
+                    font_size: '14sp'
+                    on_press: root.roll_d20('Konstitution')
+                Button:
+                    text: 'INT'
+                    font_size: '14sp'
+                    on_press: root.roll_d20('Intelligenz')
+                Button:
+                    text: 'WIS'
+                    font_size: '14sp'
+                    on_press: root.roll_d20('Weisheit')
+                Button:
+                    text: 'CHA'
+                    font_size: '14sp'
+                    on_press: root.roll_d20('Charisma')
+            GridLayout:
+                cols: 5 if root.width >= dp(700) else 3
+                size_hint_y: None
+                height: (dp(48) + dp(4)) * (1 if root.width >= dp(700) else 2)
+                spacing: dp(4)
+                row_default_height: dp(48)
+                row_force_default: True
+                Button:
+                    text: 'Zauber'
+                    font_size: '14sp'
+                    on_press: root.show_spells_popup()
+                Button:
+                    text: 'Rasten'
+                    font_size: '14sp'
+                    on_press: root.show_rest_popup()
+                Button:
+                    id: view_map_button
+                    text: 'Karte anzeigen'
+                    font_size: '14sp'
+                    text_size: self.width - dp(8), None
+                    halign: 'center'
+                    valign: 'middle'
+                    on_press: root.view_map()
+                    disabled: True
+                Button:
+                    text: 'Charakterbogen'
+                    font_size: '14sp'
+                    text_size: self.width - dp(8), None
+                    halign: 'center'
+                    valign: 'middle'
+                    on_press: root.show_full_character_sheet()
+                Button:
+                    text: 'Verbindung trennen'
+                    font_size: '14sp'
+                    text_size: self.width - dp(8), None
+                    halign: 'center'
+                    valign: 'middle'
+                    on_press: app.intentional_disconnect()

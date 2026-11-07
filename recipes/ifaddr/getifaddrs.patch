@@ -1,0 +1,12 @@
+diff --git a/ifaddr/_posix.py b/ifaddr/_posix.py
+--- a/ifaddr/_posix.py
++++ b/ifaddr/_posix.py
+@@ -47,4 +47,8 @@
+ libc = ctypes.CDLL(ctypes.util.find_library("socket" if os.uname()[0] == "SunOS" else "c"), use_errno=True)  # type: ignore
++
++# On old Androids getifaddrs is not available in libc => use libifaddrs instead
++if not hasattr(libc, 'getifaddrs'):
++    libc = ctypes.CDLL(ctypes.util.find_library('ifaddrs'), use_errno=True)
+
+
+ def get_adapters(include_unconfigured: bool = False) -> Iterable[shared.Adapter]:

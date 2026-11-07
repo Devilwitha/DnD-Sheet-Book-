@@ -1,0 +1,39 @@
+<InfoMenuScreen>:
+    BoxLayout:
+        id: button_layout
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Informationen"
+            font_size: '28sp'
+            size_hint_y: 0.12
+
+        Button:
+            text: "Model"
+            on_press: root.go_to_screen('model')
+            size_hint_y: 0.10
+            font_size: '20sp'
+
+        Button:
+            text: "Version"
+            on_press: root.go_to_screen('version')
+            size_hint_y: 0.10
+            font_size: '20sp'
+
+        Button:
+            id: system_info_button
+            text: "System"
+            on_press: root.go_to_screen('system_info')
+            size_hint_y: 0.10
+            font_size: '20sp'
+
+        BoxLayout:
+            size_hint_y: 1.0
+
+        Button:
+            text: "Zurück"
+            on_press: root.go_back()
+            size_hint_y: 0.10
+            font_size: '20sp'

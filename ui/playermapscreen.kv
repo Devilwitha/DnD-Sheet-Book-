@@ -1,0 +1,64 @@
+#:import MapGridWidget ui.custom_widgets.MapGridWidget
+#:import dp kivy.metrics.dp
+
+<PlayerMapScreen>:
+    BoxLayout:
+        orientation: 'horizontal' if root.width > root.height else 'vertical'
+        padding: dp(8)
+        spacing: dp(6)
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.66 if root.width > root.height else 1
+            spacing: dp(6)
+            Label:
+                id: turn_status_label
+                text: 'Karte'
+                font_size: '16sp'
+                text_size: self.width, None
+                halign: 'center'
+                size_hint_y: None
+                height: dp(64)
+            MapGridWidget:
+                id: player_map_grid
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.34 if root.width > root.height else 1
+            size_hint_y: 1 if root.width > root.height else None
+            height: action_hint.height + dp(166)
+            spacing: dp(6)
+            Label:
+                id: action_hint
+                text: 'Aktion wählen oder eine Figur antippen.'
+                text_size: self.width, None
+                halign: 'center'
+                font_size: '14sp'
+                size_hint_y: None
+                height: dp(64)
+            GridLayout:
+                cols: 2
+                spacing: dp(6)
+                size_hint_y: None
+                height: dp(106)
+                Button:
+                    id: move_button
+                    text: 'Bewegen'
+                    on_release: root.select_action('move')
+                Button:
+                    id: attack_button
+                    text: 'Angreifen'
+                    on_release: root.select_action('attack')
+                Button:
+                    id: interact_button
+                    text: 'Interagieren'
+                    on_release: root.interact()
+                Button:
+                    id: end_turn_button
+                    text: 'Zug beenden'
+                    on_release: root.end_turn()
+            Button:
+                text: 'Zurück zum Charakterbogen'
+                text_size: self.width - dp(8), None
+                halign: 'center'
+                size_hint_y: None
+                height: dp(48)
+                on_release: root.go_back()

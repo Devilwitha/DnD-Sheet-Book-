@@ -5,7 +5,7 @@
         spacing: 10
 
         Label:
-            text: "Datenübertragung"
+            text: 'Datenübertragung'
             font_size: '30sp'
             size_hint_y: None
             height: 80
@@ -16,6 +16,7 @@
             font_size: '18sp'
             size_hint_y: None
             height: 40
+            text_size: self.width, None
 
         ScreenManager:
             id: transfer_sm
@@ -25,22 +26,57 @@
                     orientation: 'vertical'
                     spacing: 10
                     Button:
-                        text: "Senden"
-                        on_press: root.go_to_send_view()
+                        text: 'Senden'
+                        on_press: transfer_sm.current = 'select_data_type'
                         size_hint_y: None
                         height: 80
                         font_size: '20sp'
                     Button:
-                        text: "Empfangen"
+                        text: 'Empfangen'
                         on_press: root.go_to_receive_view()
                         size_hint_y: None
                         height: 80
                         font_size: '20sp'
-                    BoxLayout: # Spacer
+                    BoxLayout:
                         size_hint_y: 1
                     Button:
-                        text: "Zurück zu den Optionen"
-                        on_press: root.manager.current = 'options'
+                        text: 'Zurück zu den Optionen'
+                        on_press: app.change_screen('options')
+                        size_hint_y: None
+                        height: 80
+                        font_size: '20sp'
+
+            Screen:
+                name: 'select_data_type'
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    padding: 10
+                    Label:
+                        text: 'Wähle den Datentyp zum Senden'
+                        font_size: '24sp'
+                        size_hint_y: None
+                        height: 60
+                    GridLayout:
+                        cols: 1
+                        spacing: 10
+                        Button:
+                            text: 'Charaktere (.char)'
+                            on_press: root.go_to_send_view_with_type('characters')
+                        Button:
+                            text: 'Karten (.json)'
+                            on_press: root.go_to_send_view_with_type('maps')
+                        Button:
+                            text: 'Gegnerlisten (.enemies)'
+                            on_press: root.go_to_send_view_with_type('enemies')
+                        Button:
+                            text: 'Sitzungen (.json)'
+                            on_press: root.go_to_send_view_with_type('sessions')
+                    BoxLayout:
+                        size_hint_y: 0.1
+                    Button:
+                        text: 'Zurück'
+                        on_press: root.back_to_main_transfer()
                         size_hint_y: None
                         height: 80
                         font_size: '20sp'
@@ -50,6 +86,12 @@
                 BoxLayout:
                     orientation: 'vertical'
                     spacing: 10
+                    Label:
+                        id: code_label
+                        text: ''
+                        font_size: '30sp'
+                        size_hint_y: None
+                        height: 50
                     ScrollView:
                         GridLayout:
                             id: file_list
@@ -59,13 +101,13 @@
                             spacing: 5
                             padding: 5
                     Button:
-                        text: "Ausgewählte Dateien Senden"
+                        text: 'Ausgewählte Dateien Senden'
                         on_press: root.send_files()
                         size_hint_y: None
                         height: 80
                         font_size: '20sp'
                     Button:
-                        text: "Zurück"
+                        text: 'Zurück'
                         on_press: root.back_to_main_transfer()
                         size_hint_y: None
                         height: 80
@@ -76,6 +118,30 @@
                 BoxLayout:
                     orientation: 'vertical'
                     spacing: 10
+                    TextInput:
+                        id: code_input
+                        hint_text: '16-stelliger Code vom Sender'
+                        write_tab: False
+                        multiline: False
+                        write_tab: False
+                        on_text: self.text = self.text[:19]
+                        size_hint_y: None
+                        height: 60
+                        font_size: '22sp'
+                    TextInput:
+                        id: host_input
+                        hint_text: 'Manuell: host:port (optional)'
+                        multiline: False
+                        write_tab: False
+                        size_hint_y: None
+                        height: 60
+                        font_size: '20sp'
+                    Button:
+                        text: 'Verbinden'
+                        on_press: root.connect_manual()
+                        size_hint_y: None
+                        height: 70
+                        font_size: '20sp'
                     ScrollView:
                         GridLayout:
                             id: service_list
@@ -85,7 +151,7 @@
                             spacing: 5
                             padding: 5
                     Button:
-                        text: "Zurück"
+                        text: 'Zurück'
                         on_press: root.back_to_main_transfer()
                         size_hint_y: None
                         height: 80

@@ -1,178 +1,109 @@
-# DnD(Sheet&Book)
+# DnD Sheet & Book / DnD Lokal
 
-Ein digitaler Charakterbogen und ein Zauberbuch für Dungeons & Dragons 5e.
+Digitaler Spieltisch für Android und Windows mit Charakterverwaltung, lokalem
+DM-/Spieler-Netzwerk, Sitzungsarchiv und Kartenwerkstatt. Grundlage ist der
+[Beta-Zweig von DnD Sheet & Book](https://github.com/Devilwitha/DnD-Sheet-Book-/tree/beta)
+von BolliSoft. Die ursprünglichen Mitwirkenden stehen in [CREDITS.txt](CREDITS.txt).
 
-## Ausführen auf einem Raspberry Pi
+## Aus dem Quellcode starten
 
-### Voraussetzungen
+Python 3.12 und eine virtuelle Umgebung verwenden:
 
-- Ein Raspberry Pi (Modell 4 oder neuer empfohlen).
-- Raspberry Pi OS mit Desktop. **Hinweis:** Eine grafische Desktop-Umgebung ist erforderlich, um diese Anwendung auszuführen. Sie funktioniert nicht in einer monitorlosen oder reinen SSH-Umgebung ohne X11-Weiterleitung.
-- Eine stabile Internetverbindung.
-
-### Installation
-
-1.  **System aktualisieren:**
-    Öffnen Sie ein Terminal auf Ihrem Raspberry Pi und führen Sie die folgenden Befehle aus, um sicherzustellen, dass Ihr System auf dem neuesten Stand ist:
-    ```bash
-    sudo apt-get update
-    sudo apt-get upgrade -y
-    ```
-
-2.  **Systemabhängigkeiten installieren:**
-    Kivy benötigt mehrere Systembibliotheken, um korrekt zu funktionieren. Installieren Sie diese mit dem folgenden Befehl:
-    ```bash
-    sudo apt-get install -y git python3-pip
-    sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-       pkg-config libgl1-mesa-dev libgles2-mesa-dev \
-       python3-setuptools libgstreamer1.0-dev git-core gstreamer1.0-plugins-base \
-       gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-       gstreamer1.0-libav python3-dev
-    ```
-
-3.  **Einrichtung der virtuellen Tastatur (für Touchscreens):**
-    Wenn Sie einen Touchscreen verwenden, benötigen Sie eine virtuelle Tastatur für die Texteingabe. Installieren Sie sie mit:
-    ```bash
-    sudo apt-get update && sudo apt-get install -y matchbox-keyboard
-    ```
-
-4.  **Anwendung klonen:**
-    Laden Sie die Anwendung von GitHub herunter:
-    ```bash
-    cd ~
-    git clone https://github.com/Devilwitha/DnD-Sheet-Book-.git DnD-Sheet-Book
-    ```
-
-5.  **Python-Pakete installieren:**
-    Neuere Versionen von Raspberry Pi OS schützen Systempakete. Die empfohlene Methode zur Installation von Python-Paketen ist die Verwendung einer virtuellen Umgebung.
-
-    **Methode 1: Virtuelle Umgebung (Empfohlen)**
-    
-    Erstellen und aktivieren Sie eine virtuelle Umgebung:
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
-    Installieren Sie nun Kivy und andere Abhängigkeiten. Ihre Terminal-Eingabeaufforderung sollte `(.venv)` anzeigen.
-    ```bash
-    pip install -r requirements.txt
-    ```
-    Um die App später auszuführen, müssen Sie die virtuelle Umgebung erneut mit `source .venv/bin/activate` aktivieren.
-
-    **Methode 2: Systemweite Installation (Fallback)**
-
-    Wenn Sie Probleme beim Erstellen einer virtuellen Umgebung haben, können Sie die Pakete systemweit installieren. Dies wird nicht empfohlen, da es andere Anwendungen stören kann.
-    ```bash
-    pip3 install --break-system-packages kivy
-    ```
-    or
-    ```
-    pip install -r --break-system-packages requirements.txt
-
-    ```
-
-### Manueller Start
-
-Nach der Installation können Sie die Anwendung manuell starten.
-
-**Wenn Sie eine virtuelle Umgebung verwendet haben:**
-```bash
-cd ~/DnD-Sheet-Book
-source .venv/bin/activate
-python3 main.py
+```sh
+python -m venv .venv
 ```
 
-**Wenn Sie systemweit installiert haben:**
-```bash
-cd ~/DnD-Sheet-Book
-python3 main.py
+Unter Windows `.venv\Scripts\activate`, unter Linux `source .venv/bin/activate`
+ausführen. Danach:
+
+```sh
+python -m pip install -r requirements.txt
+python main.py
 ```
 
-### Automatischer Start beim Hochfahren
+Beim ersten Start wird die Datenbank aus `utils/data/json_data` im lokalen
+Benutzerprofil erzeugt. Spielstände, Einstellungen und Logs gehören nicht zum
+Quellcode. `DND_DATA_DIR` kann für ein separates Testprofil gesetzt werden.
 
-So stellen Sie sicher, dass die Anwendung automatisch mit der grafischen Benutzeroberfläche startet:
+## Bedienung
 
-1.  **Start-Skript erstellen:**
-    Dieses Skript aktiviert die virtuelle Umgebung (falls verwendet) und startet die Anwendung.
-    ```bash
-    nano start_dnd.sh
-    ```
-    Fügen Sie den folgenden Inhalt hinzu. **Wichtig:** Wenn Sie keine virtuelle Umgebung verwendet haben, lassen Sie die `source`-Zeile weg.
-    ```bash
-    #!/bin/bash
-    cd /home/pi/DnD-Sheet-Book
-    python3 main.py
-    ```
-    Speichern und schließen Sie die Datei (Strg+X, dann Y, dann Enter).
+- Unter **DM Spiel** eine Kampagne vorbereiten oder eine Sitzung hosten.
+- Spieler verbinden sich im selben lokalen Netz per Sitzungscode oder QR-Code;
+  der DM bestätigt den Beitritt. Ein Gastnetz mit Geräteisolation kann Verbindungen
+  verhindern. Windows kann eine Netzwerkfreigabe für die App verlangen.
+- Die **Kartenwerkstatt** ist auch ohne geöffnete Kampagne verfügbar. Der Atlas
+  verbindet Welt, Regionen, Orte und Innenräume; gespeicherte Karten lassen sich
+  in Kampagnen wiederverwenden.
+- Das **Sitzungsarchiv** hält Ereignisse und DM-Notizen fest und erlaubt Exporte
+  zur Vorbereitung des nächsten Spielabends.
 
-    Machen Sie das Skript ausführbar:
-    ```bash
-    chmod +x start_dnd.sh
-    ```
+## Tests
 
-2.  **Autostart-Eintrag erstellen:**
-    Erstellen Sie eine `.desktop`-Datei im Autostart-Verzeichnis.
-    ```bash
-    mkdir -p ~/.config/autostart
-    nano ~/.config/autostart/dnd_app.desktop
-    ```
-    Fügen Sie den folgenden Inhalt hinzu. **Wichtig:** Stellen Sie sicher, dass der `Exec`-Pfad mit dem Speicherort Ihres Skripts übereinstimmt (z. B. `/home/devil/DnD-Sheet-Book/start_dnd.sh`, wenn Ihr Benutzer `devil` ist).
-    ```ini
-    [Desktop Entry]
-    Type=Application
-    Name=DnD Character Sheet
-    Exec=/home/pi/DnD-Sheet-Book/start_dnd.sh
-    StartupNotify=false
-    Terminal=false
-    ```
-    Speichern und schließen Sie die Datei.
-
-Die Anwendung sollte jetzt nach einem Neustart automatisch starten.
-
-## Splashscreen Installation
-Schritt-für-Schritt-Anleitung
-Hier ist die Vorgehensweise, um deinen eigenen Splash-Screen einzurichten:
-
-1. Bild vorbereiten
-Dateiname: Dein Bild muss splash.png heissen.
-
-Format: Es muss im PNG-Format vorliegen.
-
-Auflösung: Idealerweise sollte die Auflösung deines Bildes der deines Displays entsprechen, um Verzerrungen zu vermeiden.
-
-2. Ins richtige Verzeichnis kopieren
-Dein vorbereitetes Bild muss in das Verzeichnis /usr/share/plymouth/themes/pix/ kopiert werden.
-
-Öffne ein Terminal auf deinem Raspberry Pi.
-
-Sichere das Originalbild (optional, aber empfohlen), damit du es später wiederherstellen kannst:
-
-Bash
+```sh
+python -m pip install -r requirements_test.txt
+python -m pytest
 ```
-sudo mv /usr/share/plymouth/themes/pix/splash.png /usr/share/plymouth/themes/pix/splash.png.bak
-```
-Kopiere dein eigenes Bild in das Verzeichnis. Angenommen, dein Bild befindet sich im Home-Verzeichnis (/home/pi/dein-bild.png), dann lautet der Befehl:
 
-Bash
-```
-sudo cp ~/DnD-Sheet-Book/osbackground/splash.png /usr/share/plymouth/themes/pix/splash.png
-```
-Ersetze /home/pi/dein-bild.png mit dem tatsächlichen Pfad zu deiner Datei.
+Die Unit-Tests verwenden isolierte Daten und Kivy-Stubs. Zusätzlich prüfen diese
+Skripte echte Kivy-Fenster und benötigen eine grafische Desktop-Sitzung:
 
-3. System aktualisieren
-Damit dein neues Bild beim Systemstart geladen wird, musst du die "initial ramdisk" (initramfs) aktualisieren. Dies ist ein entscheidender Schritt unter Bookworm.
+```sh
+python scripts/verify_map_editor.py
+python scripts/verify_map_editor_interactions.py
+python scripts/verify_region_context.py
+python scripts/verify_live_play.py
+```
 
-Führe den folgenden Befehl im Terminal aus:
+Der letzte Test startet eine lokale TCP-Testsitzung. Alle Skripte verwenden eigene
+Testprofile. Screenshots und Ergebnisse landen unter `.test-output`; mit
+`DND_TEST_OUTPUT` lässt sich ein anderer Ausgabeordner wählen. Der Regionentest
+erzeugt seine Karten selbst und benötigt keine privaten Spielstände.
 
-Bash
-```
-sudo update-initramfs -u
-```
-4. Neustart
-Nachdem der vorherige Befehl abgeschlossen ist, starte deinen Raspberry Pi neu, um das Ergebnis zu sehen:
+## Windows-Paket erstellen
 
-Bash
+```sh
+python -m pip install -r requirements_windows.txt
+python scripts/prepare_build.py
+python -m PyInstaller --noconfirm --clean DnDLocal.spec
 ```
-sudo reboot
+
+Das vollständige Verzeichnis `dist/DnDLocal` weitergeben. Die EXE benötigt die
+beiliegenden Ressourcen. Die generierte Datenbank und Pakete werden nicht eingecheckt.
+
+## Android-Paket erstellen
+
+Der native Build benötigt Linux bzw. WSL2, JDK 17, Buildozer 1.5.0 und die
+[Buildozer-Systemabhängigkeiten](https://buildozer.readthedocs.io/en/latest/installation.html).
+Die vollständigen Befehle stehen auch in `.github/workflows/build-android.yml`.
+
+```sh
+python scripts/prepare_build.py
+buildozer -v android debug
 ```
-Dein Raspberry Pi sollte nun mit deinem benutzerdefinierten Splash-Screen starten.
+
+`buildozer.spec` bindet den Java-QR-Scanner, ZXing, Kartenbilder und PDF-Schrift ein.
+`recipes/reportlab` verwendet ReportLab 4 ohne optionale native Beschleuniger.
+Dieser native Android-Buildpfad ist noch nicht durch einen vollständigen Neubau
+und Gerätetest verifiziert. Die vorhandenen lokal installierten APKs wurden über
+einen separaten Paketierungsweg erstellt; dessen lokale Werkzeuge und Schlüssel
+sind kein Bestandteil des Projekts.
+Insbesondere müssen die nativen Pakete Pillow und psutil mit der festgelegten
+python-for-android-Version geprüft und gegebenenfalls ihre Baurezepte angepasst
+werden. Der manuelle Android-Workflow ist daher noch kein bestätigter Release-Build.
+
+Vor einer Android-Veröffentlichung müssen Paketkennung, Versionscode und Signierung
+festgelegt werden. Ein Update einer vorhandenen Installation benötigt dieselbe
+Paketkennung und denselben Signaturschlüssel sowie einen passenden Versionscode.
+Die Build-Workflows werden manuell gestartet und erzeugen nur Build-Artefakte;
+sie veröffentlichen keine Releases.
+
+## Ressourcen und Lizenzen
+
+`assets/map_assets/catalog.json` beschreibt die enthaltenen Kartenbilder samt
+Prüfsummen und Qualitätsstatus. Manche Bilder benötigen noch grafische Nacharbeit.
+Die Asset-Erstellungswerkstatt gehört nicht zum Laufzeitprojekt.
+
+Vorhandene Lizenztexte für gebündelte Komponenten und Schriften liegen unter
+`licenses`. Diese Texte sind keine pauschale Lizenz für den gesamten Projektcode,
+die übernommenen Regeldaten oder alle Bilder. Für eine öffentliche Weitergabe
+bleibt deren jeweilige Herkunft und Nutzungsfreigabe zu klären.

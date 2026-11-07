@@ -7,10 +7,13 @@
         Label:
             id: title_label
             font_size: '24sp'
+            text_size: self.width, None
+            halign: 'center'
             size_hint_y: None
-            height: 50
+            height: max(dp(50), self.texture_size[1] + dp(8))
 
         ScrollView:
+            do_scroll_x: False
             GridLayout:
                 id: level_up_layout
                 cols: 1
@@ -20,11 +23,12 @@
 
         BoxLayout:
             size_hint_y: None
-            height: 50
+            height: dp(56)
             spacing: 10
             Button:
+                id: confirm_button
                 text: "Bestätigen"
-                on_press: root.confirm_level_up()
+                on_release: root.confirm_level_up()
             Button:
                 text: "Abbrechen"
                 on_press: root.cancel_level_up()
