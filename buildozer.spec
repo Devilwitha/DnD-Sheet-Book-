@@ -11,7 +11,7 @@ version.filename = %(source.dir)s/version.txt
 requirements = python3,kivy==2.3.1,pyjnius,android,zeroconf==0.147.0,ifaddr==0.2.0,psutil==7.0.0,sqlite3,segno==1.6.6,Pillow==9.5.0,reportlab,charset-normalizer
 icon.filename = %(source.dir)s/logo/logo.png
 presplash.filename = %(source.dir)s/logo/logo.png
-orientation = all
+orientation = portrait,landscape,portrait-reverse,landscape-reverse
 fullscreen = 0
 android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,CHANGE_WIFI_MULTICAST_STATE,CAMERA
 android.api = 33
